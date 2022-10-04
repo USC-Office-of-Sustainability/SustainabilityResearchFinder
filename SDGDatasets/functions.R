@@ -4,6 +4,10 @@
 # paths of csv files
 ff = list.files("./DownloadedData", pattern = "csv", full.names = TRUE)
 
+removePunctuation = function(x) {
+  gsub("[^[:alnum:][:space:]-]", "", x)
+}
+
 reformat = function(filename) {
   # read csv
   d = read.csv(filename)
@@ -11,6 +15,9 @@ reformat = function(filename) {
   # clean abstract
   # remove copyright
   d$Abstract = gsub("([^.]*©.*)", "", d$Abstract)
+  # remove punctuation
+  d$Titles = removePunctuation(d$Titles)
+  d$Abstract = removePunctuation(d$Abstract)
 
   # combine into a new dataframe with one column for SDG and one column for text
   # assuming that the file name is in the format with SDG#
