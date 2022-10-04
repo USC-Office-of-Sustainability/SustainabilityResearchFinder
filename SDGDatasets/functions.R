@@ -41,3 +41,6 @@ reformat = function(filename) {
 }
 
 tmp = lapply(ff, reformat)
+
+# clean up
+rm(tmp)
