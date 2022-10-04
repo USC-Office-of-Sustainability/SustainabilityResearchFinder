@@ -37,7 +37,7 @@ reformat = function(filename) {
   newfilename = paste("./FormattedData/re", relativefilename, sep = "")
   write.csv(df, file = newfilename, row.names = FALSE)
   
-  df
+  data.frame("SDG" = sdgnum, "Text" = "done")
 }
 
 tmp = lapply(ff, reformat)
