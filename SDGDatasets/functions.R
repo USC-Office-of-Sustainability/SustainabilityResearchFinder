@@ -1,3 +1,4 @@
+# for training data
 # downloaded csv goes into DownloadedData folder
 # newly formatted csv will be found in FormattedData folder
 
@@ -44,3 +45,23 @@ tmp = lapply(ff, reformat)
 
 # clean up
 rm(tmp)
+
+# for testing data
+d = read.csv("./DownloadedTestingData/SDG_PUB_testing_ckidsdataset.csv")
+# clean abstract
+# remove copyright
+d$Abstract = gsub("([^.]*©.*)", "", d$Abstract)
+# remove punctuation
+d$Title = removePunctuation(d$Title)
+d$Abstract = removePunctuation(d$Abstract)
+d$Author.Keywords = removePunctuation(d$Author.Keywords)
+
+# remove SDG 0 and 17
+d = d[d$Primary.SDG %in% seq(1,16),]
+
+combinedtext = paste("[TITLE]", d$Title, "[KEYWORDS]", d$Author.Keywords, "[ABSTRACT]", d$Abstract)
+
+df = data.frame("SDG" = d$Primary.SDG, "Text" = combinedtext)
+
+newfilename = "./FormattedData/SDG_PUB_Testing"
+write.csv(df, file = newfilename, row.names = FALSE)
