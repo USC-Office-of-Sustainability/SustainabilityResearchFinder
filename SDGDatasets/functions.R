@@ -42,24 +42,34 @@ oneString = function(d) {
 # input: file name
 # output: 1 data frame: file name and "Done"
 # writes a CSV file with one column for SDG and one column for text
-# CSV files found in ./FormattedData/
-reformat = function(filename, SDGinName = FALSE) {
+# formatted CSV files found in ./FormattedData/
+reformat = function(filename) {
   # read csv
   d = read.csv(filename)
   
+  # remove SDG 0 and 17 for testing data
+  if ("Primary.SDG" %in% colnames(d)) {
+    d = d[d$Primary.SDG %in% seq(1,16),]
+  }
+  
   # clean text
   d = cleanText(d)
-
-  # assuming that the file name is in the format with SDG#
-  relativefilename = gsub(".*\\/", "", filename)
-  sdgnum = gsub("[0-9]*SDG([0-9]*)\\.csv", "\\1", relativefilename)
   
+  # make new data frame for formatted csv
   combinedtext = oneString(d)
+  df = data.frame("Text" = combinedtext)
   
-  df = data.frame("SDG" = sdgnum, "Text" = combinedtext)
+  # get the SDG
+  if ("Primary.SDG" %in% colnames(d)) {
+    df$SDG = d$Primary.SDG
+  } else {
+    # assuming that the file name is in the format with SDG#
+    relativefilename = gsub(".*\\/", "", filename)
+    df$SDG = gsub("[0-9]*SDG([0-9]*)\\.csv", "\\1", relativefilename)
+  }
   
   # output csv
-  newfilename = paste("./FormattedData/re", relativefilename, sep = "")
+  newfilename = gsub("DownloadedData", "FormattedData", filename)
   write.csv(df, file = newfilename, row.names = FALSE)
   
   data.frame("File name" = filename, "Text" = "done")
@@ -69,17 +79,3 @@ tmp = lapply(ff, reformat)
 
 # clean up
 rm(tmp)
-
-# for testing data
-d = read.csv("./DownloadedTestingData/SDG_PUB_testing_ckidsdataset.csv")
-d = cleanText(d)
-
-# remove SDG 0 and 17
-d = d[d$Primary.SDG %in% seq(1,16),]
-
-combinedtext = oneString(d)
-
-df = data.frame("SDG" = d$Primary.SDG, "Text" = combinedtext)
-
-newfilename = "./FormattedData/SDG_PUB_Testing.csv"
-write.csv(df, file = newfilename, row.names = FALSE)
