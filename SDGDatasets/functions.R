@@ -31,11 +31,12 @@ cleanText = function(d) {
 # input: 1 data frame
 # output: string in the format "[TITLE]...[KEYWORDS]...[ABSTRACT]..."
 oneString = function(d) {
+  s = paste("[TITLE]", d$Title) # includes d$Titles
   if ("Author.Keywords" %in% colnames(d)) {
-    return (paste("[TITLE]", d$Titles, "[KEYWORDS]", d$Author.Keywords, "[ABSTRACT]", d$Abstract))
-  } else {
-    return (paste("[TITLE]", d$Titles, "[ABSTRACT]", d$Abstract))
+    s = paste(s, "[KEYWORDS]", d$Author.Keywords)
   }
+  s = paste(s, "[ABSTRACT]", d$Abstract)
+  s
 }
 
 # input: file name
