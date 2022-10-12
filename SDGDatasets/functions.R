@@ -9,6 +9,8 @@ removePunctuation = function(x) {
   gsub("[^[:alnum:][:space:]-]", "", x)
 }
 
+# input: 1 data frame
+# output: 1 data frame with cleaned text
 cleanText = function(d) {
   # remove copyright
   d$Abstract = gsub("([^.]*©.*)", "", d$Abstract)
@@ -36,14 +38,17 @@ oneString = function(d) {
   }
 }
 
-reformat = function(filename) {
+# input: file name
+# output: 1 data frame: file name and "Done"
+# writes a CSV file with one column for SDG and one column for text
+# CSV files found in ./FormattedData/
+reformat = function(filename, SDGinName = FALSE) {
   # read csv
   d = read.csv(filename)
   
   # clean text
   d = cleanText(d)
 
-  # combine into a new dataframe with one column for SDG and one column for text
   # assuming that the file name is in the format with SDG#
   relativefilename = gsub(".*\\/", "", filename)
   sdgnum = gsub("[0-9]*SDG([0-9]*)\\.csv", "\\1", relativefilename)
@@ -56,7 +61,7 @@ reformat = function(filename) {
   newfilename = paste("./FormattedData/re", relativefilename, sep = "")
   write.csv(df, file = newfilename, row.names = FALSE)
   
-  data.frame("SDG" = sdgnum, "Text" = "done")
+  data.frame("File name" = filename, "Text" = "done")
 }
 
 tmp = lapply(ff, reformat)
