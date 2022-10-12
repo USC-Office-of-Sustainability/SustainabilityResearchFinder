@@ -1,3 +1,4 @@
+# for publications
 # downloaded csv goes into DownloadedData folder
 # newly formatted csv will be found in FormattedData folder
 # files will maintain the same name but be in different folders
@@ -82,3 +83,16 @@ tmp = lapply(ff, reformat)
 
 # clean up
 rm(tmp)
+
+
+# for suggested keywords
+# split the SDGs/goals such that each row only has 1 SDG that share the same keyword
+d = read.csv("./suggestedkeywords.csv")
+df = data.frame()
+splitSDGs = lapply(strsplit(d$goal, ","), trimws)
+for (i in 1:length(splitSDGs)) {
+  tmp = data.frame("SDG" = splitSDGs[[i]], "keyword" = d[i,]$keyword)
+  df = rbind(df, tmp)
+}
+write.csv(df, file = "./separatedkeywords.csv", row.names = FALSE)
+
