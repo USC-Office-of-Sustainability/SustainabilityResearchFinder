@@ -1,6 +1,6 @@
-# for training data
 # downloaded csv goes into DownloadedData folder
 # newly formatted csv will be found in FormattedData folder
+# files will maintain the same name but be in different folders
 
 # paths of csv files
 ff = list.files("./DownloadedData", pattern = "csv", full.names = TRUE)
@@ -68,11 +68,14 @@ reformat = function(filename) {
     df$SDG = gsub("[0-9]*SDG([0-9]*)\\.csv", "\\1", relativefilename)
   }
   
+  # reorder the columns
+  df = df[,c(2,1)]
+  
   # output csv
   newfilename = gsub("DownloadedData", "FormattedData", filename)
   write.csv(df, file = newfilename, row.names = FALSE)
   
-  data.frame("File name" = filename, "Text" = "done")
+  data.frame("File name" = filename, "Status" = "done")
 }
 
 tmp = lapply(ff, reformat)
