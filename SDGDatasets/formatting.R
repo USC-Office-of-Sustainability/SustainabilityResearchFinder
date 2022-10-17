@@ -15,6 +15,7 @@ removePunctuation = function(x) {
 cleanText = function(d) {
   # remove copyright
   d$Abstract = gsub("([^.]*©.*)", "", d$Abstract)
+  d$Abstract = gsub("([^.]*Copyright.*)", "", d$Abstract)
   
   # remove punctuation
   if ("Titles" %in% colnames(d)) {
