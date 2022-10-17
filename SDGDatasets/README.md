@@ -9,7 +9,7 @@ For suggested keywords:
 Reads a CSV file of keywords and splits the SDGs/goals such that each row only has 1 SDG that shares the same keyword. Outputs a CSV file with two columns: SDG and keyword.
 
 ## analyze.R
-Comparing the output from ML model with the actual primary and secondary SDG classifications. Ouputs a CSV file with T/F column for matched primary SDG and matched secondary SDGs.
+Comparing the output from ML model with the actual primary and secondary SDG classifications.
 
 ## DownloadedData/
 Data downloaded from Scopus or Google Drive
