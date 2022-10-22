@@ -65,9 +65,10 @@ reformat = function(filename) {
   if ("Primary.SDG" %in% colnames(d)) {
     df$SDG = d$Primary.SDG
   } else {
-    # assuming that the file name is in the format with SDG#
+    # assuming that the file name is in the format with SDG# or sdg#
     relativefilename = gsub(".*\\/", "", filename)
-    df$SDG = gsub("[0-9]*SDG([0-9]*)\\.csv", "\\1", relativefilename)
+    sdgnum = gsub(".*((sdg|SDG)[0-9]*)\\.csv", "\\1", relativefilename)
+    df$SDG = gsub("[^0-9]*([0-9]*)", "\\1", sdgnum)
   }
   
   # reorder the columns
