@@ -50,9 +50,9 @@ reformat = function(filename) {
   d = read.csv(filename)
   
   # remove SDG 0 and 17 for testing data
-  if ("Primary.SDG" %in% colnames(d)) {
-    d = d[d$Primary.SDG %in% seq(1,16),]
-  }
+  #if ("Primary.SDG" %in% colnames(d)) {
+  #  d = d[d$Primary.SDG %in% seq(1,16),]
+  #}
   
   # clean text
   d = cleanText(d)
@@ -73,6 +73,9 @@ reformat = function(filename) {
   
   # reorder the columns
   df = df[,c(2,1)]
+  
+  # DOI as unique ID
+  df$DOI = d$DOI
   
   # output csv
   newfilename = gsub("DownloadedData", "FormattedData", filename)
