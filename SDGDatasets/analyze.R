@@ -5,7 +5,7 @@ ff = list.files("../Predictions", pattern = "csv", full.names = TRUE)
 
 # get primary and secondary SDGs
 orig = read.csv("./DownloadedData/SDG_PUB_testing_ckidsdataset.csv")
-orig = orig[, c("Primary.SDG", "SDGs_All")]
+orig = orig[, c("Primary.SDG", "SDGs_All", "DOI")]
 orig = orig[orig$Primary.SDG %in% seq(1,16),]
 orig$X = seq(0, length(orig$Primary.SDG)-1)
 
@@ -41,20 +41,35 @@ names(pred)[3] <- 'Primary.SDG'
 d = merge(orig, pred, by = intersect(names(orig), names(pred)))
 d$Primary.SDG = paste("'",d$Primary.SDG,"'", sep="")
 
-d$MatchedPrimary = FALSE
+# remove []
+d$SDG.Predictions = sapply(d$SDG.Predictions, function(x) {x = gsub("\\[([^]]*)\\]", "\\1",x)})
+d$Probabilities = sapply(d$Probabilities, function(x) {x = gsub("\\[([^]]*)\\]", "\\1", x)})
+
+d$PredictedPrimary = 0
+for (i in 1:length(d$X)) {
+  idx = which.max(lapply(strsplit(d$Probabilities[i], ","), function(x) {x = as.numeric(trimws(x))})[[1]])
+  d[i,]$PredictedPrimary = lapply(strsplit(d$SDG.Predictions[i], ","), trimws)[[1]][idx]
+}
+
+d$MatchedPrimary = d$PredictedPrimary == d$Primary.SDG
 d$MatchedSecondary = FALSE
+d$MatchedAny = FALSE
 
 separatedSDGs = lapply(strsplit(d$SDGs_All, ","), function(x) {
   x=trimws(x)
   paste("'",x,"'", sep="")})
 for (i in 1:length(separatedSDGs)) {
-  d[i,]$MatchedPrimary = grepl(d$Primary.SDG[i], d$SDG.Predictions[i])
+  d[i,]$MatchedSecondary = any(grepl(d[i,]$PredictedPrimary, separatedSDGs[[i]]))
   for (j in separatedSDGs[[i]]) {
-    d[i,]$MatchedSecondary = any(grepl(j, d$SDG.Predictions[i]), d[i,]$MatchedSecondary)
+    d[i,]$MatchedAny = any(grepl(j, d$SDG.Predictions[i]), d[i,]$MatchedAny)
   }
 }
 
 # calculate
 res = data.frame("name" = "predictions_aurora.csv", 
                  "Primary SDG Accuracy" = sum(d$MatchedPrimary)/length(d$MatchedPrimary),
-                 "Secondary SDG Accuracy" = sum(d$MatchedSecondary)/length(d$MatchedSecondary))
+                 "Secondary SDG Accuracy" = sum(d$MatchedSecondary)/length(d$MatchedSecondary),
+                 "Any SDG Accuracy" = sum(d$MatchedAny)/length(d$MatchedAny))
+
+write.csv(d, file = "./predictions_aurora_primarysecondaryall.csv", row.names = FALSE)
+
