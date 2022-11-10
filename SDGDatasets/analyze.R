@@ -35,3 +35,26 @@ calculateAccuracy = function(filename) {
 }
 
 res = lapply(ff, calculateAccuracy)
+
+pred = read.csv("predictions_aurora.csv")
+names(pred)[3] <- 'Primary.SDG'
+d = merge(orig, pred, by = intersect(names(orig), names(pred)))
+d$Primary.SDG = paste("'",d$Primary.SDG,"'", sep="")
+
+d$MatchedPrimary = FALSE
+d$MatchedSecondary = FALSE
+
+separatedSDGs = lapply(strsplit(d$SDGs_All, ","), function(x) {
+  x=trimws(x)
+  paste("'",x,"'", sep="")})
+for (i in 1:length(separatedSDGs)) {
+  d[i,]$MatchedPrimary = grepl(d$Primary.SDG[i], d$SDG.Predictions[i])
+  for (j in separatedSDGs[[i]]) {
+    d[i,]$MatchedSecondary = any(grepl(j, d$SDG.Predictions[i]), d[i,]$MatchedSecondary)
+  }
+}
+
+# calculate
+res = data.frame("name" = "predictions_aurora.csv", 
+                 "Primary SDG Accuracy" = sum(d$MatchedPrimary)/length(d$MatchedPrimary),
+                 "Secondary SDG Accuracy" = sum(d$MatchedSecondary)/length(d$MatchedSecondary))
