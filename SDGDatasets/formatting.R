@@ -74,6 +74,11 @@ reformat = function(filename) {
   # reorder the columns
   df = df[,c(2,1)]
   
+  # add all SDG
+  if ("SDGs_All" %in% colnames(d)) {
+    df$SDGs_All = d$SDGs_All 
+  }
+  
   # DOI as unique ID
   df$DOI = d$DOI
   
