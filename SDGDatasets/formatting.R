@@ -3,8 +3,11 @@
 # newly formatted csv will be found in FormattedData folder
 # files will maintain the same name but be in different folders
 
+srcdir = "DownloadedData"
+destdir = "FormattedData"
+
 # paths of csv files
-ff = list.files("./DownloadedData", pattern = "csv", full.names = TRUE)
+ff = list.files(paste("./", srcdir, sep = ""), pattern = "csv", full.names = TRUE)
 
 removePunctuation = function(x) {
   gsub("[^[:alnum:][:space:]-]", "", x)
@@ -83,7 +86,7 @@ reformat = function(filename) {
   df$DOI = d$DOI
   
   # output csv
-  newfilename = gsub("DownloadedData", "FormattedData", filename)
+  newfilename = gsub(srcdir, destdir, filename)
   write.csv(df, file = newfilename, row.names = FALSE)
   
   data.frame("File name" = filename, "Status" = "done")
