@@ -22,7 +22,7 @@ tmp = do.call(rbind, tmp)
 publication_author = data.frame() # DOI and AuthorID
 author = data.frame(matrix(ncol=2,nrow=0, dimnames=list(NULL, c("ID", "Name"))))
 
-for (j in 1:10) {
+for (j in 1:nrow(tmp)) {
   auth_affl_vec = strsplit(tmp$Authors.with.affiliations[j], ";")[[1]]
   matched = grep("(uni[versity\\.]{0,} (of )?sou?th[ernm]{0,}[,-]? ?california)|(USC)|(keck school of medicine)|(keck medical center)|(keck medical school)", auth_affl_vec, ignore.case = TRUE)
   auth_full_name = strsplit(tmp$Author.full.names[j], ";")[[1]]
@@ -46,10 +46,18 @@ for (j in 1:10) {
 # USC directory
 library(RCurl)
 library(RJSONIO)
-con = getCurlHandle(followlocation = TRUE, verbose = TRUE,ssl.verifypeer = FALSE, cookie = "mbox=session#cf1541a039224330a7690b36e8632037#1663617437|PC#cf1541a039224330a7690b36e8632037.35_0#1726860377; AMCV_4D6368F454EC41940A4C98A6@AdobeOrg=1176715910|MCIDTS|19255|MCMID|81731551737931773397180553428496293094|MCAID|NONE|MCOPTOUT-1663622785s|NONE|vVersion|5.4.0; AMCV_A450776A5245ACC00A490D44@AdobeOrg=-1124106680|MCIDTS|19269|MCMID|36216961312940415734330619965701752051|MCAID|NONE|MCOPTOUT-1664835445s|NONE|vVersion|5.2.0; WWTRBQJP=0297a45327-1bed-4feP8LPIjg7QJrxyxTcPqkTtMYHx66rtBXzG3rtRfi8z0ixdXzFE1sGBteOer3oArIFIY")
-tt = getForm("https://uscdirectory.usc.edu/web/directory/faculty-staff/proxy.php", 
-             first = "lynne",
-             last = "casper", 
+USCDirectoryCookie = readLines("uscdirectory.cookie", warn = FALSE)[1]
+con = getCurlHandle(followlocation = TRUE, 
+                    ssl.verifypeer = FALSE, 
+                    #verbose = TRUE,
+                    cookie = USCDirectoryCookie)
+
+author$Department = ""
+author$Division = ""
+for (i in 1:nrow(author)) {
+  tt = getForm("https://uscdirectory.usc.edu/web/directory/faculty-staff/proxy.php", 
+             first = author$FName[i],
+             last = author$LName[i], 
              curl = con,
              .opts = list(httpheader = c("Accept" = "text/plain, */*; q=0.01",
                                          "Accept-Encoding" = "gzip, deflate, br",
@@ -67,7 +75,43 @@ tt = getForm("https://uscdirectory.usc.edu/web/directory/faculty-staff/proxy.php
                                          "Sec-Fetch-Site" = "same-origin",
                                          "User-Agent" = "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Mobile Safari/537.36",
                                          "X-Requested-With" = "XMLHttpRequest")))
-vals = fromJSON(tt)
+  if (tt != "") {
+    vals = fromJSON(tt)
+    if (is.null(names(vals))) { # multiple results
+      for (i in 1:length(vals)) {
+        v = vals[[i]]
+        if (author$FName[i] == v$uscdisplaygivenname & author$LName[i] == v$uscdisplaysn) {
+          if ("departmentnumber" %in% names(v)) {
+            author[i,]$Department = v$departmentnumber
+          }
+          if ("uscemployeedivision" %in% names(v)) {
+            author[i,]$Division = v$uscemployeedivision 
+          }
+          break
+        }
+      }
+    } else {
+      if (author$FName[i] == vals$uscdisplaygivenname & author$LName[i] == vals$uscdisplaysn) {
+        if ("departmentnumber" %in% names(vals)) {
+          author[i,]$Department = vals$departmentnumber
+        }
+        if ("uscemployeedivision" %in% names(vals)) {
+          author[i,]$Division = vals$uscemployeedivision 
+        }
+      }
+    }
+    
+  } # else no results
+  
+}
+
+write.csv(author, file = "./USCauthorsSDG1to11.csv", row.names = FALSE)
+write.csv(publication_author, file = "./USCpubidauthidSDG1to11.csv", row.names = FALSE)
+
+auth_info = merge(publication_author, author, by.x = "AuthorId", by.y = "ID")
+pub_auth_full = merge(auth_info, tmp, by.x = "DOI", by.y = "DOI")
+
+write.csv(pub_auth_full, file = "./USCpubauthfullSDG1to11.csv", row.names = FALSE)
 
 # SCOPUS
 
