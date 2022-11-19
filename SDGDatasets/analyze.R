@@ -36,22 +36,27 @@ calculateAccuracy = function(filename) {
 
 res = lapply(ff, calculateAccuracy)
 
-pred = read.csv("predictions_aurora.csv")
-names(pred)[3] <- 'Primary.SDG'
-d = merge(orig, pred, by = intersect(names(orig), names(pred)))
+pred = read.csv("predictions_new.csv")
+#names(pred)[3] <- 'Primary.SDG'
+#d = merge(orig, pred, by = intersect(names(orig), names(pred)))
+d = pred
+
+names(d)[9] <- 'PredictedPrimary'
+names(d)[2] <- 'Primary.SDG'
+d$MatchedPrimary = d$PredictedPrimary == d$Primary.SDG
+
 d$Primary.SDG = paste("'",d$Primary.SDG,"'", sep="")
 
 # remove []
 d$SDG.Predictions = sapply(d$SDG.Predictions, function(x) {x = gsub("\\[([^]]*)\\]", "\\1",x)})
 d$Probabilities = sapply(d$Probabilities, function(x) {x = gsub("\\[([^]]*)\\]", "\\1", x)})
 
-d$PredictedPrimary = 0
-for (i in 1:length(d$X)) {
-  idx = which.max(lapply(strsplit(d$Probabilities[i], ","), function(x) {x = as.numeric(trimws(x))})[[1]])
-  d[i,]$PredictedPrimary = lapply(strsplit(d$SDG.Predictions[i], ","), trimws)[[1]][idx]
-}
+#d$PredictedPrimary = 0
+#for (i in 1:length(d$X)) {
+#  idx = which.max(lapply(strsplit(d$Probabilities[i], ","), function(x) {x = as.numeric(trimws(x))})[[1]])
+#  d[i,]$PredictedPrimary = lapply(strsplit(d$SDG.Predictions[i], ","), trimws)[[1]][idx]
+#}
 
-d$MatchedPrimary = d$PredictedPrimary == d$Primary.SDG
 d$MatchedSecondary = FALSE
 d$MatchedAny = FALSE
 
@@ -73,3 +78,11 @@ res = data.frame("name" = "predictions_aurora.csv",
 
 write.csv(d, file = "./predictions_aurora_primarysecondaryall.csv", row.names = FALSE)
 
+
+#install.packages("caret")
+library(caret)
+
+cm = data.frame(Predicted = as.factor(d$PredictedPrimary), 
+                Actual = as.factor(as.numeric(gsub("'([0-9]*)'","\\1",d$Primary.SDG))))
+
+confusionMatrix(data = cm$Predicted, reference = cm$Actual)
