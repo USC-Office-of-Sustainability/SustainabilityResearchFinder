@@ -7,6 +7,10 @@ showtoc: true
 ---
 
 # Motivation
+![Assignment Earth Research](assets/images/Asgmt_Earth_Research.png){: width="250"}
+
+![UN's 17 SDGs](assets/images/UN_SDGs.jpg){: width="250"}
+
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. In quis rutrum orci. In ac lorem vel tellus facilisis mollis et non mi. Aenean ullamcorper lorem vitae mauris dictum pellentesque sit amet ut turpis. Proin eleifend eros lorem, vitae pellentesque sem eleifend id. Proin scelerisque urna enim, sed volutpat mi lobortis nec. Morbi pretium eros magna, id fringilla arcu consequat sed. Quisque ut metus nec dolor vulputate bibendum. Nam eu mollis purus.
 
 
