@@ -291,3 +291,11 @@ for (i in 1:nrow(author)) {
 }
 
 author[author$affiliationid %in% usc_affiliation_ids,]
+
+
+sdg0 = read.csv("USC_SDG0.csv")
+col2keep = intersect(names(sdg0), names(sdg1to16))
+sdg0subset = sdg0[col2keep]
+sdg1to16 = read.csv("USC_SDG1to16.csv")
+sdg0to16 = rbind(sdg0subset, sdg1to16)
+write.csv(sdg0to16, file = "./USC_SDG0to16.csv", row.names = FALSE)
