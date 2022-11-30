@@ -26,6 +26,10 @@ authors = read.csv("USCauthorsSDG1to16.csv")
 authorChoices = setNames(authors$ID, authors$Name)
 pub_auth = read.csv("USCpubauthfullinfoSDG1to16.csv")
 pubwithzero = read.csv("USC_SDG0to16.csv")
+# named vector for SDG colors
+sdg_colors <- c('1' = '#E5243B', '2' = '#DDA63A', '3' = '#4C9F38', '4' = '#C5192D', '5' = '#FF3A21', '6' = '#26BDE2',
+                '7' = '#FCC30B', '8' = '#A21942', '9' = '#FD6925', '10' = '#DD1367', '11' = '#FD9D24', '12' = '#BF8B2E',
+                '13' = '#3F7E44', '14' = '#0A97D9', '15' = '#56C02B', '16' = '#00689D', '17' = '#19486A')
 
 # Define UI for application that draws a histogram
 ui <- dashboardPage( skin="black",
@@ -173,13 +177,18 @@ server <- function(input, output) {
       author_sdg_barplot <- pub_auth %>%
         filter(pub_auth$AuthorId == input$usc_author) %>%
         count(Primary.SDG) %>%
-        ggplot(aes(x = as.factor(Primary.SDG), y = n)) + 
+        ggplot(aes(x = factor(Primary.SDG), y = n, color = factor(Primary.SDG), fill = factor(Primary.SDG))) + 
         geom_col() +
+        scale_color_manual(values = sdg_colors,
+                           aesthetics = c("color", "fill")) +
         coord_flip() +
         scale_y_continuous(breaks = scales::pretty_breaks()) +
         labs(title = names(input$usc_author),
              x = "SDG",
-             y = "Number of Publications")
+             y = "Number of Publications",
+             fill = "SDG",
+             color = "SDG") +
+        theme_minimal()
       return(author_sdg_barplot)
     }
   )
