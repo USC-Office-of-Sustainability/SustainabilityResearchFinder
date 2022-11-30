@@ -96,7 +96,7 @@ Right now, the results are from Scopus SDG Search Query. We are working on updat
                                               fluidRow(column(12, DT::dataTableOutput("auth_about"))),
                                               # graph
                                               h3("Graph of Author's Publications by SDG"),
-                                              fluidRow(column(12, plotOutput("author_sdg_barplot"))),
+                                              fluidRow(column(6, plotOutput("author_sdg_barplot"))),
                                               # table
                                               h3("List of Author's Publications"),
                                               fluidRow(bootstrapPage(
