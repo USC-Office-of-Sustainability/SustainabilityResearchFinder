@@ -17,29 +17,58 @@ carousels:
 
          
 ---
-
+# IN PROGRESS
 # Motivation
 ![Assignment Earth Research](assets/images/Asgmt_Earth_Research.png){: width="250"}
 
 ![UN's 17 SDGs](assets/images/UN_SDGs.jpg){: width="250"}
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. In quis rutrum orci. In ac lorem vel tellus facilisis mollis et non mi. Aenean ullamcorper lorem vitae mauris dictum pellentesque sit amet ut turpis. Proin eleifend eros lorem, vitae pellentesque sem eleifend id. Proin scelerisque urna enim, sed volutpat mi lobortis nec. Morbi pretium eros magna, id fringilla arcu consequat sed. Quisque ut metus nec dolor vulputate bibendum. Nam eu mollis purus.
+AC-9 of USC's STARS report
 
 
 # Problem
+1. How to classify publications into 17 SDGs
+    a. ML model
+2. How to display results
+    a. Dashboard
 
 # Data
+1. Curated list of publications with assigned primary and secondary SDG
+2. Downloaded 2020-2023 USC affiliated publications from Scopus  
+    a. using Elsevier’s 2022 search queries for SDG 1 to 16  
+    b. SDG 0 is all the USC publications not in SDG 1 to 16
 
 # Methods
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. In quis rutrum orci. In ac lorem vel tellus facilisis mollis et non mi. Aenean ullamcorper lorem vitae mauris dictum pellentesque sit amet ut turpis. Proin eleifend eros lorem, vitae pellentesque sem eleifend id. Proin scelerisque urna enim, sed volutpat mi lobortis nec. Morbi pretium eros magna, id fringilla arcu consequat sed. Quisque ut metus nec dolor vulputate bibendum. Nam eu mollis purus.
-
-Aliquam metus massa, suscipit eu erat sit amet, interdum rutrum lorem. Proin tempor sapien sit amet quam posuere ornare. Cras dictum suscipit velit, et efficitur sapien dapibus vel. Cras et ex ut ante consequat vehicula. Donec ut posuere enim, sit amet sollicitudin dui. Pellentesque nisi ante, ullamcorper id vestibulum sit amet, ultricies eu sapien. Donec molestie ex hendrerit, venenatis nisl quis, malesuada est. Sed ultricies mauris consequat rutrum condimentum. Donec rutrum eleifend justo sit amet ultrices.
-
-Nulla in ultrices dolor, vitae pharetra nisi. Vivamus blandit nisl eu enim consequat, ullamcorper auctor sem dapibus. Quisque nec vehicula justo. Cras risus nibh, rhoncus accumsan bibendum ut, ornare nec purus. Praesent mattis augue at ultrices lacinia. In vitae condimentum lacus, nec accumsan eros. Vestibulum ut enim ac felis viverra luctus. Sed iaculis tempor felis sed luctus. Cras et massa eu arcu feugiat euismod. Morbi finibus tristique est ac dictum. Vestibulum sapien orci, hendrerit sit amet ullamcorper quis, rhoncus a est. Vivamus vel laoreet magna. Vivamus volutpat, mauris non elementum dignissim, massa nunc suscipit ex, eu vulputate turpis odio rhoncus neque. Aenean dolor nulla, pretium et justo sed, sodales fermentum turpis.
+1. Using Aurora’s mbert? model  
+    a. Gives probabilities of being in SDG 1 to 16 for each publication’s abstract + title?
+2. Creating a dashboard using RShiny  
+    b. Find USC authors in each publication by parsing the data, using Scopus API, web scraping USC faculty directory
 
 # Results
 
+1. Using Aurora’s model  
+    a. 54%? Primary SDG accuracy
+2. RShiny Dashboard
 {% include inlinecarousel.html %}
+
+# Discussion
+
+- What we did
+    - Run Aurora’s ML model to categorize publications
+    - Create RShiny Dashboard
+- Results Imply
+    - Using Elsevier search queries  
+        - there are alot of SDG 3 USC publications
+        - Half the USC publications are not related to any SDG
+        - Compare with ML output
+- Improvements
+    - Missing SDG 0 USC authors + author info
+    - Use ML output in RShiny Dashboard
+    - For each publication have a treemap/mosaic graph displaying probabilities
+    - Improve performance of RShiny Dashboard 
+        - a large number of dropdown options - use server side selectize
+
 
 # What we learned
 
+Learned to use tools? R + RShiny, git
