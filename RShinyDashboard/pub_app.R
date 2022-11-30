@@ -119,6 +119,8 @@ server <- function(input, output) {
         mutate(Freq = n) %>%
         ggplot(aes(x = Primary.SDG,y=Freq, fill = factor(as.numeric(Primary.SDG)))) +
         geom_col() +
+        scale_color_manual(values = sdg_colors,
+                           aesthetics = c("fill")) +
         geom_text(aes(label = Freq), vjust = -0.2) +
         labs(title = paste0(" (", input$Year, ") ", "Count of Publications Per SDG"),
              fill = "SDG",
@@ -177,10 +179,10 @@ server <- function(input, output) {
       author_sdg_barplot <- pub_auth %>%
         filter(pub_auth$AuthorId == input$usc_author) %>%
         count(Primary.SDG) %>%
-        ggplot(aes(x = factor(Primary.SDG), y = n, color = factor(Primary.SDG), fill = factor(Primary.SDG))) + 
+        ggplot(aes(x = factor(Primary.SDG), y = n, fill = factor(Primary.SDG))) + 
         geom_col() +
         scale_color_manual(values = sdg_colors,
-                           aesthetics = c("color", "fill")) +
+                           aesthetics = c("fill")) +
         coord_flip() +
         scale_y_continuous(breaks = scales::pretty_breaks()) +
         labs(title = names(input$usc_author),
