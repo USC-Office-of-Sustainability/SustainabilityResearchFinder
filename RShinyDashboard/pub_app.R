@@ -21,7 +21,10 @@ library(ggrepel)
 
 library(shiny)
 
-publications = read.csv("USC_SDG1to16.csv")
+# remove 2023 from publications
+publications1 = read.csv("USC_SDG1to16.csv")
+publications2 = publications1[publications1$Year != 2023,]
+publications = subset(publications1, Year!=2023)
 authors = read.csv("USCauthorsSDG1to16.csv")
 authorChoices = setNames(authors$ID, authors$Name)
 pub_auth = read.csv("USCpubauthfullinfoSDG1to16.csv")
@@ -63,9 +66,7 @@ Right now, the results are from Scopus SDG Search Query. We are working on updat
                            relate to the 16 UN SDGs (SDG 17 is not included for now). You can use this dashboard as a tool to find your authors and publications that match your academic interest!"),
                                                    br(),br(),"Sustainability incorporates protection for the environment, 
                            balancing a growing economy, and social responsibility to lead to an 
-                           improved quality of life for current and future generations. Here, 
-                           we have created a program in collaboration with Carnegie Mellon University 
-                           to elevate awareness of sustainability in higher education." ),
+                           improved quality of life for current and future generations." ),
                                                 
                                                 
                                                 
@@ -82,8 +83,8 @@ Right now, the results are from Scopus SDG Search Query. We are working on updat
                                                 #h3("SDG Related Research vs. Non-related Research"),
                                                 #fluidRow(column(12, plotOutput("pie1")))
                                                 
-                                                fluidRow(h3("SDG Related Research vs. Non-related Research"),
-                                                         plotOutput("pie1"),
+                                                fluidRow(column(6, h3("SDG Related Research vs. Non-related Research"),
+                                                         plotOutput("pie1"),)
                                                          
                                                 ))), # end tab item
                                     tabItem(tabName = "1",
@@ -127,8 +128,9 @@ server <- function(input, output) {
              x = "SDG",
              y = "Count of Publications") +
         guides(alpha = FALSE) +
-        theme(text = element_text(size = 18)) 
-      return(year_sdg_barplot)
+        theme_minimal() +
+        theme(text = element_text(size = 18))
+        return(year_sdg_barplot)
     })
   
   output$pie1 <- renderPlot({
@@ -156,11 +158,13 @@ server <- function(input, output) {
       #                 aes(y = pos, label = paste0(vals)),
       #                 size = 4.5, nudge_x = 1, show.legend = FALSE) +
       geom_text(aes(label = vals),
-                position = position_stack(vjust = 0.5)) +
+                position = position_stack(vjust = 0.5),
+                size = 10) +
       coord_polar(theta = "y") +
       scale_fill_manual(values = c("#990000",
                                    "#FFC72C", "#767676")) +
-      theme_void()
+      theme_void() +
+      theme(text = element_text(size = 18))
   })
 
   # for find SDGs and pub by auth
@@ -190,7 +194,8 @@ server <- function(input, output) {
              y = "Number of Publications",
              fill = "SDG",
              color = "SDG") +
-        theme_minimal()
+        theme_minimal() +
+        theme(text = element_text(size = 18))
       return(author_sdg_barplot)
     }
   )
