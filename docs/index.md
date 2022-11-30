@@ -7,7 +7,7 @@ showtoc: true
 showcarousels: true
 carousels:
     - images: 
-        - image: assets/images/Homepage.png
+        - image: assets/images/HomePage.png
         - image: assets/images/SDGByYear2020.png
         - image: assets/images/SDGOrNotPie.png
         - image: assets/images/ByDept.png
