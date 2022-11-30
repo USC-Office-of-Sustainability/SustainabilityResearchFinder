@@ -4,6 +4,18 @@
 
 layout: default
 showtoc: true
+showcarousels: true
+carousels:
+    - images: 
+        - image: assets/images/Homepage.png
+        - image: assets/images/SDGByYear2020.png
+        - image: assets/images/SDGOrNotPie.png
+        - image: assets/images/ByDept.png
+        - image: assets/images/ByAuthorCurrent.png
+        - image: assets/images/ByAuthorNotCurrent.png
+        - image: assets/images/ByAuthorBottom.png        
+
+         
 ---
 
 # Motivation
@@ -26,6 +38,8 @@ Aliquam metus massa, suscipit eu erat sit amet, interdum rutrum lorem. Proin tem
 Nulla in ultrices dolor, vitae pharetra nisi. Vivamus blandit nisl eu enim consequat, ullamcorper auctor sem dapibus. Quisque nec vehicula justo. Cras risus nibh, rhoncus accumsan bibendum ut, ornare nec purus. Praesent mattis augue at ultrices lacinia. In vitae condimentum lacus, nec accumsan eros. Vestibulum ut enim ac felis viverra luctus. Sed iaculis tempor felis sed luctus. Cras et massa eu arcu feugiat euismod. Morbi finibus tristique est ac dictum. Vestibulum sapien orci, hendrerit sit amet ullamcorper quis, rhoncus a est. Vivamus vel laoreet magna. Vivamus volutpat, mauris non elementum dignissim, massa nunc suscipit ex, eu vulputate turpis odio rhoncus neque. Aenean dolor nulla, pretium et justo sed, sodales fermentum turpis.
 
 # Results
+
+{% include inlinecarousel.html %}
 
 # What we learned
 
