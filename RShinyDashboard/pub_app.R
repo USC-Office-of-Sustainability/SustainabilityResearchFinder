@@ -21,14 +21,16 @@ library(ggrepel)
 
 library(shiny)
 
-# remove 2023 from publications
-publications1 = read.csv("USC_SDG1to16.csv")
-publications2 = publications1[publications1$Year != 2023,]
-publications = subset(publications1, Year!=2023)
+# remove authors not in USC Directory
 authors = read.csv("USCauthorsSDG1to16.csv")
+authors = authors[authors$InUSCDirectory,]
 authorChoices = setNames(authors$ID, authors$Name)
-pub_auth = read.csv("USCpubauthfullinfoSDG1to16.csv")
-pubwithzero = read.csv("USC_SDG0to16.csv")
+pub_auth_all = read.csv("USCpubauthfullinfoSDG1to16.csv")
+pub_auth = pub_auth_all[pub_auth_all$InUSCDirectory,]
+# only 2020-2022
+pub_auth = pub_auth[pub_auth$Year %in% c(2020,2021,2022),]
+publications = read.csv("USC_SDG0to16.csv")
+publications = publications[publications$Year %in% c(2020,2021,2022),]
 # named vector for SDG colors
 sdg_colors <- c('1' = '#E5243B', '2' = '#DDA63A', '3' = '#4C9F38', '4' = '#C5192D', '5' = '#FF3A21', '6' = '#26BDE2',
                 '7' = '#FCC30B', '8' = '#A21942', '9' = '#FD6925', '10' = '#DD1367', '11' = '#FD9D24', '12' = '#BF8B2E',
@@ -115,6 +117,7 @@ server <- function(input, output) {
     width = 600,
     height = 400,{
       year_sdg_barplot <- publications %>%
+        filter(!is.na(Primary.SDG)) %>%
         filter(Year == input$Year) %>%
         count(Year,Primary.SDG ) %>%
         mutate(Freq = n) %>%
@@ -134,7 +137,7 @@ server <- function(input, output) {
     })
   
   output$pie1 <- renderPlot({
-    pie_data <- pubwithzero %>% filter(Year %in% input$Year) 
+    pie_data <- publications %>% filter(Year %in% input$Year) 
     sum_notrelated = sum(is.na(pie_data$Primary.SDG))
     sum_focused = sum(!is.na(pie_data$Primary.SDG))
     vals=c(sum_notrelated, sum_focused)
@@ -192,8 +195,7 @@ server <- function(input, output) {
         labs(title = names(input$usc_author),
              x = "SDG",
              y = "Number of Publications",
-             fill = "SDG",
-             color = "SDG") +
+             fill = "SDG") +
         theme_minimal() +
         theme(text = element_text(size = 18))
       return(author_sdg_barplot)
