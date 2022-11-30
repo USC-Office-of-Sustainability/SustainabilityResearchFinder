@@ -2,11 +2,11 @@
 layout: default
 ---
 
-<!-- # People -->
+## Participating Faculty
 
-## Advisors
+Dr. Julie Hopper, Sustainability Data Analyst
 
-Julie
+Dr. Mayank Kejriwal, Viterbi
 
 ## Participating Students
 
