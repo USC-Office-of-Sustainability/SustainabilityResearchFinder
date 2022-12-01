@@ -320,7 +320,8 @@ server <- function(input, output, session) {
         coord_polar(theta = "y") +
         scale_color_manual(values = sdg_colors,
                            aesthetics = c("fill")) +
-        theme_void()
+        theme_void() + 
+        theme(text = element_text(size = 18))
       
     })
   
