@@ -24,3 +24,7 @@
 .content-wrapper {
         background-color: #fff;
 }
+
+.sidebar-menu {
+  white-space: normal;
+}

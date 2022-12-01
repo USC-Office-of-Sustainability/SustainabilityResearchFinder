@@ -8,6 +8,7 @@ showcarousels: true
 carousels:
     - images: 
         - image: assets/images/HomePage.png
+        - image: assets/images/SDG2.PNG
         - image: assets/images/SDGByYear2020.png
         - image: assets/images/SDGOrNotPie.png
         - image: assets/images/TopAuthorsSDG14.png
