@@ -13,7 +13,7 @@ carousels:
         - image: assets/images/TopAuthorsSDG14.png
         - image: assets/images/TopDeptSDG7.png
         - image: assets/images/ByDept.png
-        - image: assets/images/AuthorSDG.PNG
+        - image: assets/images/AuthorSDGs.png
 
          
 ---
