@@ -103,7 +103,25 @@ Right now, the results are from Scopus SDG Search Query. We are working on updat
                                                 fluidRow(column(12, plotOutput("pubs_to_pie")))
                                                 
                                               ))
-                                    ,#end tabitem   
+                                    ,#end tabitem 
+                                    tabItem(tabName = "2",
+                                            fluidPage(
+                                              h1("Find Top Scholars and Departments by SDGs"),
+                                              #h3("description"),
+                                              div(style="font-size:24px;", selectInput(inputId = "Primary.SDG", 
+                                                                                       label = "Choose SDG", 
+                                                                                       choices = sort(unique(pub_auth$Primary.SDG)))),
+                                              div(style="font-size:24px;", selectizeInput(inputId = "Division", 
+                                                                                          label = "Select USC School", 
+                                                                                          choices = NULL)), br(),
+                                              #h1(textOutput(paste0("Top Researchers in", input$Division))),
+                                              fluidRow(bootstrapPage(
+                                                column(6, plotOutput(outputId = "top_authors_sdg_table"), br()),
+                                                column(6, img(src = "un_17sdgs.jpg", width = "100%")))), br(),
+                                              #h1(textOutput(paste0("Top Departments in ", input$Division))),
+                                              fluidRow(bootstrapPage(
+                                                column(6, plotOutput(outputId = "top_departments_sdg_table"))))
+                                            )), #end tabitem
                                     tabItem(tabName = "1",
                                             fluidPage(
                                               h1("Find SDGs and Publications by USC Author"),
@@ -126,7 +144,7 @@ Right now, the results are from Scopus SDG Search Query. We are working on updat
                      ))
 
 # Define server logic required to draw a histogram
-server <- function(input, output) {
+server <- function(input, output, session) {
   # ric
   output$year_sdg_barplot <- renderPlot(
     width = 600,
@@ -252,7 +270,51 @@ server <- function(input, output) {
     })
   
   # aurora
+  observeEvent(input$Primary.SDG,
+               {
+                 updateSelectizeInput(session, "Division",
+                                      server = TRUE,
+                                      choices = sort(pub_auth %>% filter(Primary.SDG == input$Primary.SDG) %>% select(Division) %>% distinct() %>% pull()))#,
+                 #selected = unique(pub_auth %>% filter(Primary.SDG == input$Primary.SDG) %>% select(Division) %>% pull())[1])
+               })
   
+  output$top_authors_sdg_table <- renderPlot({ # from goals_to_classes
+    top_authors_sdg_table <-  pub_auth %>%
+      filter(Primary.SDG == input$Primary.SDG) %>%
+      filter(Division == input$Division) %>%
+      count(AuthorId, Name, Division) %>%
+      mutate(Freq = n) %>%
+      arrange(desc(n)) %>%
+      distinct(Name, .keep_all = TRUE) %>%
+      head(10) %>% #  num_top_classes <- 10
+      ggplot(aes(x = reorder(as.factor(Name),n), y = n)) + 
+      geom_col(fill = sdg_colors[as.numeric(input$Primary.SDG)], alpha = 1) +
+      coord_flip() +
+      labs(title = paste0("Top Authors that Map to SDG #", input$Primary.SDG),
+           x = "Scholar",
+           y = "Number of Publications ") +
+      theme(text = element_text(size = 20))
+    return(top_authors_sdg_table)
+  })
+  
+  output$top_departments_sdg_table <- renderPlot({
+    top_departments_sdg_table <-  pub_auth %>%
+      filter(Primary.SDG == input$Primary.SDG) %>%
+      filter(Division == input$Division) %>%
+      count(Department) %>%
+      mutate(Freq = n) %>%
+      arrange(desc(n)) %>%
+      distinct(Department, .keep_all = TRUE) %>%
+      head(10) %>%
+      ggplot(aes(x = reorder(as.factor(Department),n), y = n)) + 
+      geom_col(fill = sdg_colors[as.numeric(input$Primary.SDG)], alpha = 1) +
+      coord_flip() +
+      labs(title = paste0("Top Departments that Map to SDG #", input$Primary.SDG),
+           x = "Departments",
+           y = "Number of Publications ") +
+      theme(text = element_text(size = 20))
+    return(top_departments_sdg_table)
+  })
 
   # for find SDGs and pub by auth
   output$auth_about <- DT::renderDataTable({
