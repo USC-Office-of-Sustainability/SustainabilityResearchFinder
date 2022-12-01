@@ -10,18 +10,16 @@ carousels:
         - image: assets/images/HomePage.png
         - image: assets/images/SDGByYear2020.png
         - image: assets/images/SDGOrNotPie.png
+        - image: assets/images/TopAuthorsSDG14.png
+        - image: assets/images/TopDeptSDG7.png
         - image: assets/images/ByDept.png
-        - image: assets/images/ByAuthorCurrent.png
-        - image: assets/images/ByAuthorNotCurrent.png
-        - image: assets/images/ByAuthorBottom.png        
+        - image: assets/images/AuthorSDGs.png
 
          
 ---
 # IN PROGRESS
 # Motivation
-![Assignment Earth Research](assets/images/Asgmt_Earth_Research.png){: width="250"}
-
-![UN's 17 SDGs](assets/images/UN_SDGs.jpg){: width="250"}
+![Assignment Earth Research](assets/images/Asgmt_Earth_Research.png){: width="250"}![UN's 17 SDGs](assets/images/UN_SDGs.jpg){: width="250"}
 
 AC-9 of USC's STARS report
 
