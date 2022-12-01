@@ -89,6 +89,21 @@ Right now, the results are from Scopus SDG Search Query. We are working on updat
                                                          plotOutput("pie1"),)
                                                          
                                                 ))), # end tab item
+                                      tabItem(tabName = "3",
+                                              fluidPage(
+                                                h1("USC Research: SDGs by Department"),
+                                                h3("Select a USC School below to view the number of SDG-related publications by departments."),
+                                                div(style="font-size:24px;", selectInput(inputId = "usc_division",
+                                                                                         label = "Choose USC School",
+                                                                                         selected = "Dornsife College of Letters, Arts and Sciences",
+                                                                                         choices = unique(pub_auth$Division))),
+                                                h3("(Top 30) Departments of SDG Publications"),
+                                                fluidRow(column(12, plotOutput(outputId = "pubs_to_bar"))),
+                                                h3("SDG-Related Research"),
+                                                fluidRow(column(12, plotOutput("pubs_to_pie")))
+                                                
+                                              ))
+                                    ,#end tabitem   
                                     tabItem(tabName = "1",
                                             fluidPage(
                                               h1("Find SDGs and Publications by USC Author"),
@@ -112,7 +127,7 @@ Right now, the results are from Scopus SDG Search Query. We are working on updat
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-  
+  # ric
   output$year_sdg_barplot <- renderPlot(
     width = 600,
     height = 400,{
@@ -169,6 +184,75 @@ server <- function(input, output) {
       theme_void() +
       theme(text = element_text(size = 18))
   })
+  
+  # xinyi
+  output$pubs_to_bar <- renderPlot(
+    #width = 800,
+    #height = 600,
+    {
+      pubs_to_bar <- pub_auth %>%
+        filter(Division == input$usc_division) %>%
+        count(Department,Primary.SDG) %>%
+        #group_by(Department) %>%
+        mutate(Freq = n) %>%
+        #arrange(Department,desc(n)) %>%
+        #arrange(desc(sum(Freq))) %>%
+        #ungroup() %>%
+        #distinct(Department, .keep_all = TRUE) %>%
+        #head(30) %>% #  num_top_classes <- 10
+        ggplot(aes(x = Department, y = Freq, fill = factor(as.numeric(Primary.SDG)))) +
+        #geom_col(position = "stack") +
+        geom_col() +
+        coord_flip()+
+        scale_color_manual(values = sdg_colors,
+                           aesthetics = c("fill"))+
+        #geom_text(aes(label = Freq), vjust = -0.2) #+
+        labs(#title = paste0("Count of Publications Per SDG"),
+          fill = "SDG",
+          x = "Departments",
+          y = "Count of Publications") +
+        #guides(alpha = FALSE) +
+        theme(text = element_text(size = 8)) 
+      return (pubs_to_bar)
+    }
+  )
+  output$pubs_to_pie <- renderPlot(
+    #width = 600,
+    #height = 400,
+    {
+      pie_data <- pub_auth %>% filter(Division %in% input$usc_division) 
+      vals = c()
+      for (i in 1:16) {
+        vals = c(vals, sum(pie_data$Primary.SDG == i))
+      }
+      SDG_labels= c('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16')
+      pie = data.frame(SDG_labels, vals)
+      pubs_to_pie <- pie %>% 
+        mutate(csum = rev(cumsum(rev(vals))), 
+               pos = vals/2 + lead(csum, 1),
+               pos = if_else(is.na(pos), vals/2, pos))
+      
+      
+      ggplot(pie, aes(x = "", y = vals, fill = factor(as.numeric(SDG_labels)))) +
+        geom_col(color = "black") +
+        #ggtitle("SDG-Related Publications") +
+        #geom_label_repel(data = pubs_to_pie,
+        #aes(y = pos, label = paste0(vals)),
+        #size = 4.5, nudge_x = 1, show.legend = FALSE) +
+        #geom_text(aes(label = vals),
+        #position = position_stack(vjust = 0.5),) +
+        labs(fill = "SDG",
+             x = "",
+             y = "") +
+        coord_polar(theta = "y") +
+        scale_color_manual(values = sdg_colors,
+                           aesthetics = c("fill")) +
+        theme_void()
+      
+    })
+  
+  # aurora
+  
 
   # for find SDGs and pub by auth
   output$auth_about <- DT::renderDataTable({
