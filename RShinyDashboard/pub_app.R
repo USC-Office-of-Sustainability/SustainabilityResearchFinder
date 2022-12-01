@@ -75,6 +75,27 @@ Right now, the results are from Scopus SDG Search Query. We are working on updat
                                                 fluidRow(img(src="Asgmt_Earth_Research.png", height="550", style="display: block; margin-left: auto; margin-right: auto;"))
                                               )
                                       ), # end tab item 6
+                                      tabItem(tabName = "5",
+                                              fluidPage(
+                                                h1("Learn About The SDGs"),
+                                                h3("SDG stands for", a("UN Sustainability Development Goals", href="https://sdgs.un.org"),", which adopted by all United Nations Member States in 2015, provides a shared blueprint for peace and prosperity for people and the planet, now and into the future. The SDGs are an urgent call for action by all countries - developed and developing - in a global partnership. They recognize that ending poverty and other deprivations must go hand-in-hand with strategies that improve health and education, reduce inequality, and spur economic growth – all while tackling climate change and working to preserve our oceans and forests."),
+                                                
+                                                div(style="font-size:24px;", selectizeInput(inputId = "sdg_goal", 
+                                                                                            label = "Choose SDG", 
+                                                                                            choices = sort(unique(publications$Primary.SDG))
+                                                )),
+                                                fluidRow(bootstrapPage(
+                                                  column(4, plotOutput(outputId ="plot3"), br()),
+                                                  column(4, plotOutput(outputId = "sdg_total_by_year"), br()),
+                                                  column(4, img(src = "un_17sdgs.jpg", width = "100%"))
+                                                )),
+                                                
+                                                # h1(textOutput("sdg_name")),
+                                                #fluidRow(bootstrapPage(
+                                                # column(12, DT::dataTableOutput("top_classes_sdg_table"))
+                                                #))
+                                              )
+                                      ),# end tab item 5
                                       tabItem(tabName = "4",
                                               fluidPage(
                                                 h1("USC Research: SDGs By Year"),
@@ -146,9 +167,43 @@ Right now, the results are from Scopus SDG Search Query. We are working on updat
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
   # ric
+  output$sdg_total_by_year  <- renderPlot(
+    #width = 380,
+    #height = 500,
+    {
+      sdg_total_by_year <- publications %>%
+        filter(!is.na(Primary.SDG)) %>%
+        filter(Primary.SDG == input$sdg_goal) %>%
+        count(Year,Primary.SDG) %>%
+        mutate(Freq = n) %>%
+        ggplot(aes(x = Year,y=Freq)) +
+        geom_col(fill = sdg_colors[as.numeric(input$sdg_goal)], alpha = 1) +
+        scale_color_manual(values = sdg_colors,
+                           aesthetics = c("fill")) +
+        geom_text(aes(label = Freq), vjust = -0.2, size = 4) +
+        labs(title = paste0("Count of Publications By Year"),
+             fill = "SDG",
+             x = "Year",
+             y = "Count of Publications") +
+        guides(alpha = FALSE) +
+        theme_minimal() +
+        theme(text = element_text(size = 16))
+      return(sdg_total_by_year)
+    })
+  
+  output$plot3 <- renderImage(
+    {
+      # When input$n is 1, filename is ./images/image1.jpeg
+      filename <- normalizePath(file.path('./www',
+                                          paste('sdg', input$sdg_goal, '.png', sep='')))
+      # Return a list containing the filename
+      list(src = filename, height = "100%")
+    }, deleteFile = FALSE)
+
   output$year_sdg_barplot <- renderPlot(
-    width = 600,
-    height = 400,{
+    #width = 600,
+    #height = 400,
+    {
       year_sdg_barplot <- publications %>%
         filter(!is.na(Primary.SDG)) %>%
         filter(Year == input$Year) %>%
