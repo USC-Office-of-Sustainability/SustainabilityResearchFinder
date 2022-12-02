@@ -82,7 +82,8 @@ We created an interactive dashboard using RShiny:
 - In progress (currently crashing our laptops, data = 26,335 rows).
 
 ## RShiny Dashboard
-{% include inlinecarousel.html %}
+<!-- {% include inlinecarousel.html %} -->
+<iframe height="700" width="100%" frameborder="no" src="https://usc-sustainability.shinyapps.io/research_dashboard/"> </iframe>
 
 # Discussion
 
