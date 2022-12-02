@@ -129,22 +129,24 @@ Right now, the results are from Scopus SDG Search Query. We are working on updat
                                     ,#end tabitem 
                                     tabItem(tabName = "2",
                                             fluidPage(
-                                              h1("Find Top Scholars and Departments by SDGs"),
+                                              h1("View Top Scholars and Departments by SDGs"),
                                               #h3("description"),
                                               h4("*This app is a work in progress, and we are continually improving accuracy. If you have feedback, please email: oosdata@usc.edu"),
+                                              div(style="font-size:24px;", selectInput(inputId = "Division", 
+                                                                                       label = "Select USC School", 
+                                                                                       choices = unique(pub_auth$Division))), 
                                               div(style="font-size:24px;", selectInput(inputId = "Primary.SDG", 
                                                                                        label = "Choose SDG", 
                                                                                        choices = sort(unique(pub_auth$Primary.SDG)))),
-                                              div(style="font-size:24px;", selectizeInput(inputId = "Division", 
-                                                                                          label = "Select USC School", 
-                                                                                          choices = NULL)), br(),
+                                              br(),
                                               #h1(textOutput(paste0("Top Researchers in", input$Division))),
                                               fluidRow(bootstrapPage(
-                                                column(6, plotOutput(outputId = "top_authors_sdg_table"), br()),
-                                                column(6, img(src = "un_17sdgs.jpg", width = "100%")))), br(),
+                                                column(12, plotOutput(
+                                                  outputId = "top_authors_sdg_table"), br()))),
                                               #h1(textOutput(paste0("Top Departments in ", input$Division))),
                                               fluidRow(bootstrapPage(
-                                                column(6, plotOutput(outputId = "top_departments_sdg_table"))))
+                                                column(8, plotOutput(outputId = "top_departments_sdg_table")), br(),
+                                                column(4, img(src = "un_17sdgs.jpg", width = "100%"))))
                                             )), #end tabitem
                                     tabItem(tabName = "1",
                                             fluidPage(
@@ -330,11 +332,11 @@ server <- function(input, output, session) {
     })
   
   # aurora
-  observeEvent(input$Primary.SDG,
+  observeEvent(input$Division,
                {
-                 updateSelectizeInput(session, "Division",
+                 updateSelectizeInput(session, "Primary.SDG",
                                       server = TRUE,
-                                      choices = sort(pub_auth %>% filter(Primary.SDG == input$Primary.SDG) %>% select(Division) %>% distinct() %>% pull()))#,
+                                      choices = sort(pub_auth %>% filter(Division == input$Division) %>% select(Primary.SDG) %>% distinct() %>% pull()))#,
                  #selected = unique(pub_auth %>% filter(Primary.SDG == input$Primary.SDG) %>% select(Division) %>% pull())[1])
                })
   
