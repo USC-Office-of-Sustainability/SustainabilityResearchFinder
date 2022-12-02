@@ -79,7 +79,7 @@ Right now, the results are from Scopus SDG Search Query. We are working on updat
                                               fluidPage(
                                                 h1("Learn About The SDGs"),
                                                 h3("SDG stands for", a("UN Sustainability Development Goals", href="https://sdgs.un.org"),", which adopted by all United Nations Member States in 2015, provides a shared blueprint for peace and prosperity for people and the planet, now and into the future. The SDGs are an urgent call for action by all countries - developed and developing - in a global partnership. They recognize that ending poverty and other deprivations must go hand-in-hand with strategies that improve health and education, reduce inequality, and spur economic growth – all while tackling climate change and working to preserve our oceans and forests."),
-                                                
+                                                h4("*This app is a work in progress, and we are continually improving accuracy. If you have feedback, please email: oosdata@usc.edu"),
                                                 div(style="font-size:24px;", selectizeInput(inputId = "sdg_goal", 
                                                                                             label = "Choose SDG", 
                                                                                             choices = sort(unique(publications$Primary.SDG))
@@ -100,6 +100,7 @@ Right now, the results are from Scopus SDG Search Query. We are working on updat
                                               fluidPage(
                                                 h1("USC Research: SDGs By Year"),
                                                 #h3("this is a description"),
+                                                h4("*This app is a work in progress, and we are continually improving accuracy. If you have feedback, please email: oosdata@usc.edu"),
                                                 div(style="font-size:24px;",selectInput(inputId = "Year",
                                                                                         label = "Choose Year", choices = sort(unique(publications$Year)))), h3("Yearly Total Count of Publications By SDG"), 
                                                 fluidRow(column(6, plotOutput("year_sdg_barplot"))),
@@ -114,6 +115,7 @@ Right now, the results are from Scopus SDG Search Query. We are working on updat
                                               fluidPage(
                                                 h1("USC Research: SDGs by Department"),
                                                 h3("Select a USC School below to view the number of SDG-related publications by departments."),
+                                                h4("*This app is a work in progress, and we are continually improving accuracy. If you have feedback, please email: oosdata@usc.edu"),
                                                 div(style="font-size:24px;", selectInput(inputId = "usc_division",
                                                                                          label = "Choose USC School",
                                                                                          selected = "Dornsife College of Letters, Arts and Sciences",
@@ -129,6 +131,7 @@ Right now, the results are from Scopus SDG Search Query. We are working on updat
                                             fluidPage(
                                               h1("Find Top Scholars and Departments by SDGs"),
                                               #h3("description"),
+                                              h4("*This app is a work in progress, and we are continually improving accuracy. If you have feedback, please email: oosdata@usc.edu"),
                                               div(style="font-size:24px;", selectInput(inputId = "Primary.SDG", 
                                                                                        label = "Choose SDG", 
                                                                                        choices = sort(unique(pub_auth$Primary.SDG)))),
@@ -146,6 +149,7 @@ Right now, the results are from Scopus SDG Search Query. We are working on updat
                                     tabItem(tabName = "1",
                                             fluidPage(
                                               h1("Find SDGs and Publications by USC Author"),
+                                              h4("*This app is a work in progress, and we are continually improving accuracy. If you have feedback, please email: oosdata@usc.edu"),
                                               div(style="font-size:24px;", selectInput(inputId = "usc_author",
                                                                                        label = "Choose USC Author",
                                                                                        choices = authorChoices
