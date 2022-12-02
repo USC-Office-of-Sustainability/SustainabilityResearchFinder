@@ -97,7 +97,6 @@ We created an interactive dashboard using RShiny:
 - Using Elsevier search queries  
     - there are alot of SDG 3 USC publications
     - Half the USC publications are not related to any SDG
-    - Compare with ML output
 
 **Improvements that can be made**
 
