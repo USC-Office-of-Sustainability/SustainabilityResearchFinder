@@ -92,22 +92,24 @@ We created an interactive dashboard using RShiny:
 - Run Aurora’s ML model to categorize publications
 - Create RShiny Dashboard
 
-**Results Imply**
+**What the Results Imply**
 
 - Using Elsevier search queries  
     - there are alot of SDG 3 USC publications
     - Half the USC publications are not related to any SDG
     - Compare with ML output
 
-**Improvements**
+**Improvements that can be made**
 
-- Missing SDG 0 USC authors + author info
-- Use ML output in RShiny Dashboard
-- For each publication have a treemap/mosaic graph displaying probabilities
+- Correction of false negatives (cases when USC scholars are not mapping to SDGs when in fact they conduct research related to specific SDGs)
+- Investigation of false positives and other SDG mapping errors. Followed by corrections to improve dashboard output accuracy.
+- We could investigate the accuracy between Aurora mBert ML output versus the Scopus Query results in RShiny Dashboard. Then for each publication we display a graph displaying probabilities.
 - Improve performance of RShiny Dashboard 
-    - a large number of dropdown options - use server side selectize
+    - Large number of dropdown options
+    - Improve graphics
 
 # What we learned
 
-Learned to use tools! 
+Learned to use data tools! 
 - R, RShiny, git
+- Deep learning models (Aurora's mBert program)
