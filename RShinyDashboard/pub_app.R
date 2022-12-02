@@ -65,7 +65,7 @@ ui <- dashboardPage( skin="black",
 Right now, the results are from Scopus SDG Search Query. We are working on updating the dashboard with more accurate SDG classification using Machine Learning.
 ",br(), br(),strong("This 
                            dashboard is a tool that enables you to see which research publications at USC 
-                           relate to the 16 UN SDGs (SDG 17 is not included for now). You can use this dashboard as a tool to find your authors and publications that match your academic interest!"),
+                           relate to the 16 UN SDGs (SDG 17 is not included for now). You can use this dashboard as a tool to find USC scholars and publications that match your academic interest!"),
                                                    br(),br(),"Sustainability incorporates protection for the environment, 
                            balancing a growing economy, and social responsibility to lead to an 
                            improved quality of life for current and future generations." ),
