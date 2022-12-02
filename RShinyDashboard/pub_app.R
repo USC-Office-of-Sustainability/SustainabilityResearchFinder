@@ -23,10 +23,10 @@ library(shiny)
 
 # remove authors not in USC Directory
 authors = read.csv("USCauthorsSDG1to16.csv")
-authors = authors[authors$InUSCDirectory,]
+#authors = authors[authors$InUSCDirectory,]
 authorChoices = setNames(authors$ID, authors$Name)
-pub_auth_all = read.csv("USCpubauthfullinfoSDG1to16.csv")
-pub_auth = pub_auth_all[pub_auth_all$InUSCDirectory,]
+pub_auth = read.csv("USCpubauthfullinfoSDG1to16.csv")
+#pub_auth = pub_auth_all[pub_auth_all$InUSCDirectory,]
 # only 2020-2022
 pub_auth = pub_auth[pub_auth$Year %in% c(2020,2021,2022),]
 publications = read.csv("USC_SDG0to16.csv")
