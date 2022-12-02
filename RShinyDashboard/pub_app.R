@@ -134,7 +134,7 @@ Right now, the results are from Scopus SDG Search Query. We are working on updat
                                               h4("*This app is a work in progress, and we are continually improving accuracy. If you have feedback, please email: oosdata@usc.edu"),
                                               div(style="font-size:24px;", selectInput(inputId = "Division", 
                                                                                        label = "Select USC School", 
-                                                                                       choices = sort(unique(pub_auth$Division)))), 
+                                                                                       choices = unique(pub_auth$Division))), 
                                               div(style="font-size:24px;", selectInput(inputId = "Primary.SDG", 
                                                                                        label = "Choose SDG", 
                                                                                        choices = sort(unique(pub_auth$Primary.SDG)))),
