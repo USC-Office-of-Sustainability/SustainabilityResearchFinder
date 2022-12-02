@@ -23,4 +23,4 @@ Xinyi Zhang, MS Environmental Data Science, 2024
 ## Dashboard Inspiration
 
 Brian Tinsley, BS Quantitative Biology, 2023  
-(Authored the [USC Curriculum Dashboard](https://usc-sustainability.shinyapps.io/shiny_app/))
+(Authored the [USC Curriculum Dashboard](https://usc-sustainability.shinyapps.io/shiny_app/) with code on [Github](https://github.com/USC-Office-of-Sustainability/USC-SDG-Curriculum))
