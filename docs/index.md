@@ -56,20 +56,20 @@ Downloaded 2020-2022 USC affiliated publications from [Scopus](https://www.scopu
 - Designated SDG 0 to all the USC publications that didn’t match to the SDGs
 
 # Methods
-**Machine Learning Program**
+## Machine Learning
 
 We tested Aurora’s Machine Learning mBert Model on:
 1. Our manually curated dataset (10 pubs/SDG)
 2. The output of the scopus query results
 
-**RShiny Dashboard**
+## RShiny Dashboard
 
 We created an interactive dashboard using RShiny:
 - Found USC authors in each publication by parsing the data, using Scopus API and web scraping the USC faculty directory
 - Adapted from R code used for the [USC Curriculum Mapping Dashboard](https://github.com/USC-Office-of-Sustainability/USC-SDG-Curriculum), authored by Brian Tinsley and Dr. Julie Hopper
 
 # Results
-**Machine Learning Results**
+## Machine Learning
 1. Output from Aurora's mBert model on our manually curated dataset:
 - In our manually curated data set we assigned primary and secondary SDGs for each publication since publications can be mapped to multiple SDGs.
 - Let the predicted SDG with the highest probability be the predicted primary SDG.
@@ -81,7 +81,7 @@ We created an interactive dashboard using RShiny:
 2. Output from Aurora’s mBert model on the Scopus Query Results
 - In progress (currently crashing our laptops, data = 26,335 rows).
 
-**RShiny Dashboard**
+## RShiny Dashboard
 {% include inlinecarousel.html %}
 
 # Discussion
@@ -108,4 +108,5 @@ We created an interactive dashboard using RShiny:
 
 # What we learned
 
-Learned to use tools? R + RShiny, git
+Learned to use tools! 
+- R, RShiny, git
