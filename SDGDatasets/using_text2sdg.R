@@ -1,6 +1,12 @@
 library(text2sdg)
 d = read.csv("./USCData/USC_all.csv")
-h = detect_sdg(d$Abstract,
+# use title, abstract, author keyword
+d$alltext = paste(d$Titles,
+                  d$Abstract,
+                  d$Author.Keywords,
+                  d$Indexed.Keywords
+                  )
+h = detect_sdg(d$alltext,
                system = c("Aurora", "Elsevier", "SIRIS", "SDSN", "OSDG")) # output = features
 plot_sdg(h)
 crosstab_sdg(h)
@@ -120,9 +126,20 @@ osdg_elsevier[1,]
 # did not make comparison
 
 # compare scopus with Elsevier, Aurora, SDSN, SIRIS, separately
-h_scopus = detect_sdg(scopus_search$Abstract,
-                      system = c("Elsevier"))
-scopus_search$sdg = ifelse(scopus_search$Primary.SDG<10, paste("SDG-0", scopus_search$Primary.SDG, sep=""), paste("SDG-", scopus_search$Primary.SDG, sep=""))
+scopus_search = read.csv("../RShinyDashboard/USC_SDG0to16.csv")
+scopus_search = scopus_search[which(!is.na(scopus_search$Primary.SDG)),] # remove sdg0
+scopus_search$alltext = paste(scopus_search$Titles, 
+                              scopus_search$Abstract, 
+                              scopus_search$Author.Keywords, 
+                              scopus_search$Indexed.Keywords)
+
+
+h_scopus = detect_sdg(scopus_search$alltext, # all text
+                      system = c("Aurora"))
+scopus_search$sdg = ifelse(scopus_search$Primary.SDG<10, 
+                           paste("SDG-0", scopus_search$Primary.SDG, sep=""), 
+                           paste("SDG-", scopus_search$Primary.SDG, sep=""))
+
 t = 0
 for (i in 1:nrow(scopus_search)) {
   h_sub = h_scopus[which(h_scopus$document == i),]
