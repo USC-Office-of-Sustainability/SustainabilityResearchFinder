@@ -1,0 +1,1 @@
+# Search up each author in USC directory to get author info
