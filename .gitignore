@@ -6,3 +6,4 @@
 CKIDS/
 Dashboard/data_raw/*.csv
 Dashboard/data_processed/*.csv
+*.cookie
