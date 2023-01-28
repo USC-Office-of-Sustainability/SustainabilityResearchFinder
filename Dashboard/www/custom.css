@@ -28,3 +28,7 @@
 .sidebar-menu {
   white-space: normal;
 }
+
+.shiny-output-error-validation {
+  color: red;
+}
