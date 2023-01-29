@@ -66,7 +66,8 @@ usc_joined <- merge(tmp2, usc_sdgs,
                     by.x = c("X", "Link"), by.y = c("document", "Link"),
                     all.x = TRUE)
 
-authorChoices = setNames(usc_authors$authorID, usc_authors$Name)
+authorChoices = setNames(usc_authors$authorID, 
+                         paste(usc_authors$LName, usc_authors$FName, sep = ", "))
 
 ui <- dashboardPage(
   # theme
@@ -431,7 +432,7 @@ ui <- dashboardPage(
 )
 
 get_selected_sdg_col <- function(sdg) {
-  if (length(sdg) < 2) {
+  if (as.numeric(sdg) < 10) {
     return (sym(paste0("SDG.0", sdg)))
   }
   sym(paste0("SDG.", sdg))
@@ -535,7 +536,10 @@ server <- function(input, output, session) {
       colnames(df) <- 1:17
       df$category <- row.names(df)
       m <- melt(df, id.vars = "category")
-      p <- ggplot(m, aes(category, value, fill = variable, text = paste(category, "<br>has", value, "SDG", variable))) +
+      p <- ggplot(m, aes(category, value, 
+                         fill = variable, 
+                         text = paste(category, "<br>has", value, "SDG", 
+                                      variable))) +
         geom_bar(position = "stack", stat = "identity") +
         #coord_flip() +
         scale_x_discrete(labels = NULL) +
@@ -576,7 +580,8 @@ server <- function(input, output, session) {
         coord_polar(theta = "y") +
         # geom_label_repel(data = pie_pos,
         #                  aes(y = pos, label = value),
-        #                  size = 4.5, nudge_x = 1, max.overlaps = 16, show.legend = FALSE) +
+        #                  size = 4.5, nudge_x = 1,
+        #                  max.overlaps = 16, show.legend = FALSE) +
         scale_fill_manual(values = sdg_colors,
                           aesthetics = "fill") +
         labs(fill = "SDG") +
@@ -700,7 +705,8 @@ server <- function(input, output, session) {
         replace(is.na(.), 0)
       w <- which(sdgs_only != 0, arr.ind = TRUE)
       if (length(w) == 0) {
-        pubs$SDGs <- 0
+        pubs$SDGs <- ""
+        pubs[, c("SDGs", "Titles", "Link")] 
         return (pubs)
       }
       sdgs_only[w] <- as.numeric(substr(names(sdgs_only)[w[, "col"]], start = 5, stop = 6))
