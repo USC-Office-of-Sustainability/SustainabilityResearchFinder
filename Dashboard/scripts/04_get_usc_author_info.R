@@ -22,7 +22,7 @@ authors_only$Email = ""
 authors_only$PositionTitle = ""
 authors_only$InUSCDirectory = FALSE
 
-for (i in 8929:nrow(authors_only)) {
+for (i in 1:nrow(authors_only)) {
   tt = getForm("https://uscdirectory.usc.edu/web/directory/faculty-staff/proxy.php", 
                first = authors_only$FName[i],
                last = authors_only$LName[i], 
@@ -93,3 +93,27 @@ write.csv(authors_only,
 write.csv(bridge_table,
           here::here("data_processed/bridge.csv"),
           row.names = FALSE)  
+
+# combine / reclassify departments
+authors_only <- read.csv(here::here("data_processed/authors_only.csv"))
+# manual fixes
+authors_only[which(authors_only$Department == "Viterbi - IMSC"),]$Department = "Viterbi Computer Science"
+
+dept <- authors_only$Department
+# remove everything after -
+dept_short <- trimws(gsub("-[^-]*", "", dept))
+# revalue
+dept_reval <- plyr::revalue(
+  dept_short,
+  c("1710" = "Health Systems Operations",
+    "1726" = "Keck Hospital of USC",
+    "1733" = "USC Norris Comprehensive Cancer Center and Hospital",
+    "1750" = "USC Verdugo Hills Hospital",
+    "1776" = "USC Care Clinical - Ambulatory",
+    "1790" = "Student Health"
+    )
+  )
+authors_only$Department <- dept_reval
+write.csv(authors_only,
+          here::here("data_processed/authors_only_revalued.csv"),
+          row.names = FALSE)
