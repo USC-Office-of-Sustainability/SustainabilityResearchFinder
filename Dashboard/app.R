@@ -45,10 +45,14 @@ sdg_col_names <- syms(c("SDG.01", "SDG.02", "SDG.03", "SDG.04", "SDG.05", "SDG.0
                    "SDG.07", "SDG.08", "SDG.09", "SDG.10", "SDG.11", "SDG.12", 
                    "SDG.13", "SDG.14", "SDG.15", "SDG.16", "SDG.17"))
 
+disclaimer = paste("Data is from 2020-2022. This app is a work in progress, and,",
+                 "we are continually improving accuracy. If you have feedback,",
+                 "please email: oosdata@usc.edu")
+
 # data
 usc_pubs <- read.csv(here::here("data_processed/usc_pubs.csv"))
 usc_sdgs <- read.csv(here::here("data_processed/usc_sdgs.csv"))
-usc_authors <- read.csv(here::here("data_processed/authors_only.csv"))
+usc_authors <- read.csv(here::here("data_processed/authors_only_revalued.csv"))
 usc_bridge <- read.csv(here::here("data_processed/bridge.csv"))
 
 # 2020-2022
@@ -159,8 +163,7 @@ ui <- dashboardPage(
             all while tackling climate change and working to preserve our 
             oceans and forests."
           ),
-          h4("*This app is a work in progress, and we are continually improving
-             accuracy. If you have feedback, please email: oosdata@usc.edu"),
+          h4(disclaimer),
           div(
             style="font-size:24px;", 
             selectizeInput(
@@ -188,8 +191,7 @@ ui <- dashboardPage(
         fluidPage(
           h1("USC Research: SDGs By Year"),
           #h3("this is a description"),
-          h4("*This app is a work in progress, and we are continually improving
-             accuracy. If you have feedback, please email: oosdata@usc.edu"),
+          h4(disclaimer),
           div(
             style="font-size:24px;",
             selectInput(
@@ -218,8 +220,7 @@ ui <- dashboardPage(
           h1("USC Research: SDGs by Department"),
           h3("Select a USC School below to view the number of SDG-related
              publications by departments."),
-          h4("*This app is a work in progress, and we are continually improving
-             accuracy. If you have feedback, please email: oosdata@usc.edu"),
+          h4(disclaimer),
           div(
             style="font-size:24px;", 
             selectInput(
@@ -240,22 +241,20 @@ ui <- dashboardPage(
         fluidPage(
           h1("View Top Scholars and Departments by SDGs"),
           #h3("description"),
-          h4("*This app is a work in progress, and we are continually improving
-             accuracy. If you have feedback, please email: oosdata@usc.edu"),
-          div(
-            style="font-size:24px;", 
-            selectInput(
-              inputId = "Division", 
-              label = "Select USC School", 
-              choices = sort(unique(usc_authors$Division)),
-              selected = ""
-            )
-          ), 
+          h4(disclaimer),
           div(
             style="font-size:24px;", 
             selectInput(
               inputId = "Primary.SDG", 
               label = "Choose SDG", 
+              choices = sdg_choices,
+            )
+          ),
+          div(
+            style="font-size:24px;", 
+            selectInput(
+              inputId = "Division", 
+              label = "Select USC School", 
               choices = "",
               selected = ""
             )
@@ -286,14 +285,23 @@ ui <- dashboardPage(
         tabName = "6",
         fluidPage(
           h1("Find SDGs and Publications by USC Author"),
-          h4("*This app is a work in progress, and we are continually improving
-             accuracy. If you have feedback, please email: oosdata@usc.edu"),
+          h4(disclaimer),
+          div(
+            style="font-size:24px;", 
+            selectInput(
+              inputId = "school",
+              label = "Choose USC School",
+              choices = sort(unique(usc_authors$Division)),
+              selected = ""
+            )
+          ),
           div(
             style="font-size:24px;", 
             selectInput(
               inputId = "author",
               label = "Choose USC Author",
-              choices = authorChoices[sort(names(authorChoices))]
+              choices = authorChoices[sort(names(authorChoices))],
+              selected = NULL
             )
           ),
           fluidRow(column(12, DT::dataTableOutput("auth_about"))),
@@ -590,34 +598,51 @@ server <- function(input, output, session) {
     })
 
   # tab 5
+  # select division then sdg
+  # observeEvent(
+  #   input$Division,
+  #   {
+  #     validate(
+  #       need(input$Division != "", label = "USC School")
+  #     )
+  #     updateSelectizeInput(session,
+  #                          "Primary.SDG",
+  #                          server = TRUE,
+  #                          choices = usc_joined %>%
+  #                            filter(Division == input$Division) %>% 
+  #                            summarise(across(starts_with("SDG"), sum, na.rm = TRUE)) %>% 
+  #                            select_if(colSums(.) != 0) %>% 
+  #                            colnames %>% 
+  #                            substr(start = 5, stop = 6) %>% 
+  #                            as.numeric,
+  #                          selected = "")
+  #   }
+  # )
+  # select sdg then division
   observeEvent(
-    input$Division,
+    input$Primary.SDG,
     {
       validate(
-        need(input$Division != "", label = "USC School")
+        need(input$Primary.SDG != "", label = "SDG")
       )
+      sdg_col = get_selected_sdg_col(input$Primary.SDG)
+      divisions = usc_joined %>%
+        filter(!!sdg_col == 1) %>%
+        select(Division) %>%
+        as.list()
       updateSelectizeInput(session,
-                           "Primary.SDG",
+                           "Division",
                            server = TRUE,
-                           choices = usc_joined %>%
-                             filter(Division == input$Division) %>% 
-                             summarise(across(starts_with("SDG"), sum, na.rm = TRUE)) %>% 
-                             select_if(colSums(.) != 0) %>% 
-                             colnames %>% 
-                             substr(start = 5, stop = 6) %>% 
-                             as.numeric,
-                           selected = "")
-      #selected = unique(pub_auth %>%
-      #                    filter(Primary.SDG == input$Primary.SDG) %>%
-      #                    select(Division) %>%
-      #                    pull())[1])
+                           choices = sort(divisions[[1]]),
+                           selected = ""
+                           )
     }
   )
 
   output$top_authors_sdg_table <- renderPlot({
     validate(
-      need(input$Division != "", label = "USC School"),
-      need(input$Primary.SDG != "", label = "SDG")
+      need(input$Primary.SDG != "", label = "SDG"),
+      need(input$Division != "", label = "USC School")
     )
     sdg_col = get_selected_sdg_col(input$Primary.SDG)
     usc_joined %>%
@@ -638,8 +663,8 @@ server <- function(input, output, session) {
 
   output$top_departments_sdg_table <- renderPlot({
     validate(
-      need(input$Division != "", label = "USC School"),
-      need(input$Primary.SDG != "", label = "SDG")
+      need(input$Primary.SDG != "", label = "SDG"),
+      need(input$Division != "", label = "USC School")
     )
     sdg_col = get_selected_sdg_col(input$Primary.SDG)
     usc_joined %>%
@@ -660,9 +685,29 @@ server <- function(input, output, session) {
   })
 
   # tab 6
+  observeEvent(
+    input$school, ignoreNULL = FALSE,
+    {
+      if (input$school == "") {
+        selected_authors = usc_authors
+      } else {
+        selected_authors = usc_authors %>% filter(usc_authors$Division == input$school)
+      }
+      authorChoices = setNames(selected_authors$authorID,
+                               paste(selected_authors$LName, selected_authors$FName, sep = ", "))
+      updateSelectizeInput(session,
+                           "author",
+                           server = TRUE,
+                           choices = authorChoices[sort(names(authorChoices))],
+                           selected = NULL
+      )
+    }
+  )
   output$auth_about <- DT::renderDataTable(
     {
-      print(input$author)
+      validate(
+        need(input$author != "", label = "USC Author")
+      )
       usc_authors %>%
         filter(usc_authors$InUSCDirectory & usc_authors$authorID == input$author) %>%
         select(FName, LName, Department, Division, Email, PositionTitle)
@@ -676,6 +721,9 @@ server <- function(input, output, session) {
 
   output$author_sdg_barplot <- renderPlot(
     {
+      validate(
+        need(input$author != "", label = "USC Author")
+      )
       usc_joined %>% 
         filter(usc_joined$authorID == input$author) %>%
         summarise(across(starts_with("SDG"), sum, na.rm = TRUE)) %>% 
@@ -696,6 +744,10 @@ server <- function(input, output, session) {
 
   output$author_pub_table <- DT::renderDataTable(
     {
+      print(input$author)
+      validate(
+        need(input$author != "", label = "USC Author")
+      )
       pubs <- usc_joined %>%
         filter(usc_joined$authorID == input$author) %>%
         select(Titles, Link)
