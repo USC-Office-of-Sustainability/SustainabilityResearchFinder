@@ -22,6 +22,13 @@ sdg_colors <- c("1" = "#E5243B", "2" = "#DDA63A", "3" = "#4C9F38",
                 "13" = "#3F7E44", "14" = "#0A97D9", "15" = "#56C02B",
                 "16" = "#00689D", "17" = "#19486A")
 
+morestopwords <- c("used","also","using","ghg","found","model","models-","soc",
+                   "across","including","will","well","csr","use","authors",
+                   "high","whether","findings","higher","ses","per","can",
+                   "however","time","two","show","may","-well","data","years",
+                   "adds","days","among","total","results","text","risk","low",
+                   "one","work")
+
 create_sdg_wordcloud <- function(i, sdg_col, sdg_color) {
   target_text <- usc_pubs_sdgs %>%
     filter(!!sdg_col != 0) %>%
@@ -32,25 +39,26 @@ create_sdg_wordcloud <- function(i, sdg_col, sdg_color) {
                            target_text$Author.Keywords, 
                            target_text$Indexed.Keywords)
   
-  docs <- Corpus(VectorSource(target_text))
-  docs <- docs %>% 
-    tm_map(removeNumbers) %>% 
-    tm_map(removePunctuation) %>% 
-    tm_map(stripWhitespace)
-  docs <- tm_map(docs, content_transformer(tolower))
-  docs <- tm_map(docs, removeWords, c(stopwords("english"),"used","also","using","ghg","found","model","models-","soc","across","including","will","well","csr","use","authors","high","whether","findings","higher","ses","per","can","however","time","two","show","may","-well","data","years","adds","days","among","total","results","text","risk","low","one","work")) 
-  dtm <- TermDocumentMatrix(docs) 
-  matrix <- as.matrix(dtm) 
-  words <- sort(rowSums(matrix), decreasing = TRUE) 
+  # remove numbers and punctuation
+  target_text$all <- gsub("[^[:alpha:][:blank:]]", "", target_text$all)
+  
+  docs <- Corpus(VectorSource(target_text$all))
+  m <- docs %>% 
+    tm_map(stripWhitespace) %>%
+    tm_map(content_transformer(tolower)) %>%
+    tm_map(removeWords, stopwords("english")) %>%
+    tm_map(removeWords, morestopwords) %>%
+    TermDocumentMatrix %>%
+    as.matrix
+  words <- sort(rowSums(m), decreasing = TRUE) 
   df <- data.frame(word = names(words), freq = words)
   png(here::here(paste0("www/sdg", i, ".png")))
   wordcloud(words = df$word, freq = df$freq, min.freq = 1,
             max.words = 50, random.order = FALSE, rot.per = 0,
-            colors=  sdg_color)
+            colors = sdg_color, scale = c(8,1))
   dev.off()
 }
 
 for (i in 1:17) {
   create_sdg_wordcloud(i, sym(sdg_col_names[i]), sdg_colors[i])
 }
-
