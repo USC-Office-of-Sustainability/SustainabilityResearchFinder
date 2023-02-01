@@ -37,3 +37,13 @@ hits_sum_link <- merge(hits_sum, usc_data[c("X", "Link")], by.x = "document", by
 write.csv(hits_sum_link, 
           here::here("data_processed/usc_sdgs.csv"), 
           row.names = FALSE)
+
+# manual fixes
+idx = which(usc_pubs$Titles %in% 
+              "Mechanical properties of laminated bamboo designed for curvature")
+hits_sum_link[which(hits_sum_link$document == idx),]$SDG.11 = 1
+hits_sum_link[which(hits_sum_link$document == idx),]$SDG.12 = 1
+
+write.csv(hits_sum_link,
+          here::here("data_processed/usc_sdgs_edited.csv"),
+          row.names = FALSE)
