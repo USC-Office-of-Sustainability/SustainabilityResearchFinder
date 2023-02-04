@@ -10,7 +10,7 @@
 # install.packages("name") to install any missing packages
 list_of_packages <- c("shiny", "shinydashboard", "tidyverse", "plotly",
                       "wordcloud", "DT", "ggplot2", "ggrepel", "here", 
-                      "reshape2", "scales")
+                      "reshape2", "scales", "ggbreak")
 lapply(list_of_packages, library, character.only = TRUE)
 
 # Source functions
@@ -57,6 +57,9 @@ usc_bridge <- read.csv(here::here("data_processed/bridge.csv"))
 
 # 2020-2022
 usc_pubs <- usc_pubs %>% filter(Year %in% c(2020, 2021, 2022))
+
+# url
+usc_pubs$url <- paste0("<a href='", usc_pubs$Link, "'>", usc_pubs$Link, "</a>")
 
 # merge
 usc_pubs_sdgs <- merge(usc_pubs, usc_sdgs, 
@@ -200,7 +203,7 @@ ui <- dashboardPage(
               choices = sort(unique(usc_pubs_sdgs$Year))
             )
           ), 
-          h3("Yearly Total Count of Publications By SDG"), 
+          # h3("Yearly Total Count of Publications By SDG"), 
           fluidRow(
             column(6, plotOutput("year_sdg_barplot"))
           ),
@@ -467,7 +470,7 @@ server <- function(input, output, session) {
              y = "Count of Publications") +
         #guides(alpha = FALSE) +
         theme_minimal() +
-        theme(text = element_text(size = 16))
+        theme(text = element_text(size = 20))
     })
   
   output$plot3 <- renderImage(
@@ -482,6 +485,13 @@ server <- function(input, output, session) {
   # tab 3
   output$year_sdg_barplot <- renderPlot(
     {
+      y_max = usc_pubs_sdgs %>%
+        filter(Year == input$Year) %>%
+        summarise(across(starts_with("SDG"), sum, na.rm = TRUE)) %>%
+        t %>%
+        as.data.frame() %>%
+        max
+      y_max_floor = y_max %/% 1000 * 1000
       usc_pubs_sdgs %>%
         filter(Year == input$Year) %>%
         summarise(across(starts_with("SDG"), sum, na.rm = TRUE)) %>%
@@ -491,14 +501,16 @@ server <- function(input, output, session) {
         geom_col() +
         scale_color_manual(values = sdg_colors,
                            aesthetics = c("fill")) +
-        geom_text(aes(label = V1), vjust = -0.2) +
-        labs(title = paste0(" (", input$Year, ") ", "Count of Publications Per SDG"),
+        scale_y_break(c(200, y_max_floor)) +
+        ylim(0, y_max+50) +
+        geom_text(aes(label = V1), vjust = -0.2, size = 16/.pt) +
+        labs(title = paste0("Count of Publications Per SDG in ", input$Year),
              fill = "SDG",
              x = "SDG",
              y = "Count of Publications") +
         #guides(alpha = FALSE) +
         theme_minimal() +
-        theme(text = element_text(size = 18))
+        theme(text = element_text(size = 20))
     })
   
   output$pie1 <- renderPlot(
@@ -522,10 +534,10 @@ server <- function(input, output, session) {
       ggplot(pie_data, aes(x = "", y = prop, fill = group)) +
         geom_bar(stat = "identity", width = 1, color = "black") +
         coord_polar("y", start = 0) +
-        geom_text(aes(y = ypos, label = value), color = "black", size = 16) +
+        geom_text(aes(y = ypos, label = value), color = "black", size = 36/.pt) +
         scale_fill_manual(values = c("#990000", "#FFC72C"), name = "Legend") +
         theme_void() +
-        theme(text = element_text(size = 18))
+        theme(text = element_text(size = 20))
   })
   
   # tab 4
@@ -559,7 +571,7 @@ server <- function(input, output, session) {
           y = "Count of Publications"
         ) +
         theme_minimal() +
-        theme(text = element_text(size = 18))
+        theme(text = element_text(size = 20))
       ggplotly(p, tooltip = "text") %>% layout(hoverlabel = list(font=list(size=18)))
     }
   )
@@ -594,7 +606,7 @@ server <- function(input, output, session) {
                           aesthetics = "fill") +
         labs(fill = "SDG") +
         theme_void() +
-        theme(text = element_text(size = 18))
+        theme(text = element_text(size = 20))
     })
 
   # tab 5
@@ -738,7 +750,7 @@ server <- function(input, output, session) {
              y = "Number of Publications",
              fill = "SDG") +
         theme_minimal() +
-        theme(text = element_text(size = 18))
+        theme(text = element_text(size = 20))
     }
   )
 
@@ -750,7 +762,7 @@ server <- function(input, output, session) {
       )
       pubs <- usc_joined %>%
         filter(usc_joined$authorID == input$author) %>%
-        select(Titles, Link)
+        select(Titles, url)
       sdgs_only <- usc_joined %>%
         filter(usc_joined$authorID == input$author) %>%
         select(starts_with("SDG")) %>%
@@ -758,7 +770,7 @@ server <- function(input, output, session) {
       w <- which(sdgs_only != 0, arr.ind = TRUE)
       if (length(w) == 0) {
         pubs$SDGs <- ""
-        pubs[, c("SDGs", "Titles", "Link")] 
+        pubs[, c("SDGs", "Titles", "url")] 
         return (pubs)
       }
       sdgs_only[w] <- as.numeric(substr(names(sdgs_only)[w[, "col"]], start = 5, stop = 6))
@@ -776,8 +788,8 @@ server <- function(input, output, session) {
         res
       })
       pubs$SDGs <- sdgs_collapsed
-      pubs[, c("SDGs", "Titles", "Link")]
-  }, rownames = FALSE)
+      pubs[, c("SDGs", "Titles", "url")]
+  }, rownames = FALSE, escape = FALSE)
 }
 
 # Run the application 
