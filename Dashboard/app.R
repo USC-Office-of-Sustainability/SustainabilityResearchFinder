@@ -225,19 +225,20 @@ ui <- dashboardPage(
         tabName = "4",
         fluidPage(
           h1("USC Research: SDGs by Department"),
-          h3("Select a USC School below to view the number of SDG-related
+          h3("Select a USC School/Unit below to view the number of SDG-related
              publications by departments."),
           h4(disclaimer),
           div(
             style="font-size:24px;", 
             selectInput(
               inputId = "usc_division",
-              label = "Choose USC School",
+              label = "Choose USC School/Unit",
               choices = sort(unique(usc_authors$Division)),
               selected = "Dornsife College of Letters, Arts and Sciences"
             )
           ),
           h3("SDG Publications by Departments"),
+          p("Hover over the columns to see Department name. Drag cursor over a section to zoom in and double click to zoom out. You can also use the tools in the top right corner."),
           fluidRow(column(12, plotlyOutput(outputId = "pubs_to_bar"))),
           h3("SDG-Related Research"),
           fluidRow(column(12, plotOutput("pubs_to_treemap")))
@@ -261,7 +262,7 @@ ui <- dashboardPage(
             style="font-size:24px;", 
             selectInput(
               inputId = "Division", 
-              label = "Select USC School", 
+              label = "Select USC School/Unit", 
               choices = "",
               selected = ""
             )
@@ -297,7 +298,7 @@ ui <- dashboardPage(
             style="font-size:24px;", 
             selectInput(
               inputId = "school",
-              label = "Choose USC School",
+              label = "Choose USC School/Unit",
               choices = sort(unique(usc_authors$Division)),
               selected = ""
             )
@@ -306,7 +307,7 @@ ui <- dashboardPage(
             style="font-size:24px;", 
             selectInput(
               inputId = "author",
-              label = "Choose USC Author",
+              label = (HTML("<p style='font-size:24px;font-weight:700;margin:0;'>Choose USC Author</p><p style='font-size:20px;font-weight:400;margin:0;'>Start by typing Author's last name</p>")),
               choices = authorChoices[sort(names(authorChoices))],
               selected = NULL
             )
@@ -562,7 +563,7 @@ server <- function(input, output, session) {
   output$pubs_to_bar <- renderPlotly(
     {
       validate(
-        need(input$usc_division != "", label = "USC School")
+        need(input$usc_division != "", label = "USC School/Unit")
       )
       
       d <- usc_joined %>%
@@ -598,7 +599,7 @@ server <- function(input, output, session) {
   output$pubs_to_treemap <- renderPlot(
     {
       validate(
-        need(input$usc_division != "", label = "USC School")
+        need(input$usc_division != "", label = "USC School/Unit")
       )
 
       sdg_sum <- usc_joined %>% 
@@ -660,7 +661,7 @@ server <- function(input, output, session) {
   output$top_authors_sdg_table <- renderPlot({
     validate(
       need(input$Primary.SDG != "", label = "SDG"),
-      need(input$Division != "", label = "USC School")
+      need(input$Division != "", label = "USC School/Unit")
     )
     sdg_col = get_selected_sdg_col(input$Primary.SDG)
     usc_joined %>%
@@ -682,7 +683,7 @@ server <- function(input, output, session) {
   output$top_departments_sdg_table <- renderPlot({
     validate(
       need(input$Primary.SDG != "", label = "SDG"),
-      need(input$Division != "", label = "USC School")
+      need(input$Division != "", label = "USC School/Unit")
     )
     sdg_col = get_selected_sdg_col(input$Primary.SDG)
     usc_joined %>%
