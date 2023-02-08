@@ -10,7 +10,7 @@
 # install.packages("name") to install any missing packages
 list_of_packages <- c("shiny", "shinydashboard", "tidyverse", "plotly",
                       "wordcloud", "DT", "ggplot2", "ggrepel", "here", 
-                      "reshape2", "scales", "ggbreak")
+                      "reshape2", "scales", "ggbreak", "treemapify")
 lapply(list_of_packages, library, character.only = TRUE)
 
 # Source functions
@@ -240,7 +240,7 @@ ui <- dashboardPage(
           h3("SDG Publications by Departments"),
           fluidRow(column(12, plotlyOutput(outputId = "pubs_to_bar"))),
           h3("SDG-Related Research"),
-          fluidRow(column(12, plotOutput("pubs_to_pie")))
+          fluidRow(column(12, plotOutput("pubs_to_treemap")))
         ) # end fluidPage
       ), # end tabItem 4
       tabItem(
@@ -593,38 +593,24 @@ server <- function(input, output, session) {
       ggplotly(p, tooltip = "text") %>% layout(hoverlabel = list(font=list(size=18)))
     }
   )
-  output$pubs_to_pie <- renderPlot(
+  output$pubs_to_treemap <- renderPlot(
     {
       validate(
         need(input$usc_division != "", label = "USC School")
       )
-      
-      # data
+
       sdg_sum <- usc_joined %>% 
         filter(Division == input$usc_division) %>%
-        summarise(across(starts_with("SDG"), sum, na.rm = TRUE))
-      pie_data <- data.frame(group = as.factor(1:17),
-                             value = t(sdg_sum))
+        summarise(across(starts_with("SDG"), sum, na.rm = TRUE)) %>%
+        t %>%
+        as.data.frame
+      sdg_sum$Division <- input$usc_division
+      sdg_sum$sdg <- 1:17
       
-      # compute positions of labels
-      pie_pos <- pie_data %>% 
-        mutate(csum = rev(cumsum(rev(value))), 
-               pos = value/2 + lead(csum, 1),
-               pos = if_else(is.na(pos), value/2, pos))
-      
-      # plot
-      ggplot(pie_data, aes(x = "", y = value, fill = group)) +
-        geom_bar(stat = "identity", width = 1, color = "black") +
-        coord_polar(theta = "y") +
-        # geom_label_repel(data = pie_pos,
-        #                  aes(y = pos, label = value),
-        #                  size = 4.5, nudge_x = 1,
-        #                  max.overlaps = 16, show.legend = FALSE) +
-        scale_fill_manual(values = sdg_colors,
-                          aesthetics = "fill") +
-        labs(fill = "SDG") +
-        theme_void() +
-        theme(text = element_text(size = 20))
+      ggplot(sdg_sum, aes(fill = as.factor(sdg), area = V1, label = V1)) + 
+        geom_treemap() + 
+        scale_fill_manual(values = sdg_colors, aesthetics = "fill", name = "SDG") + 
+        geom_treemap_text(place = "centre", size = 20, colour = "white")
     })
 
   # tab 5
