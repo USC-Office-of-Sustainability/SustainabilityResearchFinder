@@ -574,13 +574,15 @@ server <- function(input, output, session) {
       colnames(df) <- 1:17
       df$category <- row.names(df)
       m <- melt(df, id.vars = "category")
+      m$category <- trimws(gsub("(Dornsife|Viterbi|Marshall|KSOM)", "", m$category))
       p <- ggplot(m, aes(category, value, 
                          fill = variable, 
                          text = paste(category, "<br>has", value, "SDG", 
                                       variable))) +
         geom_bar(position = "stack", stat = "identity") +
-        #coord_flip() +
+        coord_flip() +
         scale_x_discrete(labels = NULL) +
+        # scale_x_discrete(labels = label_wrap(20)) +
         scale_color_manual(values = sdg_colors,
                            aesthetics = c("fill")) +
         labs(
@@ -649,8 +651,8 @@ server <- function(input, output, session) {
       updateSelectizeInput(session,
                            "Division",
                            server = TRUE,
-                           choices = sort(divisions[[1]]),
-                           selected = ""
+                           choices = unique(sort(divisions[[1]])),
+                           # selected = ""
                            )
     }
   )
@@ -690,10 +692,11 @@ server <- function(input, output, session) {
       arrange(desc(n)) %>%
       distinct(Department, .keep_all = TRUE) %>%
       head(10) %>%
+      mutate(Department = gsub("(Dornsife|Viterbi|Marshall|KSOM)", "", Department)) %>%
       ggplot(aes(x = reorder(as.factor(Department),n), y = n)) +
       geom_col(fill = sdg_colors[as.numeric(input$Primary.SDG)], alpha = 1) +
       coord_flip() +
-      scale_x_discrete(labels = label_wrap(15)) +
+      scale_x_discrete(labels = label_wrap(20)) +
       labs(title = paste0("Top Departments that Map to SDG #", input$Primary.SDG),
            x = "Departments",
            y = "Number of Publications ") +
