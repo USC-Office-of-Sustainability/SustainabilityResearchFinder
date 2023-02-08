@@ -576,6 +576,7 @@ server <- function(input, output, session) {
       df$category <- row.names(df)
       m <- melt(df, id.vars = "category")
       m$category <- trimws(gsub("(Dornsife|Viterbi|Marshall|KSOM)", "", m$category))
+      m <- m %>% filter(category != "")
       p <- ggplot(m, aes(category, value, 
                          fill = variable, 
                          text = paste(category, "<br>has", value, "SDG", 
@@ -689,6 +690,7 @@ server <- function(input, output, session) {
     usc_joined %>%
       filter(Division == input$Division) %>%
       filter(!!sdg_col != 0) %>%
+      filter(Department != "") %>%
       count(Department) %>%
       arrange(desc(n)) %>%
       distinct(Department, .keep_all = TRUE) %>%
