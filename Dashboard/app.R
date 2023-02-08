@@ -98,10 +98,14 @@ ui <- dashboardPage(
   
   dashboardBody(
     tags$head(
-      tags$link( # link up css stylesheet
+      tags$link( # link css stylesheet
         rel="stylesheet", 
         type="text/css", 
         href="custom.css"
+      ),
+      tags$link( # link icon library
+        rel="stylesheet",
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
       )
     ),
     tabItems(
@@ -229,8 +233,8 @@ ui <- dashboardPage(
             selectInput(
               inputId = "usc_division",
               label = "Choose USC School",
-              # selected = "Dornsife College of Letters, Arts and Sciences",
-              choices = sort(unique(usc_authors$Division))
+              choices = sort(unique(usc_authors$Division)),
+              selected = "Dornsife College of Letters, Arts and Sciences"
             )
           ),
           h3("SDG Publications by Departments"),
@@ -438,6 +442,20 @@ ui <- dashboardPage(
           )
         ) # end fluidPage
       ) # end tabItem 7
+    ), # end tabItems
+    tags$footer(
+      fluidPage(
+        p("Stay connected by visiting our", 
+          a("home page", href="https://sustainability.usc.edu"), 
+          "or by following the Office of Sustainability on social media via", 
+          a("Instagram", href="https://www.instagram.com/green.usc/"), "or", 
+          a("Twitter", href="https://twitter.com/GreenUSC", .noWS = "after"), 
+          ". You can also support the Office of Sustainability by donating", 
+          a("here", href="https://green.usc.edu/get-involved/give-to-the-office-of-sustainability/", .noWS = "after"), 
+          ". More questions or suggestions in regard to this tool? Please contact: oosdata@usc.edu"),
+        a("", href="https://www.instagram.com/green.usc/", class="fa fa-instagram"),
+        a("", href="https://twitter.com/GreenUSC", class="fa fa-twitter")
+      )
     )
   )
 )
