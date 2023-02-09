@@ -51,7 +51,7 @@ disclaimer = paste("Data is from 2020-2022. This app is a work in progress, and,
 
 # data
 usc_pubs <- read.csv(here::here("data_processed/usc_pubs.csv"))
-usc_sdgs <- read.csv(here::here("data_processed/usc_sdgs.csv"))
+usc_sdgs <- read.csv(here::here("data_processed/usc_sdgs_pwg.csv"))
 usc_authors <- read.csv(here::here("data_processed/authors_only_revalued.csv"))
 usc_bridge <- read.csv(here::here("data_processed/bridge.csv"))
 
@@ -130,9 +130,9 @@ ui <- dashboardPage(
             br(),
             strong(
               "This dashboard is a tool that enables you to see which research
-              publications at USC relate to the 16 UN SDGs (SDG 17 is not 
-              included for now). You can use this dashboard as a tool to find 
-              USC scholars and publications that match your academic interest!"
+              publications at USC relate to the 17 UN SDGs. You can use this 
+              dashboard as a tool to find USC scholars and publications that 
+              match your academic interest!"
             ),
             br(),
             br(),
@@ -238,7 +238,9 @@ ui <- dashboardPage(
             )
           ),
           h3("SDG Publications by Departments"),
-          p("Hover over the columns to see Department name. Drag cursor over a section to zoom in and double click to zoom out. You can also use the tools in the top right corner."),
+          p("Hover over the columns to see Department name. 
+            Drag cursor over a section to zoom in and double click to zoom out. 
+            You can also use the tools in the top right corner."),
           fluidRow(column(12, plotlyOutput(outputId = "pubs_to_bar"))),
           h3("SDG-Related Research"),
           fluidRow(column(12, plotOutput("pubs_to_treemap")))
@@ -307,7 +309,8 @@ ui <- dashboardPage(
             style="font-size:24px;", 
             selectInput(
               inputId = "author",
-              label = (HTML("<p style='font-size:24px;font-weight:700;margin:0;'>Choose USC Author</p><p style='font-size:20px;font-weight:400;margin:0;'>Start by typing Author's last name</p>")),
+              label = (HTML("<p style='font-size:24px;font-weight:700;margin:0;'>Choose USC Author</p>
+                            <p style='font-size:20px;font-weight:400;margin:0;'>Start by typing Author's last name</p>")),
               choices = authorChoices[sort(names(authorChoices))],
               selected = NULL
             )
@@ -446,16 +449,17 @@ ui <- dashboardPage(
     ), # end tabItems
     tags$footer(
       fluidPage(
-        p("Stay connected by visiting our", 
+        h4("Stay connected by visiting our", 
           a("home page", href="https://sustainability.usc.edu"), 
           "or by following the Office of Sustainability on social media via", 
+          a("", href="https://www.instagram.com/green.usc/", class="fa fa-instagram"),
           a("Instagram", href="https://www.instagram.com/green.usc/"), "or", 
+          a("", href="https://twitter.com/GreenUSC", class="fa fa-twitter"),
           a("Twitter", href="https://twitter.com/GreenUSC", .noWS = "after"), 
           ". You can also support the Office of Sustainability by donating", 
           a("here", href="https://green.usc.edu/get-involved/give-to-the-office-of-sustainability/", .noWS = "after"), 
-          ". More questions or suggestions in regard to this tool? Please contact: oosdata@usc.edu"),
-        a("", href="https://www.instagram.com/green.usc/", class="fa fa-instagram"),
-        a("", href="https://twitter.com/GreenUSC", class="fa fa-twitter")
+          ". More questions or suggestions in regard to this tool? Please contact: oosdata@usc.edu")
+        
       )
     )
   )
@@ -520,9 +524,9 @@ server <- function(input, output, session) {
         geom_col() +
         scale_color_manual(values = sdg_colors,
                            aesthetics = c("fill")) +
-        scale_y_break(c(200, y_max_floor)) +
+        # scale_y_break(c(200, y_max_floor)) +
         ylim(0, y_max+50) +
-        geom_text(aes(label = V1), vjust = -0.2, size = 16/.pt) +
+        # geom_text(aes(label = V1), vjust = -0.2, size = 16/.pt) +
         labs(title = paste0("Count of Publications Per SDG in ", input$Year),
              fill = "SDG",
              x = "SDG",
