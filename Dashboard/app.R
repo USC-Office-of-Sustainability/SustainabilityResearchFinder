@@ -214,14 +214,16 @@ ui <- dashboardPage(
           ),
           #h3("SDG Related Research vs. Non-related Research"),
           #fluidRow(column(12, plotOutput("pie1")))
+          # fluidRow(
+          #   column(6, 
+          #          # h3("SDG Related Research vs. Non-related Research"),
+          #          plotOutput("pie1")
+          #   ),
+          #   
+          # ),
+          h3("For 2020-2022"),
           fluidRow(
-            column(6, 
-                   # h3("SDG Related Research vs. Non-related Research"),
-                   plotOutput("pie1")
-            ),
-            column(6, plotOutput("pie2"))
-          ),
-          fluidRow(
+            column(6, plotOutput("pie2")),
             column(6, plotOutput("pie3"))
           )# end fluidRow
         ) # end fluidPage
@@ -597,20 +599,16 @@ server <- function(input, output, session) {
       # not related
       
       # data
-      sdg_sum <- usc_joined %>%
-        filter(Year == input$Year) %>% # also filter out not current faculty?
+      usc_sum <- usc_joined %>%
+        # filter(Year == input$Year) %>% # also filter out not current faculty?
         select(starts_with("SDG"), authorID) %>%
         group_by(authorID) %>%
         summarise(across(starts_with("SDG"), sum, na.rm = TRUE)) %>%
-        mutate(Total = rowSums(across(starts_with("SDG")), na.rm = TRUE)) %>%
-        select(Total)
+        mutate(Total = rowSums(across(starts_with("SDG")), na.rm = TRUE))
+      sdg_sum <- usc_sum$Total
       num_not_related <- sum(sdg_sum == 0)
       num_related <- sum(sdg_sum != 0)
-      num_focused <- usc_joined %>% 
-        filter(Year == input$Year) %>% 
-        select(starts_with("SDG"), authorID) %>%
-        group_by(authorID) %>%
-        summarise(across(starts_with("SDG"), sum, na.rm = TRUE)) %>%
+      num_focused <- usc_sum %>%
         filter(SDG.13 > 0 | SDG.14 > 0 | SDG.15 > 0) %>% 
         filter(SDG.01 > 0 | SDG.02 > 0 | SDG.03 > 0 | SDG.04 > 0 | 
                  SDG.05 > 0 | SDG.06 > 0 | SDG.07 > 0 | SDG.08 > 0 | 
@@ -634,7 +632,7 @@ server <- function(input, output, session) {
         coord_polar("y", start = 0) +
         geom_text(aes(y = ypos, label = value), color = "black", size = 36/.pt) +
         scale_fill_manual(values = c("#990000", "#FFC72C", "#767676"), name = "") +
-        labs(title = paste0("Sustainability Related Employees in ", input$Year)) +
+        labs(title = paste0("Employees conducting Sustainability-Related Research")) +
         theme_void(base_size = 20)
     })
   
@@ -646,22 +644,17 @@ server <- function(input, output, session) {
       # not related
       
       # data
-      sdg_sum <- usc_joined %>%
-        filter(Year == input$Year) %>% # also filter out not current faculty?
+      usc_sum <- usc_joined %>%
+        # filter(Year == input$Year) %>% # also filter out not current faculty?
         filter(Department != "") %>%
         select(starts_with("SDG"), Department) %>%
         group_by(Department) %>%
         summarise(across(starts_with("SDG"), sum, na.rm = TRUE)) %>%
-        mutate(Total = rowSums(across(starts_with("SDG")), na.rm = TRUE)) %>%
-        select(Total)
+        mutate(Total = rowSums(across(starts_with("SDG")), na.rm = TRUE))
+      sdg_sum <- usc_sum$Total
       num_not_related <- sum(sdg_sum == 0)
       num_related <- sum(sdg_sum != 0)
-      num_focused <- usc_joined %>% 
-        filter(Year == input$Year) %>% 
-        filter(Department != "") %>%
-        select(starts_with("SDG"), Department) %>%
-        group_by(Department) %>%
-        summarise(across(starts_with("SDG"), sum, na.rm = TRUE)) %>%
+      num_focused <- usc_sum %>%
         filter(SDG.13 > 0 | SDG.14 > 0 | SDG.15 > 0) %>% 
         filter(SDG.01 > 0 | SDG.02 > 0 | SDG.03 > 0 | SDG.04 > 0 | 
                  SDG.05 > 0 | SDG.06 > 0 | SDG.07 > 0 | SDG.08 > 0 | 
@@ -685,7 +678,7 @@ server <- function(input, output, session) {
         coord_polar("y", start = 0) +
         geom_text(aes(y = ypos, label = value), color = "black", size = 36/.pt) +
         scale_fill_manual(values = c("#990000", "#FFC72C", "#767676"), name = "") +
-        labs(title = paste0("Sustainability Related Departments in ", input$Year)) +
+        labs(title = paste0("Sustainability Related Departments")) +
         theme_void(base_size = 20)
     })
   
