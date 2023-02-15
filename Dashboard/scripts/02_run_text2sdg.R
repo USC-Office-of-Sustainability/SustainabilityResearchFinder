@@ -6,7 +6,7 @@ library(here)
 library(dplyr)
 library(reshape2)
 
-usc_pwg_keywords <- read.csv(here::here("data_raw/USC_PWG-E_2023Keywords.csv"))
+usc_pwg_keywords <- read.csv(here::here("data_raw/USC_PWG-E_2023Keywords_2_14_23.csv"))
 usc_pwg_keywords <- usc_pwg_keywords %>%
   mutate(system = "usc_pwg") %>%
   mutate(sdg = goal) %>%
