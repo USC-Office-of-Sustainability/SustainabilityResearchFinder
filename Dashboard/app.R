@@ -1,4 +1,4 @@
-#
+# 2.17.23
 # This is a Shiny web application. You can run the application by clicking
 # the 'Run App' button above.
 #
@@ -8,10 +8,23 @@
 
 # Load the required packages --------------------------------------------------
 # install.packages("name") to install any missing packages
-list_of_packages <- c("shiny", "shinydashboard", "tidyverse", "plotly",
-                      "wordcloud", "DT", "ggplot2", "ggrepel", "here", 
-                      "reshape2", "scales", "ggbreak", "treemapify")
-lapply(list_of_packages, library, character.only = TRUE)
+# list_of_packages <- c("shiny", "shinydashboard", "tidyverse", "plotly",
+#                       "wordcloud", "DT", "ggplot2", "ggrepel", "here", 
+#                       "reshape2", "scales", "ggbreak", "treemapify")
+# invisible(lapply(list_of_packages, library, character.only = TRUE))
+library(shiny)
+library(shinydashboard)
+library(tidyverse)
+library(plotly)
+library(wordcloud)
+library(DT)
+library(ggplot2)
+library(ggrepel)
+library(here)
+library(reshape2)
+library(scales)
+library(ggbreak)
+library(treemapify)
 
 # Source functions
 # source(file = here("00_source_all.R"))
@@ -85,7 +98,6 @@ ui <- dashboardPage(
   
   dashboardSidebar(
     sidebarMenu(
-      #will eventually add Schools to sdgs and sdgs to schools
       menuItem("Home (About)", tabName = "1"),
       menuItem("Learn About The SDGs", tabName = "2"),
       menuItem("USC Research: SDGs by Year", tabName = "3"),
@@ -207,7 +219,7 @@ ui <- dashboardPage(
               choices = sort(unique(usc_pubs_sdgs$Year))
             )
           ), 
-          # h3("Yearly Total Count of Publications By SDG"), 
+          h4("Please wait for data to load (~2 min)"), 
           fluidRow(
             column(6, plotlyOutput("year_sdg_barplot")),
             column(6, img(src = "un_17sdgs.jpg", width = "100%"))
@@ -325,7 +337,8 @@ ui <- dashboardPage(
           fluidRow(column(12, DT::dataTableOutput("auth_about"))),
           # graph
           h3("Graph of Author's Publications by SDG"),
-          fluidRow(column(6, plotOutput("author_sdg_barplot"))),
+          fluidRow(column(6, plotOutput("author_sdg_barplot")),
+                   column(6, img(src = "un_17sdgs.jpg", width = "100%"))),
           # table
           h3("List of Author's Publications"),
           fluidRow(
@@ -541,7 +554,7 @@ server <- function(input, output, session) {
              x = "SDG",
              y = "Count of Publications") +
         #guides(alpha = FALSE) +
-        theme_minimal(base_size = 20) +
+        theme_minimal(base_size = 18) +
         theme(legend.position = "none")
       ggplotly(p, tooltip = "text")
     })
@@ -585,10 +598,10 @@ server <- function(input, output, session) {
       ggplot(pie_data, aes(x = "", y = prop, fill = group)) +
         geom_bar(stat = "identity", width = 1, color = "black") +
         coord_polar("y", start = 0) +
-        geom_text(aes(y = ypos, label = value), color = "black", size = 36/.pt) +
+        geom_text(aes(y = ypos, label = value), color = "black", size = 20/.pt) +
         scale_fill_manual(values = c("#990000", "#FFC72C", "#767676"), name = "") +
         labs(title = paste0("Sustainability Related Research in ", input$Year)) +
-        theme_void(base_size = 20)
+        theme_void(base_size = 18)
   })
   
   output$pie2 <- renderPlot(
@@ -630,10 +643,10 @@ server <- function(input, output, session) {
       ggplot(pie_data, aes(x = "", y = prop, fill = group)) +
         geom_bar(stat = "identity", width = 1, color = "black") +
         coord_polar("y", start = 0) +
-        geom_text(aes(y = ypos, label = value), color = "black", size = 36/.pt) +
+        geom_text(aes(y = ypos, label = value), color = "black", size = 20/.pt) +
         scale_fill_manual(values = c("#990000", "#FFC72C", "#767676"), name = "") +
         labs(title = paste0("Employees conducting Sustainability-Related Research")) +
-        theme_void(base_size = 20)
+        theme_void(base_size = 18)
     })
   
   output$pie3 <- renderPlot(
@@ -676,10 +689,10 @@ server <- function(input, output, session) {
       ggplot(pie_data, aes(x = "", y = prop, fill = group)) +
         geom_bar(stat = "identity", width = 1, color = "black") +
         coord_polar("y", start = 0) +
-        geom_text(aes(y = ypos, label = value), color = "black", size = 36/.pt) +
+        geom_text(aes(y = ypos, label = value), color = "black", size = 20/.pt) +
         scale_fill_manual(values = c("#990000", "#FFC72C", "#767676"), name = "") +
         labs(title = paste0("Sustainability Related Departments")) +
-        theme_void(base_size = 20)
+        theme_void(base_size = 18)
     })
   
   # tab 4
