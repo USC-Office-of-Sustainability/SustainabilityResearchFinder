@@ -25,6 +25,7 @@ library(reshape2)
 library(scales)
 library(ggbreak)
 library(treemapify)
+library(stringr)
 
 # Source functions
 # source(file = here("00_source_all.R"))
@@ -58,33 +59,42 @@ sdg_col_names <- syms(c("SDG.01", "SDG.02", "SDG.03", "SDG.04", "SDG.05", "SDG.0
                    "SDG.07", "SDG.08", "SDG.09", "SDG.10", "SDG.11", "SDG.12", 
                    "SDG.13", "SDG.14", "SDG.15", "SDG.16", "SDG.17"))
 
-disclaimer = paste("Data is from 2020-2022. This app is a work in progress, and,",
-                 "we are continually improving accuracy. If you have feedback,",
-                 "please email: oosdata@usc.edu")
-
 # data
-usc_pubs <- read.csv(here::here("data_processed/usc_pubs.csv"))
-usc_sdgs <- read.csv(here::here("data_processed/usc_sdgs.csv"))
-usc_authors <- read.csv(here::here("data_processed/authors_only_revalued.csv"))
-usc_bridge <- read.csv(here::here("data_processed/bridge.csv"))
+usc_pubs <- read.csv("data_processed/usc_pubs_law.csv")
+usc_sdgs <- read.csv("data_processed/usc_sdgs_with_categories.csv")
+# usc_authors <- read.csv("data_processed/authors_only_revalued.csv")
+usc_authors <- read.csv("data_processed/usc_authors_law.csv")
+usc_bridge <- read.csv("data_processed/bridge_law.csv")
+# dei_data <- read.csv("data_processed/DEI_pubs.csv")
+dei_joined <- read.csv("data_processed/DEI_pubs_ordered.csv")
 
 # 2020-2022
 usc_pubs <- usc_pubs %>% filter(Year %in% c(2020, 2021, 2022))
 
 # url
-usc_pubs$url <- paste0("<a href='", usc_pubs$Link, "'>", usc_pubs$Link, "</a>")
+usc_pubs$url <- paste0("<a href='", usc_pubs$Link, "' target='_blank'>", usc_pubs$Link, "</a>")
 
 # merge
 usc_pubs_sdgs <- merge(usc_pubs, usc_sdgs, 
-                       by.x = c("X", "Link"), by.y = c("document", "Link"), 
+                       by.x = c("pubID", "Link"), by.y = c("document", "Link"), 
                        all.x = TRUE)
+usc_pubs_sdgs$sustainability_category[is.na(usc_pubs_sdgs$sustainability_category)] = "Not-Related"
+
 tmp <- merge(usc_pubs, usc_bridge,
-             by.x = c("X", "Link"), by.y = c("pubID", "link"))
+             by.x = c("pubID", "Link"), by.y = c("pubID", "link"))
 tmp2 <- merge(tmp, usc_authors,
               by.x = "authorID", by.y = "authorID")
 usc_joined <- merge(tmp2, usc_sdgs,
-                    by.x = c("X", "Link"), by.y = c("document", "Link"),
+                    by.x = c("pubID", "Link"), by.y = c("document", "Link"),
                     all.x = TRUE)
+usc_joined$sustainability_category[is.na(usc_joined$sustainability_category)] = "Not-Related"
+
+
+# tmp <- merge(dei_data, usc_bridge,
+#              by.x = c("pubID", "Link"), by.y = c("pubID", "link"))
+# dei_joined <- merge(tmp, usc_authors,
+#               by.x = "authorID", by.y = "authorID")
+
 
 authorChoices = setNames(usc_authors$authorID, 
                          paste(usc_authors$LName, usc_authors$FName, sep = ", "))
@@ -94,17 +104,27 @@ ui <- dashboardPage(
   skin = "black",
   
   # Application title
-  dashboardHeader(title = "USC SDG Mapping"),
+  dashboardHeader(title = "USC Sustainability Research Finder", titleWidth = 400),
   
-  dashboardSidebar(
+  # publication -> research
+  # author -> scholar
+  # sustainability-related
+  # sustainability-focused sustainability-inclusive
+  # font same for graphs
+  # rerun word bubble
+  
+  
+  
+  dashboardSidebar(width = 400,
     sidebarMenu(
-      menuItem("Home (About)", tabName = "1"),
-      menuItem("Learn About The SDGs", tabName = "2"),
+      menuItem("About", tabName = "1"),
+      menuItem("FAQ", tabName = "7"),
+      # menuItem("Learn About The SDGs", tabName = "2"),
       menuItem("USC Research: SDGs by Year", tabName = "3"),
       menuItem("USC Research: SDGs by Department", tabName = "4"),
       menuItem("View USC Scholars and Departments by SDGs", tabName = "5"),
-      menuItem("Find SDGs and Publications by USC Author", tabName = "6"),
-      menuItem("FAQ", tabName = "7")
+      menuItem("Find SDGs and Research by USC Scholar", tabName = "6"),
+      menuItem("Sustainability Research in Los Angeles", tabName = "8")
     )
   ),
   
@@ -124,55 +144,52 @@ ui <- dashboardPage(
       tabItem(
         tabName = "1",
         fluidPage(
-          h1("Home (Project Overview)"),
-          h3(
-            strong(
-              "Are you interested in sustainability and the ",
-              a(
-                "UN Sustainability Development Goals (SDGs)",
-                href="https://sdgs.un.org", 
-                .noWS = "after"
-              ),
-              "?"),
-            "If so, you have come to the right place! Right now, the results
-            are from Scopus SDG Search Query. We are working on updating the
-            dashboard with more accurate SDG classification using Machine 
-            Learning.",
-            br(), 
-            br(),
-            strong(
-              "This dashboard is a tool that enables you to see which research
-              publications at USC relate to the 17 UN SDGs. You can use this 
-              dashboard as a tool to find USC scholars and publications that 
-              match your academic interest!"
-            ),
-            br(),
-            br(),
-            "Sustainability incorporates protection for the environment,
-            balancing a growing economy, and social responsibility to lead to 
-            an improved quality of life for current and future generations."
-          ), # end h3
+          h1("About"),
           fluidRow(
-            img(
+            column(6,
+              h3(
+                strong(
+                  "Are you interested in sustainability and the ",
+                  a(
+                    "UN Sustainable Development Goals (SDGs)",
+                    href="https://sdgs.un.org", 
+                    .noWS = "after",
+                    target = "_blank"
+                  ),
+                  "?"),
+                "If so, you have come to the right place!",
+                br(), 
+                br(),
+                strong(
+                  "This dashboard is a tool that enables you to see which research
+                publications at USC relate to the 17 UN SDGs. You can also use this 
+                tool to find USC scholars and publications that 
+                match your academic interest!"
+                ),
+                br(),
+                br(),
+                "Sustainability incorporates protection for the environment,
+              balancing a growing economy, and social responsibility to lead to 
+              an improved quality of life for current and future generations."
+              )), # end h3
+            column(6, img( # move next to next
               src="Asgmt_Earth_Research.png", 
-              height="550", 
+              height="450", 
               style="display: block; margin-left: auto; margin-right: auto;"
-            )
-          )
-        ) # end fluidPage
-      ), # end tabItem 1
-      tabItem(
-        tabName = "2",
-        fluidPage(
+            ))
+          ),
+          
           h1("Learn About The SDGs"),
-          h3(
-            "SDG stands for", 
-            a(
-              "UN Sustainability Development Goals", 
-              href="https://sdgs.un.org",
-              .noWS = "after"
-            ),
-            ", which adopted by all United Nations Member States in 2015, 
+          fluidRow(
+            column(6, h3(
+              "SDG stands for", 
+              a(
+                "UN sustainable development goals", 
+                href="https://sdgs.un.org",
+                .noWS = "after",
+                target = "_blank"
+              ),
+              ", which adopted by all United Nations Member States in 2015, 
             provides a shared blueprint for peace and prosperity for people and
             the planet, now and into the future. The SDGs are an urgent call
             for action by all countries - developed and developing - in a 
@@ -181,8 +198,12 @@ ui <- dashboardPage(
             health and education, reduce inequality, and spur economic growth –
             all while tackling climate change and working to preserve our 
             oceans and forests."
+            )),
+            column(6, img(src = "un_17sdgs.jpg", width = "100%"))
+            
           ),
-          h4(disclaimer),
+          
+          uiOutput("disclaimer"),
           div(
             style="font-size:24px;", 
             selectizeInput(
@@ -193,24 +214,37 @@ ui <- dashboardPage(
           ),
           fluidRow(
             bootstrapPage(
-              column(4, plotOutput(outputId ="plot3"), br()),
-              column(4, plotOutput(outputId = "sdg_total_by_year"), br()),
-              column(4, img(src = "un_17sdgs.jpg", width = "100%"))
+              column(6, plotOutput(outputId ="plot3"), br()),
+              column(6, plotOutput(outputId = "sdg_total_by_year"), br())
+              # column(4, ) # move image next to paragraph text
             )
           )
-          
-          # h1(textOutput("sdg_name")),
-          #fluidRow(bootstrapPage(
-          # column(12, DT::dataTableOutput("top_classes_sdg_table"))
-          #))
         ) # end fluidPage
-      ), # end tabItem 2
+      ), # end tabItem 1
+      # tabItem(
+      #   tabName = "2",
+      #   fluidPage(
+      #     
+      #     
+      #     # h1(textOutput("sdg_name")),
+      #     #fluidRow(bootstrapPage(
+      #     # column(12, DT::dataTableOutput("top_classes_sdg_table"))
+      #     #))
+      #   ) # end fluidPage
+      # ), # end tabItem 2
       tabItem(
         tabName = "3",
         fluidPage(
           h1("USC Research: SDGs By Year"),
           #h3("this is a description"),
-          h4(disclaimer),
+          # uiOutput("disclaimer"),
+          h4("Data is from 2020-2022. This app is a work in progress, and,
+         we are continually improving accuracy. If you have feedback,
+         please fill out our ",
+             a("feedback form",
+               href="https://forms.gle/P6QJDSJaaRusZLZh6", .noWS = "after",
+               target = "_blank"),
+             "."),
           div(
             style="font-size:24px;",
             selectInput(
@@ -219,9 +253,11 @@ ui <- dashboardPage(
               choices = sort(unique(usc_pubs_sdgs$Year))
             )
           ), 
-          h4("Please wait for data to load (~2 min)"), 
+          h4("Please wait for data to load (~30 sec)"), 
           fluidRow(
-            column(6, plotlyOutput("year_sdg_barplot")),
+            column(6, h3("Count of Research Products* per SDG"), 
+                   h4("Products include publications, books, conference proceedings, and scholarly reports"),
+                   plotlyOutput("year_sdg_barplot")),
             column(6, img(src = "un_17sdgs.jpg", width = "100%"))
           ),
           #h3("SDG Related Research vs. Non-related Research"),
@@ -233,10 +269,15 @@ ui <- dashboardPage(
           #   ),
           #   
           # ),
-          h3("For 2020-2022"),
+          # h3("For 2020-2022"),
+          # h4("*Employees include students, postdocs, staff and faculty that are on publications"),
           fluidRow(
             column(6, plotOutput("pie2")),
-            column(6, plotOutput("pie3"))
+            column(6, plotOutput("stacked_bar2"))
+          ),
+          fluidRow(
+            column(6, plotOutput("pie3")),
+            column(6, plotOutput("stacked_bar3"))
           )# end fluidRow
         ) # end fluidPage
       ), # end tabItem 3
@@ -246,7 +287,14 @@ ui <- dashboardPage(
           h1("USC Research: SDGs by Department"),
           h3("Select a USC School/Unit below to view the number of SDG-related
              publications by departments."),
-          h4(disclaimer),
+          # uiOutput("disclaimer"),
+          h4("Data is from 2020-2022. This app is a work in progress, and,
+         we are continually improving accuracy. If you have feedback,
+         please fill out our ",
+             a("feedback form",
+               href="https://forms.gle/P6QJDSJaaRusZLZh6", .noWS = "after",
+               target = "_blank"),
+             "."),
           div(
             style="font-size:24px;", 
             selectInput(
@@ -256,21 +304,29 @@ ui <- dashboardPage(
               selected = "Dornsife College of Letters, Arts and Sciences"
             )
           ),
-          h3("SDG Publications by Departments"),
+          h3("Research Products* and SDGs by Departments"),
+          h4("Products include publications, books, conference proceedings, and scholarly reports"),
           h4("Hover over the columns to see Department name. 
             Drag cursor over a section to zoom in and double click to zoom out. 
             You can also use the tools in the top right corner."),
           fluidRow(column(12, plotlyOutput(outputId = "pubs_to_bar"))),
-          h3("SDG-Related Research"),
+          h3("SDG-Related Research Across All Departments"),
           fluidRow(column(12, plotOutput("pubs_to_treemap")))
         ) # end fluidPage
       ), # end tabItem 4
       tabItem(
         tabName = "5",
         fluidPage(
-          h1("View Top Scholars and Departments by SDGs"),
+          h1("View USC Scholars and Departments by SDGs"),
           #h3("description"),
-          h4(disclaimer),
+          # uiOutput("disclaimer"),
+          h4("Data is from 2020-2022. This app is a work in progress, and,
+         we are continually improving accuracy. If you have feedback,
+         please fill out our ",
+             a("feedback form",
+               href="https://forms.gle/P6QJDSJaaRusZLZh6", .noWS = "after",
+               target = "_blank"),
+             "."),
           div(
             style="font-size:24px;", 
             selectInput(
@@ -288,6 +344,7 @@ ui <- dashboardPage(
               selected = ""
             )
           ),
+          # h4("Please wait for data to load (~30 sec)"),
           br(),
           #h1(textOutput(paste0("Top Researchers in", input$Division))),
           fluidRow(
@@ -313,34 +370,42 @@ ui <- dashboardPage(
       tabItem(
         tabName = "6",
         fluidPage(
-          h1("Find SDGs and Publications by USC Author"),
-          h4(disclaimer),
+          h1("Find SDGs and Research by USC Scholar"),
+          # uiOutput("disclaimer"),
+          h4("Data is from 2020-2022. This app is a work in progress, and,
+         we are continually improving accuracy. If you have feedback,
+         please fill out our ",
+             a("feedback form",
+               href="https://forms.gle/P6QJDSJaaRusZLZh6", .noWS = "after",
+               target = "_blank"),
+             "."),
+          # div(
+          #   style="font-size:24px;", 
+          #   selectInput(
+          #     inputId = "school",
+          #     label = "Choose USC School/Unit",
+          #     choices = sort(unique(usc_authors$Division)),
+          #     selected = ""
+          #   )
+          # ),
           div(
             style="font-size:24px;", 
-            selectInput(
-              inputId = "school",
-              label = "Choose USC School/Unit",
-              choices = sort(unique(usc_authors$Division)),
-              selected = ""
-            )
-          ),
-          div(
-            style="font-size:24px;", 
-            selectInput(
+            selectizeInput(
               inputId = "author",
-              label = (HTML("<p style='font-size:24px;font-weight:700;margin:0;'>Choose USC Author</p>
-                            <p style='font-size:20px;font-weight:400;margin:0;'>Start by typing Author's last name</p>")),
-              choices = authorChoices[sort(names(authorChoices))],
+              label = (HTML("<p style='font-size:24px;font-weight:700;margin:0;'>Choose USC Scholar</p>
+                            <p style='font-size:20px;font-weight:400;margin:0;'>Start by typing scholar's last name</p>")),
+              # choices = authorChoices[sort(names(authorChoices))], 
+              choices = NULL,
               selected = NULL
             )
           ),
           fluidRow(column(12, DT::dataTableOutput("auth_about"))),
           # graph
-          h3("Graph of Author's Publications by SDG"),
+          h3("Scholar's Research Products by SDG"),
           fluidRow(column(6, plotOutput("author_sdg_barplot")),
                    column(6, img(src = "un_17sdgs.jpg", width = "100%"))),
           # table
-          h3("List of Author's Publications"),
+          h3("List of Scholar's Research Products"),
           fluidRow(
             bootstrapPage(
               column(12, DT::dataTableOutput("author_pub_table"))
@@ -361,26 +426,35 @@ ui <- dashboardPage(
             a(
               "CKIDS Datafest",
               href = "https://sites.usc.edu/ckids/about/",
+              target = "_blank"
             ),
-            "at USC by Dr. Julie Hopper in the Office of Sustainability and
-            five USC students: Alison Chen, Aurora Massari, Bhavya Ramani, Ric
-            Xian and Xinyi Zhang. USC publication data in this dashboard were 
-            pulled from",
+            "at USC by Dr. Julie Hopper in the Office of Sustainability and 
+            five USC students: Alison Chen, Aurora Massari, Bhavya Ramani, Ric 
+            Xian and Xinyi Zhang. ", 
+            strong("USC research products in the dashboard dataset includes 
+                   books, publications, conference proceedings, and scholarly 
+                   reports pulled from ",
             a(
               "Scopus",
-              href = "https://www.scopus.com/home.uri"
+              href = "https://www.scopus.com/home.uri",
+              target = "_blank"
             ),
-            "(Elsevier's citation database). All of the datasets, R-packages (",
+            "(Elsevier's citation database) and augmented with data provided 
+            by USC Librarians for USC schools that are not fully represented 
+            in Scopus."),
+            "All of the datasets, R-packages (",
             a(
               "text2sdg",
               href = "https://CRAN.R-project.org/package=text2sdg",
-              .noWS = "outside"
+              .noWS = "outside",
+              target = "_blank"
             ),
             ") and code used in this dashboard are in ",
             a(
               "our Github page",
               href = "https://github.com/USC-Office-of-Sustainability/SDGMappingResearch",
-              .noWS = "after"
+              .noWS = "after",
+              target = "_blank"
             ),
             ".",
             br(), br(),
@@ -398,7 +472,8 @@ ui <- dashboardPage(
             a(
               "their website",
               href = "https://sdgs.un.org/goals#icons",
-              .noWS = "after"
+              .noWS = "after",
+              target = "_blank"
             ),
             ".",
             br(), br(),
@@ -433,7 +508,8 @@ ui <- dashboardPage(
                  a(
                    "USC Website Directory",
                    href = "https://uscdirectory.usc.edu/web/directory/web/",
-                   .noWS = "after"
+                   .noWS = "after",
+                   target = "_blank"
                  )),
               tags$ol( 
                 type = "a",
@@ -462,24 +538,56 @@ ui <- dashboardPage(
             br(),
             strong("Q: What if I have more questions or feedback?"),
             br(),
-            "A: Please contact: oosdata@usc.edu"
+            "A: Please fill out our ",
+            a("feedback form",
+              href="https://forms.gle/P6QJDSJaaRusZLZh6", .noWS = "after",
+              target = "_blank"),
+            "."
           )
         ) # end fluidPage
-      ) # end tabItem 7
+      ), # end tabItem 7
+      tabItem(
+        tabName = "8",
+        fluidPage(
+          h1("Sustainability-Research in Los Angeles"),
+          # uiOutput("disclaimer"),
+          h4("Data is from 2020-2022. This app is a work in progress, and,
+         we are continually improving accuracy. If you have feedback,
+         please fill out our ",
+             a("feedback form",
+               href="https://forms.gle/P6QJDSJaaRusZLZh6", .noWS = "after",
+               target = "_blank"),
+             "."),
+          downloadButton("download_dei_data", "Download"),
+          fluidRow(column(12, DT::dataTableOutput("dei_table"))),
+        )
+      ) # end tabItem 8
     ), # end tabItems
     tags$footer(
       fluidPage(
         h4("Stay connected by visiting our", 
-          a("home page", href="https://sustainability.usc.edu"), 
+          a("home page", href="https://sustainability.usc.edu",
+            target = "_blank"), 
           "or by following the Office of Sustainability on social media via", 
-          a("", href="https://www.instagram.com/green.usc/", class="fa fa-instagram"),
-          a("Instagram", href="https://www.instagram.com/green.usc/"), "or", 
-          a("", href="https://twitter.com/GreenUSC", class="fa fa-twitter"),
-          a("Twitter", href="https://twitter.com/GreenUSC", .noWS = "after"), 
+          a("", href="https://www.instagram.com/green.usc/", class="fa fa-instagram",
+            target = "_blank"),
+          a("Instagram", href="https://www.instagram.com/green.usc/",
+            target = "_blank"), "or", 
+          a("", href="https://twitter.com/GreenUSC", class="fa fa-twitter",
+            target = "_blank"),
+          a("Twitter", href="https://twitter.com/GreenUSC", .noWS = "after",
+            target = "_blank"), 
           ". You can also support the Office of Sustainability by donating", 
-          a("here", href="https://green.usc.edu/get-involved/give-to-the-office-of-sustainability/", .noWS = "after"), 
-          ". More questions or suggestions in regard to this tool? Please contact: oosdata@usc.edu")
-        
+          a("here", 
+            href="https://green.usc.edu/get-involved/give-to-the-office-of-sustainability/",
+            .noWS = "after",
+            target = "_blank"), 
+          ". More questions or suggestions in regard to this tool? Please fill out our",
+          a("feedback form",
+            href="https://forms.gle/P6QJDSJaaRusZLZh6", .noWS = "after",
+            target = "_blank"),
+          "."
+          ),
       )
     )
   )
@@ -493,6 +601,17 @@ get_selected_sdg_col <- function(sdg) {
 }
 
 server <- function(input, output, session) {
+  output$disclaimer <- renderUI({
+    tagList(
+      h4("Data is from 2020-2022. This app is a work in progress, and,
+         we are continually improving accuracy. If you have feedback,
+         please fill out our ",
+         a("feedback form",
+           href="https://forms.gle/P6QJDSJaaRusZLZh6", .noWS = "after",
+           target = "_blank"),
+         ".")
+    )
+  })
   # tab 2
   output$sdg_total_by_year  <- renderPlot(
     {
@@ -507,10 +626,11 @@ server <- function(input, output, session) {
         scale_color_manual(values = sdg_colors,
                            aesthetics = c("fill")) +
         #geom_text(aes(label = Freq), vjust = -0.2, size = 4) +
-        labs(title = paste0("Count of Publications By Year"),
+        labs(title = str_wrap("Count of Research Products* by Year", 40), 
+             subtitle = str_wrap("Products include publications, books, conference proceedings, and scholarly reports", 40),
              fill = "SDG",
              x = "Year",
-             y = "Count of Publications") +
+             y = "Count") +
         #guides(alpha = FALSE) +
         theme_minimal(base_size = 20)
     })
@@ -524,7 +644,7 @@ server <- function(input, output, session) {
       list(src = filename, height = "100%")
     }, deleteFile = FALSE)
   
-  # tab 3
+  # tab 3 # stacked bar instead of pie charts
   output$year_sdg_barplot <- renderPlotly(
     {
       # y_max = usc_pubs_sdgs %>%
@@ -549,10 +669,10 @@ server <- function(input, output, session) {
         # scale_y_break(c(200, y_max_floor)) +
         # ylim(0, y_max+50) +
         # geom_text(aes(label = V1), vjust = -0.2, size = 16/.pt) +
-        labs(title = paste0("Count of Publications per SDG<br>in ", input$Year),
+        labs(#title = str_wrap(paste0("Count of Publications per SDG in ", input$Year), 25), # Research Product* Count per SDG in Year # subtitle: Products include publications, books, conference proceedings, and scholarly reports.
              fill = "SDG",
              x = "SDG",
-             y = "Count of Publications") +
+             y = "Count") +
         #guides(alpha = FALSE) +
         theme_minimal(base_size = 18) +
         theme(legend.position = "none")
@@ -567,23 +687,32 @@ server <- function(input, output, session) {
       # not related
       
       # data
-      sdg_sum <- usc_pubs_sdgs %>%
-        filter(Year == input$Year) %>%
-        select(starts_with("SDG")) %>%
-        mutate(Total = rowSums(across(), na.rm = TRUE)) %>%
-        select(Total)
-      num_not_related <- sum(sdg_sum == 0)
-      num_related <- sum(sdg_sum != 0)
-      num_focused <- usc_pubs_sdgs %>% 
-        filter(Year == input$Year) %>% 
-        select(starts_with("SDG")) %>% 
-        filter(SDG.13 > 0 | SDG.14 > 0 | SDG.15 > 0) %>% 
-        filter(SDG.01 > 0 | SDG.02 > 0 | SDG.03 > 0 | SDG.04 > 0 | 
-                 SDG.05 > 0 | SDG.06 > 0 | SDG.07 > 0 | SDG.08 > 0 | 
-                 SDG.09 > 0 | SDG.10 > 0 | SDG.11 > 0 | SDG.12 > 0 | 
-                 SDG.16 > 0 | SDG.17 > 0) %>% 
-        nrow()
-      num_inclusive <- num_related - num_focused
+      # sdg_sum <- usc_pubs_sdgs %>%
+      #   filter(Year == input$Year) %>%
+      #   select(starts_with("SDG")) %>%
+      #   mutate(Total = rowSums(across(), na.rm = TRUE)) %>%
+      #   select(Total)
+      # num_not_related <- sum(sdg_sum == 0)
+      # num_related <- sum(sdg_sum != 0)
+      # num_focused <- usc_pubs_sdgs %>% 
+      #   filter(Year == input$Year) %>% 
+      #   select(starts_with("SDG")) %>% 
+      #   filter(SDG.13 > 0 | SDG.14 > 0 | SDG.15 > 0) %>% 
+      #   filter(SDG.01 > 0 | SDG.02 > 0 | SDG.03 > 0 | SDG.04 > 0 | 
+      #            SDG.05 > 0 | SDG.06 > 0 | SDG.07 > 0 | SDG.08 > 0 | 
+      #            SDG.09 > 0 | SDG.10 > 0 | SDG.11 > 0 | SDG.12 > 0 | 
+      #            SDG.16 > 0 | SDG.17 > 0) %>% 
+      #   nrow()
+      # num_inclusive <- num_related - num_focused
+      num_not_related <- usc_pubs_sdgs %>%
+        filter(sustainability_category == "Not-Related") %>%
+        nrow
+      num_inclusive <- usc_pubs_sdgs %>%
+        filter(sustainability_category == "Sustainability-Inclusive") %>%
+        nrow
+      num_focused <- usc_pubs_sdgs %>%
+        filter(sustainability_category == "Sustainability-Focused") %>%
+        nrow
       pie_data <- data.frame(group = c("Not Related", "Inclusive", "Focused"),
                              value = c(num_not_related,
                                        num_inclusive,
@@ -600,11 +729,11 @@ server <- function(input, output, session) {
         coord_polar("y", start = 0) +
         geom_text(aes(y = ypos, label = value), color = "black", size = 20/.pt) +
         scale_fill_manual(values = c("#990000", "#FFC72C", "#767676"), name = "") +
-        labs(title = paste0("Sustainability Related Research in ", input$Year)) +
+        labs(title = paste0("Sustainability-Related Research in ", input$Year)) +
         theme_void(base_size = 18)
   })
   
-  output$pie2 <- renderPlot(
+  output$pie2 <- renderPlot( # add lines
     {
       # 3 categories:
       # sust focused = at least 1 %in% 13:15 and at least 1 %in% 1:12, 16, 17
@@ -612,23 +741,34 @@ server <- function(input, output, session) {
       # not related
       
       # data
-      usc_sum <- usc_joined %>%
-        # filter(Year == input$Year) %>% # also filter out not current faculty?
-        select(starts_with("SDG"), authorID) %>%
+      
+      # sdg_sum <- usc_by_author_sdg_sum$Total
+      # num_not_related <- sum(sdg_sum == 0)
+      # num_related <- sum(sdg_sum != 0)
+      # num_focused <- usc_by_author_sdg_sum %>%
+      #   filter(SDG.13 > 0 | SDG.14 > 0 | SDG.15 > 0) %>% 
+      #   filter(SDG.01 > 0 | SDG.02 > 0 | SDG.03 > 0 | SDG.04 > 0 | 
+      #            SDG.05 > 0 | SDG.06 > 0 | SDG.07 > 0 | SDG.08 > 0 | 
+      #            SDG.09 > 0 | SDG.10 > 0 | SDG.11 > 0 | SDG.12 > 0 | 
+      #            SDG.16 > 0 | SDG.17 > 0) %>% 
+      #   nrow()
+      # num_inclusive <- num_related - num_focused
+      usc_by_author_sust_cat <- usc_joined %>%
         group_by(authorID) %>%
-        summarise(across(starts_with("SDG"), sum, na.rm = TRUE)) %>%
-        mutate(Total = rowSums(across(starts_with("SDG")), na.rm = TRUE))
-      sdg_sum <- usc_sum$Total
-      num_not_related <- sum(sdg_sum == 0)
-      num_related <- sum(sdg_sum != 0)
-      num_focused <- usc_sum %>%
-        filter(SDG.13 > 0 | SDG.14 > 0 | SDG.15 > 0) %>% 
-        filter(SDG.01 > 0 | SDG.02 > 0 | SDG.03 > 0 | SDG.04 > 0 | 
-                 SDG.05 > 0 | SDG.06 > 0 | SDG.07 > 0 | SDG.08 > 0 | 
-                 SDG.09 > 0 | SDG.10 > 0 | SDG.11 > 0 | SDG.12 > 0 | 
-                 SDG.16 > 0 | SDG.17 > 0) %>% 
-        nrow()
-      num_inclusive <- num_related - num_focused
+        summarize(all_sustainability_categories = paste(sustainability_category[!duplicated(sustainability_category)], collapse = ";")) %>%
+        mutate(one_sustainability_category = case_when(grepl("Focused", all_sustainability_categories)~"Sustainability-Focused",
+                                                       grepl("Inclusive", all_sustainability_categories)~"Sustainability-Inclusive",
+                                                       grepl("Not-Related", all_sustainability_categories)~"Not-Related")) %>%
+        select(authorID, one_sustainability_category)
+      num_not_related <- usc_by_author_sust_cat %>%
+        filter(one_sustainability_category == "Not-Related") %>%
+        nrow
+      num_inclusive <- usc_by_author_sust_cat %>%
+        filter(one_sustainability_category == "Sustainability-Inclusive") %>%
+        nrow
+      num_focused <- usc_by_author_sust_cat %>%
+        filter(one_sustainability_category == "Sustainability-Focused") %>%
+        nrow
       pie_data <- data.frame(group = c("Not Related", "Inclusive", "Focused"),
                              value = c(num_not_related,
                                        num_inclusive,
@@ -643,10 +783,17 @@ server <- function(input, output, session) {
       ggplot(pie_data, aes(x = "", y = prop, fill = group)) +
         geom_bar(stat = "identity", width = 1, color = "black") +
         coord_polar("y", start = 0) +
-        geom_text(aes(y = ypos, label = value), color = "black", size = 20/.pt) +
+        geom_label_repel(aes(y = ypos, label = paste0(value)),
+                         size = 4.5, nudge_x = 1, show.legend = FALSE) +
+        # geom_text(aes(y = ypos, label = value), color = "black", size = 20/.pt) +
         scale_fill_manual(values = c("#990000", "#FFC72C", "#767676"), name = "") +
-        labs(title = paste0("Employees conducting Sustainability-Related Research")) +
+        labs(title = str_wrap("Employees conducting Sustainability-Related Research", 40)) +
         theme_void(base_size = 18)
+      pie(pie_data$value, 
+          labels = paste0(pie_data$group," (", pie_data$value,")"), # put count, % in next line
+          col = c("#767676", "#FFC72C", "#990000"), 
+          main = str_wrap("Scholars Conducting Sustainability-Related Research 2020-22", 40), 
+          cex = 1.5, cex.main = 1.5)
     })
   
   output$pie3 <- renderPlot(
@@ -657,24 +804,35 @@ server <- function(input, output, session) {
       # not related
       
       # data
-      usc_sum <- usc_joined %>%
-        # filter(Year == input$Year) %>% # also filter out not current faculty?
-        filter(Department != "") %>%
-        select(starts_with("SDG"), Department) %>%
+      
+      # sdg_sum <- usc_by_dept_sdg_sum$Total
+      # num_not_related <- sum(sdg_sum == 0)
+      # num_related <- sum(sdg_sum != 0)
+      # num_focused <- usc_by_dept_sdg_sum %>%
+      #   filter(SDG.13 > 0 | SDG.14 > 0 | SDG.15 > 0) %>% 
+      #   filter(SDG.01 > 0 | SDG.02 > 0 | SDG.03 > 0 | SDG.04 > 0 | 
+      #            SDG.05 > 0 | SDG.06 > 0 | SDG.07 > 0 | SDG.08 > 0 | 
+      #            SDG.09 > 0 | SDG.10 > 0 | SDG.11 > 0 | SDG.12 > 0 | 
+      #            SDG.16 > 0 | SDG.17 > 0) %>% 
+      #   nrow()
+      # num_inclusive <- num_related - num_focused
+      
+      usc_by_dept_sust_cat <- usc_joined %>%
         group_by(Department) %>%
-        summarise(across(starts_with("SDG"), sum, na.rm = TRUE)) %>%
-        mutate(Total = rowSums(across(starts_with("SDG")), na.rm = TRUE))
-      sdg_sum <- usc_sum$Total
-      num_not_related <- sum(sdg_sum == 0)
-      num_related <- sum(sdg_sum != 0)
-      num_focused <- usc_sum %>%
-        filter(SDG.13 > 0 | SDG.14 > 0 | SDG.15 > 0) %>% 
-        filter(SDG.01 > 0 | SDG.02 > 0 | SDG.03 > 0 | SDG.04 > 0 | 
-                 SDG.05 > 0 | SDG.06 > 0 | SDG.07 > 0 | SDG.08 > 0 | 
-                 SDG.09 > 0 | SDG.10 > 0 | SDG.11 > 0 | SDG.12 > 0 | 
-                 SDG.16 > 0 | SDG.17 > 0) %>% 
-        nrow()
-      num_inclusive <- num_related - num_focused
+        summarize(all_sustainability_categories = paste(sustainability_category[!duplicated(sustainability_category)], collapse = ";")) %>%
+        mutate(one_sustainability_category = case_when(grepl("Focused", all_sustainability_categories)~"Sustainability-Focused",
+                                                       grepl("Inclusive", all_sustainability_categories)~"Sustainability-Inclusive",
+                                                       grepl("Not-Related", all_sustainability_categories)~"Not-Related")) %>%
+        select(Department, one_sustainability_category)
+      num_not_related <- usc_by_dept_sust_cat %>%
+        filter(one_sustainability_category == "Not-Related") %>%
+        nrow
+      num_inclusive <- usc_by_dept_sust_cat %>%
+        filter(one_sustainability_category == "Sustainability-Inclusive") %>%
+        nrow
+      num_focused <- usc_by_dept_sust_cat %>%
+        filter(one_sustainability_category == "Sustainability-Focused") %>%
+        nrow
       pie_data <- data.frame(group = c("Not Related", "Inclusive", "Focused"),
                              value = c(num_not_related,
                                        num_inclusive,
@@ -689,11 +847,59 @@ server <- function(input, output, session) {
       ggplot(pie_data, aes(x = "", y = prop, fill = group)) +
         geom_bar(stat = "identity", width = 1, color = "black") +
         coord_polar("y", start = 0) +
-        geom_text(aes(y = ypos, label = value), color = "black", size = 20/.pt) +
+        geom_label_repel(aes(y = ypos, label = paste0(value)),
+                         size = 4.5, nudge_x = 1, show.legend = FALSE) +
+        # geom_text(aes(y = ypos, label = value), color = "black", size = 20/.pt) +
         scale_fill_manual(values = c("#990000", "#FFC72C", "#767676"), name = "") +
         labs(title = paste0("Sustainability Related Departments")) +
         theme_void(base_size = 18)
+      pie(pie_data$value, 
+          labels = paste0(pie_data$group," (", pie_data$value,")"), 
+          col = c("#767676", "#FFC72C", "#990000"), 
+          main = str_wrap("Department Conducting Sustainability-Related Research 2020-22", 40), 
+          cex = 1.5, cex.main = 1.5)
     })
+  
+  output$stacked_bar2 <- renderPlot(
+    {
+      usc_by_author_sust_cat <- usc_joined %>%
+        group_by(authorID, Year) %>%
+        summarize(all_sustainability_categories = paste(sustainability_category[!duplicated(sustainability_category)], collapse = ";")) %>%
+        mutate(one_sustainability_category = case_when(grepl("Focused", all_sustainability_categories)~"Sustainability-Focused",
+                                                       grepl("Inclusive", all_sustainability_categories)~"Sustainability-Inclusive",
+                                                       grepl("Not-Related", all_sustainability_categories)~"Not Related")) %>%
+        select(authorID, one_sustainability_category, Year) %>% 
+        group_by(one_sustainability_category, Year) %>%
+        count()
+      usc_by_author_sust_cat$one_sustainability_category <- factor(usc_by_author_sust_cat$one_sustainability_category, levels = c("Sustainability-Focused", "Sustainability-Inclusive", "Not Related"))
+      ggplot(usc_by_author_sust_cat, aes(fill = one_sustainability_category, y = n, x = Year)) +
+        geom_bar(position="fill", stat="identity") +
+        scale_fill_manual(values = c("#990000", "#FFC72C", "#767676"), name = "") +
+        scale_y_continuous(labels = scales::percent) +
+        labs(title = str_wrap("Sustainability Related Scholars by Year", 40),
+             y = "Percent") +
+        theme_minimal(base_size = 20)
+    })
+  
+  output$stacked_bar3 <- renderPlot({
+    usc_by_dept_sust_cat <- usc_joined %>%
+      group_by(Department, Year) %>%
+      summarize(all_sustainability_categories = paste(sustainability_category[!duplicated(sustainability_category)], collapse = ";")) %>%
+      mutate(one_sustainability_category = case_when(grepl("Focused", all_sustainability_categories)~"Sustainability-Focused",
+                                                     grepl("Inclusive", all_sustainability_categories)~"Sustainability-Inclusive",
+                                                     grepl("Not-Related", all_sustainability_categories)~"Not Related")) %>%
+      select(Department, one_sustainability_category, Year) %>%
+      group_by(one_sustainability_category, Year) %>%
+      count()
+    usc_by_dept_sust_cat$one_sustainability_category <- factor(usc_by_dept_sust_cat$one_sustainability_category, levels = c("Sustainability-Focused", "Sustainability-Inclusive", "Not Related"))
+    ggplot(usc_by_dept_sust_cat, aes(fill = one_sustainability_category, y = n, x = Year)) +
+      geom_bar(position="fill", stat="identity") +
+      scale_fill_manual(values = c("#990000", "#FFC72C", "#767676"), name = "") +
+      scale_y_continuous(labels = scales::percent) +
+      labs(title = str_wrap("Sustainability Related Departments by Year", 40),
+           y = "Percent") +
+      theme_minimal(base_size = 20)
+  })
   
   # tab 4
   output$pubs_to_bar <- renderPlotly(
@@ -813,9 +1019,9 @@ server <- function(input, output, session) {
       ggplot(aes(x = reorder(as.factor(Name),n), y = n)) +
       geom_col(fill = sdg_colors[as.numeric(input$Primary.SDG)], alpha = 1) +
       coord_flip() +
-      labs(title = paste0("Top Authors that Map to SDG #", input$Primary.SDG),
+      labs(title = paste0("Top USC Scholars by SDG ", input$Primary.SDG),
            x = "Scholar",
-           y = "Number of Publications ") +
+           y = "Number of Research Products ") +
       theme_minimal(base_size = 20)
   })
 
@@ -837,10 +1043,10 @@ server <- function(input, output, session) {
       ggplot(aes(x = reorder(as.factor(Department),n), y = n)) +
       geom_col(fill = sdg_colors[as.numeric(input$Primary.SDG)], alpha = 1) +
       coord_flip() +
-      scale_x_discrete(labels = label_wrap(20)) +
-      labs(title = paste0("Top Departments that Map to SDG #", input$Primary.SDG),
+      scale_x_discrete(labels = label_wrap(40)) + # whole numbers 
+      labs(title = paste0("Top Departments by SDG ", input$Primary.SDG),
            x = "Departments",
-           y = "Number of Publications ") +
+           y = "Number of Research Products ") +
       theme_minimal(base_size = 20)
   })
 
@@ -848,18 +1054,19 @@ server <- function(input, output, session) {
   observeEvent(
     input$school, ignoreNULL = FALSE,
     {
-      if (input$school == "") {
-        selected_authors = usc_authors
-      } else {
-        selected_authors = usc_authors %>% filter(usc_authors$Division == input$school)
-      }
+      # if (input$school == "") {
+      #   selected_authors = usc_authors
+      # } else {
+      #   selected_authors = usc_authors %>% filter(usc_authors$Division == input$school)
+      # }
+      selected_authors = usc_authors
       authorChoices = setNames(selected_authors$authorID,
                                paste(selected_authors$LName, selected_authors$FName, sep = ", "))
       updateSelectizeInput(session,
                            "author",
                            server = TRUE,
                            choices = authorChoices[sort(names(authorChoices))],
-                           selected = NULL
+                           selected = character(0)
       )
     }
   )
@@ -896,7 +1103,7 @@ server <- function(input, output, session) {
         scale_y_continuous(breaks = scales::pretty_breaks()) +
         labs(title = names(input$author),
              x = "SDG",
-             y = "Number of Publications",
+             y = "Count",
              fill = "SDG") +
         theme_minimal(base_size = 20) +
         theme(legend.position = "none")
@@ -939,6 +1146,57 @@ server <- function(input, output, session) {
       pubs$SDGs <- sdgs_collapsed
       pubs[, c("SDGs", "Titles", "url")]
   }, rownames = FALSE, escape = FALSE)
+  
+  # tab 8
+  output$dei_table <- DT::renderDataTable(
+    {
+      dei_joined$Titles <- paste0("<a href='", dei_joined$Link, "' target='_blank'>", dei_joined$Titles, "</a>")
+      # first 50 words
+      dei_joined$Abstract <- sapply(dei_joined$Abstract, function(x) {
+        if (length(strsplit(x, " ")[[1]]) < 50) {
+          x
+        } else {
+          paste0(paste(strsplit(x, " ")[[1]][1:50], collapse = " "), "...")
+        }
+      })
+      # missing source
+      dei_joined[, c("DEI_3.3_keywords", "sustainability_category", "SDGs", "Titles", "Name", "Division", "Year", "Source.title", "Cited.by", "Abstract", "Open.Access")]
+    }, rownames = FALSE, escape = FALSE, #extensions = 'Buttons', class = 'display',
+    # sort by sustainability focused first
+    # author before title
+    options = list(
+      columnDefs = list(list(width = '200px', targets = c(3)),
+                        list(width = '100px', targets = c(0,1,10)),
+                        list(width = '800px', targets = c(9))), # 0-indexed
+      autoWidth = TRUE,
+      scrollX = TRUE,
+      columns = list(
+        list(title = 'Assignment Earth 3.3 Keywords'),
+        list(title = 'Sustainability Category'),
+        NULL,
+        list(title = 'Title'),
+        NULL,
+        NULL,
+        NULL,
+        list(title = 'Source'),
+        list(title = 'Cited by'),
+        NULL,
+        list(title = 'Open Access')
+      )
+      # buttons = list('pageLength',
+      #   list(extend = 'collection', 
+      #        buttons = c('csv', 'excel', 'pdf'),
+      #        text = 'Download')),
+      # dom = 'Bfrtip'
+    )
+  )
+  
+  output$download_dei_data <- downloadHandler(
+    filename = function() {"dei_data.csv"},
+    content = function(fname){
+      write.csv(dei_joined, fname, row.names = FALSE)
+    }
+  )
 }
 
 # Run the application 
