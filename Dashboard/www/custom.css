@@ -38,3 +38,48 @@
   width: max-content;
   min-width: 300px;
 }
+
+.dt-buttons button.dt-button {
+  background: transparent;
+  border: 0.125rem solid #900;
+  border-radius: .25rem;
+  box-shadow: none;
+  color: #900;
+  cursor: pointer;
+  display: inline-block;
+  font-size: 1em;
+  font-weight: normal;
+  line-height: 1.25rem;
+  overflow-wrap: break-word;
+  padding: .625rem 1.375rem;
+  text-align: inherit;
+  text-decoration: none;
+  white-space: normal;
+  word-break: break-word;
+}
+.dt-buttons button.dt-button:active:not(.disabled) {
+  background: #900;
+  border: 2px solid #900;
+  color: #fff;
+}
+.dt-buttons button.dt-button:hover:not(.disabled) {
+  background: #ae2725;
+  border: 0.125rem solid #ae2725;
+  color: #fff;
+}
+.dt-buttons button.dt-button:focus:not(.disabled) {
+  outline: 4px solid #2068AE;
+  outline-offset: 3px;
+  background: transparent;
+  border: 0.125rem solid #900;
+  text-shadow: none;
+}
+.dt-buttons button.dt-button:disabled {
+  background: transparent;
+  border: 0.125rem solid #fff;
+  color: #fff;
+}
+.dt-buttons button.dt-button:visited {
+  border: 0.125rem solid #900;
+  color: #900;
+}
