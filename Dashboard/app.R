@@ -8,10 +8,6 @@
 
 # Load the required packages --------------------------------------------------
 # install.packages("name") to install any missing packages
-# list_of_packages <- c("shiny", "shinydashboard", "tidyverse", "plotly",
-#                       "wordcloud", "DT", "ggplot2", "ggrepel", "here", 
-#                       "reshape2", "scales", "ggbreak", "treemapify")
-# invisible(lapply(list_of_packages, library, character.only = TRUE))
 library(shiny)
 library(shinydashboard)
 library(tidyverse)
@@ -23,7 +19,7 @@ library(ggrepel)
 library(here)
 library(reshape2)
 library(scales)
-library(ggbreak)
+#library(ggbreak)
 library(treemapify)
 library(stringr)
 
@@ -69,7 +65,7 @@ usc_bridge <- read.csv("data_processed/bridge_law.csv")
 dei_joined <- read.csv("data_processed/DEI_pubs_ordered.csv")
 
 # 2020-2022
-usc_pubs <- usc_pubs %>% filter(Year %in% c(2020, 2021, 2022))
+usc_pubs <- usc_pubs %>% filter(Year %in% c(2020, 2021, 2022)) %>% filter(!Document.Type %in% c("Letter", "Retracted", "Note", "Erratum"))
 
 # url
 usc_pubs$url <- paste0("<a href='", usc_pubs$Link, "' target='_blank'>", usc_pubs$Link, "</a>")
@@ -117,6 +113,7 @@ ui <- dashboardPage(
   
   dashboardSidebar(width = 400,
     sidebarMenu(
+      id = "sidebarID",
       menuItem("About", tabName = "1"),
       menuItem("FAQ", tabName = "7"),
       # menuItem("Learn About The SDGs", tabName = "2"),
@@ -203,7 +200,7 @@ ui <- dashboardPage(
             
           ),
           
-          uiOutput("disclaimer"),
+          uiOutput("disclaimer1"),
           div(
             style="font-size:24px;", 
             selectizeInput(
@@ -237,14 +234,7 @@ ui <- dashboardPage(
         fluidPage(
           h1("USC Research: SDGs By Year"),
           #h3("this is a description"),
-          # uiOutput("disclaimer"),
-          h4("Data is from 2020-2022. This app is a work in progress, and,
-         we are continually improving accuracy. If you have feedback,
-         please fill out our ",
-             a("feedback form",
-               href="https://forms.gle/P6QJDSJaaRusZLZh6", .noWS = "after",
-               target = "_blank"),
-             "."),
+          uiOutput("disclaimer2"),
           div(
             style="font-size:24px;",
             selectInput(
@@ -256,7 +246,8 @@ ui <- dashboardPage(
           h4("Please wait for data to load (~30 sec)"), 
           fluidRow(
             column(6, h3("Count of Research Products* per SDG"), 
-                   h4("Products include publications, books, conference proceedings, and scholarly reports"),
+                   h4("Products include publications, books, conference proceedings, 
+                      and scholarly reports"),
                    plotlyOutput("year_sdg_barplot")),
             column(6, img(src = "un_17sdgs.jpg", width = "100%"))
           ),
@@ -287,14 +278,7 @@ ui <- dashboardPage(
           h1("USC Research: SDGs by Department"),
           h3("Select a USC School/Unit below to view the number of SDG-related
              publications by departments."),
-          # uiOutput("disclaimer"),
-          h4("Data is from 2020-2022. This app is a work in progress, and,
-         we are continually improving accuracy. If you have feedback,
-         please fill out our ",
-             a("feedback form",
-               href="https://forms.gle/P6QJDSJaaRusZLZh6", .noWS = "after",
-               target = "_blank"),
-             "."),
+          uiOutput("disclaimer3"),
           div(
             style="font-size:24px;", 
             selectInput(
@@ -319,14 +303,7 @@ ui <- dashboardPage(
         fluidPage(
           h1("View USC Scholars and Departments by SDGs"),
           #h3("description"),
-          # uiOutput("disclaimer"),
-          h4("Data is from 2020-2022. This app is a work in progress, and,
-         we are continually improving accuracy. If you have feedback,
-         please fill out our ",
-             a("feedback form",
-               href="https://forms.gle/P6QJDSJaaRusZLZh6", .noWS = "after",
-               target = "_blank"),
-             "."),
+          uiOutput("disclaimer4"),
           div(
             style="font-size:24px;", 
             selectInput(
@@ -371,14 +348,7 @@ ui <- dashboardPage(
         tabName = "6",
         fluidPage(
           h1("Find SDGs and Research by USC Scholar"),
-          # uiOutput("disclaimer"),
-          h4("Data is from 2020-2022. This app is a work in progress, and,
-         we are continually improving accuracy. If you have feedback,
-         please fill out our ",
-             a("feedback form",
-               href="https://forms.gle/P6QJDSJaaRusZLZh6", .noWS = "after",
-               target = "_blank"),
-             "."),
+          uiOutput("disclaimer5"),
           # div(
           #   style="font-size:24px;", 
           #   selectInput(
@@ -550,14 +520,7 @@ ui <- dashboardPage(
         tabName = "8",
         fluidPage(
           h1("Sustainability-Research in Los Angeles"),
-          # uiOutput("disclaimer"),
-          h4("Data is from 2020-2022. This app is a work in progress, and,
-         we are continually improving accuracy. If you have feedback,
-         please fill out our ",
-             a("feedback form",
-               href="https://forms.gle/P6QJDSJaaRusZLZh6", .noWS = "after",
-               target = "_blank"),
-             "."),
+          uiOutput("disclaimer6"),
           downloadButton("download_dei_data", "Download"),
           fluidRow(column(12, DT::dataTableOutput("dei_table"))),
         )
@@ -601,7 +564,34 @@ get_selected_sdg_col <- function(sdg) {
 }
 
 server <- function(input, output, session) {
-  output$disclaimer <- renderUI({
+  # https://stackoverflow.com/questions/70080803/uri-routing-for-shinydashboard-using-shiny-router/70093686#70093686
+  observeEvent(input$sidebarID, {
+    # http://127.0.0.1:6172/#dashboard
+    # http://127.0.0.1:6172/#widgets
+    
+    newURL <- paste0(
+      session$clientData$url_protocol,
+      "//",
+      session$clientData$url_hostname,
+      ":",
+      session$clientData$url_port,
+      session$clientData$url_pathname,
+      "#",
+      input$sidebarID
+    )
+    updateQueryString(newURL, mode = "replace", session)
+  })
+  
+  observe({
+    currentTab <- sub("#", "", session$clientData$url_hash)
+    if(!is.null(currentTab)){
+      updateTabItems(session, "sidebarID", selected = currentTab)
+    }
+  })
+  
+  
+  
+  output$disclaimer1 <- output$disclaimer2 <- output$disclaimer3 <- output$disclaimer4 <- output$disclaimer5 <- output$disclaimer6 <- renderUI({
     tagList(
       h4("Data is from 2020-2022. This app is a work in progress, and,
          we are continually improving accuracy. If you have feedback,
@@ -769,10 +759,14 @@ server <- function(input, output, session) {
       num_focused <- usc_by_author_sust_cat %>%
         filter(one_sustainability_category == "Sustainability-Focused") %>%
         nrow
+      total_num = num_not_related + num_inclusive + num_focused
       pie_data <- data.frame(group = c("Not Related", "Inclusive", "Focused"),
                              value = c(num_not_related,
                                        num_inclusive,
-                                       num_focused))
+                                       num_focused),
+                             proportion = c(round(num_not_related/total_num*100, 1),
+                                            round(num_inclusive/total_num*100, 1),
+                                            round(num_focused/total_num*100, 1)))
       # compute positions of labels
       pie_data <- pie_data %>% 
         arrange(desc(group)) %>%
@@ -790,10 +784,10 @@ server <- function(input, output, session) {
         labs(title = str_wrap("Employees conducting Sustainability-Related Research", 40)) +
         theme_void(base_size = 18)
       pie(pie_data$value, 
-          labels = paste0(pie_data$group," (", pie_data$value,")"), # put count, % in next line
+          labels = paste0(pie_data$group,"\n (", pie_data$value, ", " , pie_data$proportion,"%)"),
           col = c("#767676", "#FFC72C", "#990000"), 
           main = str_wrap("Scholars Conducting Sustainability-Related Research 2020-22", 40), 
-          cex = 1.5, cex.main = 1.5)
+          cex = 1.5, cex.main = 2, family = "sans", font.main = 1)
     })
   
   output$pie3 <- renderPlot(
@@ -833,10 +827,14 @@ server <- function(input, output, session) {
       num_focused <- usc_by_dept_sust_cat %>%
         filter(one_sustainability_category == "Sustainability-Focused") %>%
         nrow
+      total_num = num_not_related + num_inclusive + num_focused
       pie_data <- data.frame(group = c("Not Related", "Inclusive", "Focused"),
                              value = c(num_not_related,
                                        num_inclusive,
-                                       num_focused))
+                                       num_focused),
+                             proportion = c(round(num_not_related/total_num*100, 1),
+                                            round(num_inclusive/total_num*100, 1),
+                                            round(num_focused/total_num*100, 1)))
       # compute positions of labels
       pie_data <- pie_data %>% 
         arrange(desc(group)) %>%
@@ -854,10 +852,10 @@ server <- function(input, output, session) {
         labs(title = paste0("Sustainability Related Departments")) +
         theme_void(base_size = 18)
       pie(pie_data$value, 
-          labels = paste0(pie_data$group," (", pie_data$value,")"), 
+          labels = paste0(pie_data$group,"\n (", pie_data$value, ", " , pie_data$proportion,"%)"),
           col = c("#767676", "#FFC72C", "#990000"), 
           main = str_wrap("Department Conducting Sustainability-Related Research 2020-22", 40), 
-          cex = 1.5, cex.main = 1.5)
+          cex = 1.5, cex.main = 2, family = "sans", font.main = 1, init.angle=45)
     })
   
   output$stacked_bar2 <- renderPlot(
@@ -878,7 +876,7 @@ server <- function(input, output, session) {
         scale_y_continuous(labels = scales::percent) +
         labs(title = str_wrap("Sustainability Related Scholars by Year", 40),
              y = "Percent") +
-        theme_minimal(base_size = 20)
+        theme_minimal(base_size = 20) #+ theme(plot.title = element_text(hjust = 0.5))
     })
   
   output$stacked_bar3 <- renderPlot({
@@ -898,7 +896,7 @@ server <- function(input, output, session) {
       scale_y_continuous(labels = scales::percent) +
       labs(title = str_wrap("Sustainability Related Departments by Year", 40),
            y = "Percent") +
-      theme_minimal(base_size = 20)
+      theme_minimal(base_size = 20) #+ theme(plot.title = element_text(hjust = 0.5))
   })
   
   # tab 4
