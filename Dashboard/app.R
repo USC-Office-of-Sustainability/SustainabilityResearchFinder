@@ -114,14 +114,14 @@ ui <- dashboardPage(
   dashboardSidebar(width = 400,
     sidebarMenu(
       id = "sidebarID",
-      menuItem("About", tabName = "1"),
-      menuItem("FAQ", tabName = "7"),
+      menuItem("About", tabName = "about"),
+      menuItem("FAQ", tabName = "faq"),
       # menuItem("Learn About The SDGs", tabName = "2"),
-      menuItem("USC Research: SDGs by Year", tabName = "3"),
-      menuItem("USC Research: SDGs by Department", tabName = "4"),
-      menuItem("View USC Scholars and Departments by SDGs", tabName = "5"),
-      menuItem("Find SDGs and Research by USC Scholar", tabName = "6"),
-      menuItem("Sustainability Research in Los Angeles", tabName = "8")
+      menuItem("USC Research: SDGs by Year", tabName = "by-year"),
+      menuItem("USC Research: SDGs by Department", tabName = "by-department"),
+      menuItem("View USC Scholars and Departments by SDGs", tabName = "by-sdg"),
+      menuItem("Find SDGs and Research by USC Scholar", tabName = "scholar"),
+      menuItem("Sustainability Research in Los Angeles", tabName = "in-la")
     )
   ),
   
@@ -139,7 +139,7 @@ ui <- dashboardPage(
     ),
     tabItems(
       tabItem(
-        tabName = "1",
+        tabName = "about",
         fluidPage(
           h1("About"),
           fluidRow(
@@ -230,7 +230,7 @@ ui <- dashboardPage(
       #   ) # end fluidPage
       # ), # end tabItem 2
       tabItem(
-        tabName = "3",
+        tabName = "by-year",
         fluidPage(
           h1("USC Research: SDGs By Year"),
           #h3("this is a description"),
@@ -273,7 +273,7 @@ ui <- dashboardPage(
         ) # end fluidPage
       ), # end tabItem 3
       tabItem(
-        tabName = "4",
+        tabName = "by-department",
         fluidPage(
           h1("USC Research: SDGs by Department"),
           h3("Select a USC School/Unit below to view the number of SDG-related
@@ -299,7 +299,7 @@ ui <- dashboardPage(
         ) # end fluidPage
       ), # end tabItem 4
       tabItem(
-        tabName = "5",
+        tabName = "by-sdg",
         fluidPage(
           h1("View USC Scholars and Departments by SDGs"),
           #h3("description"),
@@ -345,7 +345,7 @@ ui <- dashboardPage(
         ) # end fluidPage
       ), # end tabItem 5
       tabItem(
-        tabName = "6",
+        tabName = "scholar",
         fluidPage(
           h1("Find SDGs and Research by USC Scholar"),
           uiOutput("disclaimer5"),
@@ -384,7 +384,7 @@ ui <- dashboardPage(
         ) # end fluidPage
       ), # end tabItem 6
       tabItem(
-        tabName = "7",
+        tabName = "faq",
         fluidPage(
           h1("FAQ"),
           h3(
@@ -517,7 +517,7 @@ ui <- dashboardPage(
         ) # end fluidPage
       ), # end tabItem 7
       tabItem(
-        tabName = "8",
+        tabName = "in-la",
         fluidPage(
           h1("Sustainability-Research in Los Angeles"),
           uiOutput("disclaimer6"),
