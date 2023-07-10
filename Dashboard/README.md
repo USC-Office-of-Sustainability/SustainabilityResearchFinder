@@ -222,7 +222,9 @@ The complete code can be found in `app.R`.
 
 #### Processed Data
 
-There are four data files for the shiny app:
+There are four data files for the shiny app that can be found <a
+href="https://drive.google.com/drive/folders/1Jj5dhdVERt-s9POk06r6aMRfYci0F0mQ?usp=sharing"
+target="_blank">here</a>:
 
 - usc_sdgs_with_categories.csv - tells what SDGs a publication mapped to
 - usc_pubs_law.csv - publication data
