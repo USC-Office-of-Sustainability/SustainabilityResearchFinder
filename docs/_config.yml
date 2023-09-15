@@ -23,7 +23,7 @@ title: Mapping USC Research to the SDGs
 description: >- # this means to ignore newlines until "baseurl:"
   Summary of our project on using machine learning to identify sustainability-related 
   research at USC as part of CKIDS Datafest Fall 2022.
-baseurl: "/SDGMappingResearch" # the subpath of your site, e.g. /blog
+baseurl: "/SustainabilityResearchFinder" # the subpath of your site, e.g. /blog
 url: "https://USC-Office-of-Sustainability.github.io/" # the base hostname & protocol for your site, e.g. http://example.com
 # twitter_username: jekyllrb
 # github_username:  jekyll
