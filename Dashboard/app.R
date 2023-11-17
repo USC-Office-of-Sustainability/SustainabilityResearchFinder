@@ -1,4 +1,4 @@
-# 2.17.23
+# 11.15.23
 # This is a Shiny web application. You can run the application by clicking
 # the 'Run App' button above.
 #
@@ -63,8 +63,9 @@ sdg_col_names <- syms(c("SDG.01", "SDG.02", "SDG.03", "SDG.04", "SDG.05", "SDG.0
 usc_pubs <- read.csv("data_processed/usc_pubs_law.csv")
 usc_sdgs <- read.csv("data_processed/usc_sdgs_with_categories.csv")
 # usc_authors <- read.csv("data_processed/authors_only_revalued.csv")
-usc_authors <- read.csv("data_processed/usc_authors_law.csv")
-usc_bridge <- read.csv("data_processed/bridge_law.csv")
+usc_authors <- read.csv("data_processed/usc_authors_law_fixed_dept.csv") %>%
+  rename(Division = Div, Department = Dept)
+usc_bridge <- read.csv("data_processed/bridge_law_fixed2.csv")
 # dei_data <- read.csv("data_processed/DEI_pubs.csv")
 dei_joined <- read.csv("data_processed/DEI_pubs_ordered.csv")
 
@@ -76,16 +77,16 @@ usc_pubs$url <- paste0("<a href='", usc_pubs$Link, "' target='_blank'>", usc_pub
 
 # merge
 usc_pubs_sdgs <- merge(usc_pubs, usc_sdgs, 
-                       by.x = c("pubID", "Link"), by.y = c("document", "Link"), 
+                       by = c("pubID", "Link"),
                        all.x = TRUE)
 usc_pubs_sdgs$sustainability_category[is.na(usc_pubs_sdgs$sustainability_category)] = "Not-Related"
 
 tmp <- merge(usc_pubs, usc_bridge,
-             by.x = c("pubID", "Link"), by.y = c("pubID", "link"))
+             by = c("pubID", "Link"))
 tmp2 <- merge(tmp, usc_authors,
-              by.x = "authorID", by.y = "authorID")
+              by = "authorID")
 usc_joined <- merge(tmp2, usc_sdgs,
-                    by.x = c("pubID", "Link"), by.y = c("document", "Link"),
+                    by = c("pubID", "Link"),
                     all.x = TRUE)
 usc_joined$sustainability_category[is.na(usc_joined$sustainability_category)] = "Not-Related"
 
@@ -96,8 +97,10 @@ usc_joined$sustainability_category[is.na(usc_joined$sustainability_category)] = 
 #               by.x = "authorID", by.y = "authorID")
 
 
-authorChoices = setNames(usc_authors$authorID, 
-                         paste(usc_authors$LName, usc_authors$FName, sep = ", "))
+# create chart data outside app.R
+
+
+authorChoices = setNames(usc_authors$authorID, usc_authors$fullname)
 
 ui <- dashboardPage(
   # theme
@@ -106,23 +109,14 @@ ui <- dashboardPage(
   # Application title
   dashboardHeader(title = "USC Sustainability Research Finder", titleWidth = 400),
   
-  # publication -> research
-  # author -> scholar
-  # sustainability-related
-  # sustainability-focused sustainability-inclusive
-  # font same for graphs
-  # rerun word bubble
-  
-  
-  
   dashboardSidebar(width = 400,
     sidebarMenu(
       menuItem("About", tabName = "1"),
       menuItem("FAQ", tabName = "7"),
       # menuItem("Learn About The SDGs", tabName = "2"),
       menuItem("USC Research: SDGs by Year", tabName = "3"),
-      menuItem("USC Research: SDGs by Department", tabName = "4"),
-      menuItem("View USC Scholars and Departments by SDGs", tabName = "5"),
+      menuItem("USC Research: SDGs by School", tabName = "4"),
+      menuItem("View USC Scholars and Schools by SDGs", tabName = "5"),
       menuItem("Find SDGs and Research by USC Scholar", tabName = "6"),
       menuItem("Sustainability Research in Los Angeles", tabName = "8")
     )
