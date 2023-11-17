@@ -267,7 +267,8 @@ ui <- dashboardPage(
           # h4("*Employees include students, postdocs, staff and faculty that are on publications"),
           fluidRow(
             column(6, plotOutput("pie2")),
-            column(6, plotOutput("stacked_bar2"))
+            # column(6, plotOutput("stacked_bar2"))
+            column(6, plotOutput("stacked_bar_product"))
           ),
           fluidRow(
             column(6, plotOutput("pie3")),
@@ -278,7 +279,7 @@ ui <- dashboardPage(
       tabItem(
         tabName = "4",
         fluidPage(
-          h1("USC Research: SDGs by Department"),
+          h1("USC Research: SDGs by School"),
           h3("Select a USC School/Unit below to view the number of SDG-related
              publications by departments."),
           # uiOutput("disclaimer"),
@@ -847,11 +848,33 @@ server <- function(input, output, session) {
         scale_fill_manual(values = c("#990000", "#FFC72C", "#767676"), name = "") +
         labs(title = paste0("Sustainability Related Departments")) +
         theme_void(base_size = 18)
+      total_count <- num_not_related + num_inclusive + num_focused
+      pie_data$percent <- round(pie_data$value/total_count*100,1)
       pie(pie_data$value, 
-          labels = paste0(pie_data$group," (", pie_data$value,")"), 
+          labels = paste(pie_data$group,paste0("(", pie_data$value, ", ",pie_data$percent,"%)"), sep = "\n"), # put count, % in next line
           col = c("#767676", "#FFC72C", "#990000"), 
-          main = str_wrap("Department Conducting Sustainability-Related Research 2020-22", 40), 
+          main = str_wrap("Department/Centers/Institutes Conducting Sustainability-Related Research 2020-22", 40), 
           cex = 1.5, cex.main = 1.5)
+    })
+  output$stacked_bar_product <- renderPlot(
+    {
+      usc_by_product_sust_cat <- usc_pubs_sdgs %>%
+        group_by(pubID, Year) %>%
+        summarize(all_sustainability_categories = paste(sustainability_category[!duplicated(sustainability_category)], collapse = ";")) %>%
+        mutate(one_sustainability_category = case_when(grepl("Focused", all_sustainability_categories)~"Sustainability-Focused",
+                                                       grepl("Inclusive", all_sustainability_categories)~"Sustainability-Inclusive",
+                                                       grepl("Not-Related", all_sustainability_categories)~"Not Related")) %>%
+        select(pubID, one_sustainability_category, Year) %>% 
+        group_by(one_sustainability_category, Year) %>%
+        count()
+      usc_by_product_sust_cat$one_sustainability_category <- factor(usc_by_product_sust_cat$one_sustainability_category, levels = c("Sustainability-Focused", "Sustainability-Inclusive", "Not Related"))
+      ggplot(usc_by_product_sust_cat, aes(fill = one_sustainability_category, y = n, x = Year)) +
+        geom_bar(position="fill", stat="identity") +
+        scale_fill_manual(values = c("#990000", "#FFC72C", "#767676"), name = "") +
+        scale_y_continuous(labels = scales::percent) +
+        labs(title = str_wrap("Sustainability Related Products by Year", 40),
+             y = "Percent") +
+        theme_minimal(base_size = 20)
     })
   
   output$stacked_bar2 <- renderPlot(
