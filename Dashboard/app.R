@@ -784,8 +784,10 @@ server <- function(input, output, session) {
         scale_fill_manual(values = c("#990000", "#FFC72C", "#767676"), name = "") +
         labs(title = str_wrap("Employees conducting Sustainability-Related Research", 40)) +
         theme_void(base_size = 18)
+      total_count <- num_not_related + num_inclusive + num_focused
+      pie_data$percent <- round(pie_data$value/total_count*100,1)
       pie(pie_data$value, 
-          labels = paste0(pie_data$group," (", pie_data$value,")"), # put count, % in next line
+          labels = paste(pie_data$group,paste0("(", pie_data$value, ", ",pie_data$percent,"%)"), sep = "\n"), # put count, % in next line
           col = c("#767676", "#FFC72C", "#990000"), 
           main = str_wrap("Scholars Conducting Sustainability-Related Research 2020-22", 40), 
           cex = 1.5, cex.main = 1.5)
