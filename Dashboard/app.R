@@ -1017,7 +1017,7 @@ server <- function(input, output, session) {
                            "Division",
                            server = TRUE,
                            choices = unique(sort(divisions[[1]])),
-                           selected = "Dornsife College of Letters, Arts and Sciences"
+                           selected = "Dornsife College of Letters Arts and Sciences"
                            )
     }
   )
@@ -1031,11 +1031,12 @@ server <- function(input, output, session) {
     usc_joined %>%
       filter(Division == input$Division) %>%
       filter(!!sdg_col != 0) %>%
-      count(authorID, Name, Division) %>%
+      select(pubID, Link, authorID, name) %>% distinct() %>%
+      count(authorID, name) %>%
       arrange(desc(n)) %>%
-      distinct(Name, .keep_all = TRUE) %>%
+      distinct(name, .keep_all = TRUE) %>%
       head(10) %>% #  num_top_classes <- 10
-      ggplot(aes(x = reorder(as.factor(Name),n), y = n)) +
+      ggplot(aes(x = reorder(as.factor(name),n), y = n)) +
       geom_col(fill = sdg_colors[as.numeric(input$Primary.SDG)], alpha = 1) +
       coord_flip() +
       labs(title = paste0("Top USC Scholars by SDG ", input$Primary.SDG),
@@ -1080,7 +1081,7 @@ server <- function(input, output, session) {
       # }
       selected_authors = usc_authors
       authorChoices = setNames(selected_authors$authorID,
-                               paste(selected_authors$LName, selected_authors$FName, sep = ", "))
+                               selected_authors$fullname)
       updateSelectizeInput(session,
                            "author",
                            server = TRUE,
@@ -1095,8 +1096,9 @@ server <- function(input, output, session) {
         need(input$author != "", label = "USC Author")
       )
       usc_authors %>%
-        filter(usc_authors$InUSCDirectory & usc_authors$authorID == input$author) %>%
-        select(FName, LName, Department, Division, Email, PositionTitle)
+        # filter(usc_authors$InUSCDirectory & usc_authors$authorID == input$author) %>%
+        filter(usc_authors$authorID == input$author) %>%
+        select(firstname, lastname, Department, Division, Email, PositionTitle, Type)
     }, options =
       list(searching = FALSE, paging = FALSE,
            language = list(
@@ -1112,6 +1114,7 @@ server <- function(input, output, session) {
       )
       usc_joined %>% 
         filter(usc_joined$authorID == input$author) %>%
+        distinct(pubID, .keep_all = TRUE) %>%
         mutate(across(starts_with("SDG"), ~replace(., . != 0, 1))) %>%
         summarise(across(starts_with("SDG"), sum, na.rm = TRUE)) %>% 
         t %>% 
@@ -1163,7 +1166,7 @@ server <- function(input, output, session) {
         res
       })
       pubs$SDGs <- sdgs_collapsed
-      pubs[, c("SDGs", "Titles", "url")]
+      pubs[, c("SDGs", "Titles", "url")] %>% distinct()
   }, rownames = FALSE, escape = FALSE)
   
   # tab 8
@@ -1179,7 +1182,7 @@ server <- function(input, output, session) {
         }
       })
       # missing source
-      dei_joined[, c("DEI_3.3_keywords", "sustainability_category", "SDGs", "Titles", "Name", "Division", "Year", "Source.title", "Cited.by", "Abstract", "Open.Access")]
+      dei_joined[, c("DEI_3.3_keywords", "sustainability_category", "SDGs", "Titles", "name", "Div", "Year", "Source.title", "Cited.by", "Abstract", "Open.Access")]
     }, rownames = FALSE, escape = FALSE, #extensions = 'Buttons', class = 'display',
     # sort by sustainability focused first
     # author before title
@@ -1194,8 +1197,8 @@ server <- function(input, output, session) {
         list(title = 'Sustainability Category'),
         NULL,
         list(title = 'Title'),
-        NULL,
-        NULL,
+        list(title = 'Name'),
+        list(title = 'Division'),
         NULL,
         list(title = 'Source'),
         list(title = 'Cited by'),
