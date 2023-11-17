@@ -8,11 +8,11 @@ lapply(list_of_packages, library, character.only = TRUE)
 
 set.seed(1234)
 
-usc_pubs <- read.csv(here::here("data_processed/usc_pubs.csv"))
+usc_pubs <- read.csv(here::here("data_processed/usc_pubs_law.csv"))
 usc_sdgs <- read.csv(here::here("data_processed/usc_sdgs.csv"))
 usc_pubs <- usc_pubs %>% filter(Year %in% c(2020, 2021, 2022))
 usc_pubs_sdgs <- merge(usc_pubs, usc_sdgs, 
-                       by.x = c("X", "Link"), by.y = c("document", "Link"))
+                       by.x = c("pubID", "Link"), by.y = c("pubID", "Link"))
 
 sdg_col_names <- usc_sdgs %>% select(starts_with("SDG")) %>% names()
 sdg_colors <- c("1" = "#E5243B", "2" = "#DDA63A", "3" = "#4C9F38", 
@@ -62,3 +62,4 @@ create_sdg_wordcloud <- function(i, sdg_col, sdg_color) {
 for (i in 1:17) {
   create_sdg_wordcloud(i, sym(sdg_col_names[i]), sdg_colors[i])
 }
+
