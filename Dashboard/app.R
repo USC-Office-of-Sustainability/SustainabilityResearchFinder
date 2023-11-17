@@ -295,23 +295,23 @@ ui <- dashboardPage(
               inputId = "usc_division",
               label = "Choose USC School/Unit",
               choices = sort(unique(usc_authors$Division)),
-              selected = "Dornsife College of Letters, Arts and Sciences"
+              selected = "Dornsife College of Letters Arts and Sciences"
             )
           ),
-          h3("Research Products* and SDGs by Departments"),
+          h3("Research Products* and SDGs by Departments/Centers/Institutes"),
           h4("Products include publications, books, conference proceedings, and scholarly reports"),
-          h4("Hover over the columns to see Department name. 
+          h4("Hover over the columns to see Department/Centers/Institutes name. 
             Drag cursor over a section to zoom in and double click to zoom out. 
             You can also use the tools in the top right corner."),
           fluidRow(column(12, plotlyOutput(outputId = "pubs_to_bar"))),
-          h3("SDG-Related Research Across All Departments"),
+          h3("SDG-Related Research Across All Departments/Centers/Institutes"),
           fluidRow(column(12, plotOutput("pubs_to_treemap")))
         ) # end fluidPage
       ), # end tabItem 4
       tabItem(
         tabName = "5",
         fluidPage(
-          h1("View USC Scholars and Departments by SDGs"),
+          h1("View USC Scholars and Schools by SDGs"),
           #h3("description"),
           # uiOutput("disclaimer"),
           h4("Data is from 2020-2022. This app is a work in progress, and,
@@ -890,7 +890,7 @@ server <- function(input, output, session) {
       geom_bar(position="fill", stat="identity") +
       scale_fill_manual(values = c("#990000", "#FFC72C", "#767676"), name = "") +
       scale_y_continuous(labels = scales::percent) +
-      labs(title = str_wrap("Sustainability Related Departments by Year", 40),
+      labs(title = str_wrap("Sustainability Related Departments/Centers/Institutes by Year", 40),
            y = "Percent") +
       theme_minimal(base_size = 20)
   })
@@ -926,7 +926,7 @@ server <- function(input, output, session) {
                            aesthetics = c("fill")) +
         labs(
           fill = "SDG",
-          x = "Departments",
+          x = "Departments/Centers/Institutes",
           y = "Count of Publications"
         ) +
         theme_minimal(base_size = 20)
@@ -1038,8 +1038,8 @@ server <- function(input, output, session) {
       geom_col(fill = sdg_colors[as.numeric(input$Primary.SDG)], alpha = 1) +
       coord_flip() +
       scale_x_discrete(labels = label_wrap(40)) + # whole numbers 
-      labs(title = paste0("Top Departments by SDG ", input$Primary.SDG),
-           x = "Departments",
+      labs(title = paste0("Top Departments/Centers/Institutes by SDG ", input$Primary.SDG),
+           x = "Departments/Centers/Institutes",
            y = "Number of Research Products ") +
       theme_minimal(base_size = 20)
   })
