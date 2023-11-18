@@ -1,4 +1,4 @@
-# 11.15.23
+# 11.17.23
 # This is a Shiny web application. You can run the application by clicking
 # the 'Run App' button above.
 #
@@ -98,7 +98,9 @@ usc_joined$sustainability_category[is.na(usc_joined$sustainability_category)] = 
 
 
 # create chart data outside app.R
-
+usc_by_product_sust_cat <- read.csv("usc_by_product_sust_cat.csv")
+# usc_by_author_sust_cat <- read.csv("usc_by_author_sust_cat.csv")
+usc_by_dept_sust_cat <- read.csv("usc_by_dept_sust_cat.csv")
 
 authorChoices = setNames(usc_authors$authorID, usc_authors$fullname)
 
@@ -860,15 +862,7 @@ server <- function(input, output, session) {
     })
   output$stacked_bar_product <- renderPlot(
     {
-      usc_by_product_sust_cat <- usc_pubs_sdgs %>%
-        group_by(pubID, Year) %>%
-        summarize(all_sustainability_categories = paste(sustainability_category[!duplicated(sustainability_category)], collapse = ";")) %>%
-        mutate(one_sustainability_category = case_when(grepl("Focused", all_sustainability_categories)~"Sustainability-Focused",
-                                                       grepl("Inclusive", all_sustainability_categories)~"Sustainability-Inclusive",
-                                                       grepl("Not-Related", all_sustainability_categories)~"Not Related")) %>%
-        select(pubID, one_sustainability_category, Year) %>% 
-        group_by(one_sustainability_category, Year) %>%
-        count()
+      
       usc_by_product_sust_cat$one_sustainability_category <- factor(usc_by_product_sust_cat$one_sustainability_category, levels = c("Sustainability-Focused", "Sustainability-Inclusive", "Not Related"))
       ggplot(usc_by_product_sust_cat, aes(fill = one_sustainability_category, y = n, x = Year)) +
         geom_bar(position="fill", stat="identity") +
@@ -879,37 +873,21 @@ server <- function(input, output, session) {
         theme_minimal(base_size = 20)
     })
   
-  output$stacked_bar2 <- renderPlot(
-    {
-      usc_by_author_sust_cat <- usc_joined %>%
-        group_by(authorID, Year) %>%
-        summarize(all_sustainability_categories = paste(sustainability_category[!duplicated(sustainability_category)], collapse = ";")) %>%
-        mutate(one_sustainability_category = case_when(grepl("Focused", all_sustainability_categories)~"Sustainability-Focused",
-                                                       grepl("Inclusive", all_sustainability_categories)~"Sustainability-Inclusive",
-                                                       grepl("Not-Related", all_sustainability_categories)~"Not Related")) %>%
-        select(authorID, one_sustainability_category, Year) %>% 
-        group_by(one_sustainability_category, Year) %>%
-        count()
-      usc_by_author_sust_cat$one_sustainability_category <- factor(usc_by_author_sust_cat$one_sustainability_category, levels = c("Sustainability-Focused", "Sustainability-Inclusive", "Not Related"))
-      ggplot(usc_by_author_sust_cat, aes(fill = one_sustainability_category, y = n, x = Year)) +
-        geom_bar(position="fill", stat="identity") +
-        scale_fill_manual(values = c("#990000", "#FFC72C", "#767676"), name = "") +
-        scale_y_continuous(labels = scales::percent) +
-        labs(title = str_wrap("Sustainability Related Scholars by Year", 40),
-             y = "Percent") +
-        theme_minimal(base_size = 20)
-    })
+  # output$stacked_bar2 <- renderPlot(
+  #   {
+  #     
+  #     usc_by_author_sust_cat$one_sustainability_category <- factor(usc_by_author_sust_cat$one_sustainability_category, levels = c("Sustainability-Focused", "Sustainability-Inclusive", "Not Related"))
+  #     ggplot(usc_by_author_sust_cat, aes(fill = one_sustainability_category, y = n, x = Year)) +
+  #       geom_bar(position="fill", stat="identity") +
+  #       scale_fill_manual(values = c("#990000", "#FFC72C", "#767676"), name = "") +
+  #       scale_y_continuous(labels = scales::percent) +
+  #       labs(title = str_wrap("Sustainability Related Scholars by Year", 40),
+  #            y = "Percent") +
+  #       theme_minimal(base_size = 20)
+  #   })
   
   output$stacked_bar3 <- renderPlot({
-    usc_by_dept_sust_cat <- usc_joined %>%
-      group_by(Department, Year) %>%
-      summarize(all_sustainability_categories = paste(sustainability_category[!duplicated(sustainability_category)], collapse = ";")) %>%
-      mutate(one_sustainability_category = case_when(grepl("Focused", all_sustainability_categories)~"Sustainability-Focused",
-                                                     grepl("Inclusive", all_sustainability_categories)~"Sustainability-Inclusive",
-                                                     grepl("Not-Related", all_sustainability_categories)~"Not Related")) %>%
-      select(Department, one_sustainability_category, Year) %>%
-      group_by(one_sustainability_category, Year) %>%
-      count()
+    
     usc_by_dept_sust_cat$one_sustainability_category <- factor(usc_by_dept_sust_cat$one_sustainability_category, levels = c("Sustainability-Focused", "Sustainability-Inclusive", "Not Related"))
     ggplot(usc_by_dept_sust_cat, aes(fill = one_sustainability_category, y = n, x = Year)) +
       geom_bar(position="fill", stat="identity") +
