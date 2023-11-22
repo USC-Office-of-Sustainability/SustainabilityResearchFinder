@@ -1076,7 +1076,7 @@ server <- function(input, output, session) {
       usc_authors %>%
         # filter(usc_authors$InUSCDirectory & usc_authors$authorID == input$author) %>%
         filter(usc_authors$authorID == input$author) %>%
-        select(firstname, lastname, Department, Division, Email, PositionTitle, Type)
+        select(firstname, lastname, Department, Division)
     }, options =
       list(searching = FALSE, paging = FALSE,
            language = list(
