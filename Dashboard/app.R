@@ -26,6 +26,7 @@ library(scales)
 library(ggbreak)
 library(treemapify)
 library(stringr)
+library(shinyWidgets)
 
 # Source functions
 # source(file = here("00_source_all.R"))
@@ -334,12 +335,17 @@ ui <- dashboardPage(
           ),
           div(
             style="font-size:24px;", 
-            selectInput(
-              inputId = "Division", 
-              label = "Select USC School/Unit", 
-              choices = "",
-              selected = ""
-            )
+            pickerInput("Division", "Choose USC School/Unit",  
+                        choices = sort(unique(usc_authors$Div)), 
+                        selected = sort(unique(usc_authors$Div)),
+                        multiple = TRUE,
+                        options = list(`actions-box` = TRUE)),
+            # selectInput(
+            #   inputId = "Division",
+            #   label = "Select USC School/Unit",
+            #   choices = "",
+            #   selected = ""
+            # )
           ),
           # h4("Please wait for data to load (~30 sec)"),
           br(),
@@ -980,25 +986,25 @@ server <- function(input, output, session) {
   #   }
   # )
   # select sdg then division
-  observeEvent(
-    input$Primary.SDG,
-    {
-      validate(
-        need(input$Primary.SDG != "", label = "SDG")
-      )
-      sdg_col = get_selected_sdg_col(input$Primary.SDG)
-      divisions = usc_joined %>%
-        filter(!!sdg_col > 0) %>%
-        select(Division) %>%
-        as.list()
-      updateSelectizeInput(session,
-                           "Division",
-                           server = TRUE,
-                           choices = unique(sort(divisions[[1]])),
-                           selected = "Dornsife College of Letters Arts and Sciences"
-                           )
-    }
-  )
+  # observeEvent(
+  #   input$Primary.SDG,
+  #   {
+  #     validate(
+  #       need(input$Primary.SDG != "", label = "SDG")
+  #     )
+  #     sdg_col = get_selected_sdg_col(input$Primary.SDG)
+  #     divisions = usc_joined %>%
+  #       filter(!!sdg_col > 0) %>%
+  #       select(Division) %>%
+  #       as.list()
+  #     updateSelectizeInput(session,
+  #                          "Division",
+  #                          server = TRUE,
+  #                          choices = unique(sort(divisions[[1]])),
+  #                          selected = "Dornsife College of Letters Arts and Sciences"
+  #                          )
+  #   }
+  # )
 
   output$top_authors_sdg_table <- renderPlot({
     validate(
@@ -1007,7 +1013,7 @@ server <- function(input, output, session) {
     )
     sdg_col = get_selected_sdg_col(input$Primary.SDG)
     usc_joined %>%
-      filter(Division == input$Division) %>%
+      filter(Division %in% input$Division) %>%
       filter(!!sdg_col != 0) %>%
       select(pubID, Link, authorID, name) %>% distinct() %>%
       count(authorID, name) %>%
@@ -1030,9 +1036,10 @@ server <- function(input, output, session) {
     )
     sdg_col = get_selected_sdg_col(input$Primary.SDG)
     usc_joined %>%
-      filter(Division == input$Division) %>%
+      filter(Division %in% input$Division) %>%
       filter(!!sdg_col != 0) %>%
       filter(Department != "") %>%
+      filter(Department != "Other") %>%
       count(Department) %>%
       arrange(desc(n)) %>%
       distinct(Department, .keep_all = TRUE) %>%
