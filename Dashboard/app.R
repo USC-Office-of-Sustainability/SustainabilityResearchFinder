@@ -437,7 +437,7 @@ ui <- dashboardPage(
             Xian and Xinyi Zhang. ", 
             strong("USC research products in the dashboard dataset includes 
                    books, publications, conference proceedings, and scholarly 
-                   reports pulled from ",
+                   reports",), "pulled from ",
             a(
               "Scopus",
               href = "https://www.scopus.com/home.uri",
@@ -445,7 +445,7 @@ ui <- dashboardPage(
             ),
             "(Elsevier's citation database) and augmented with data provided 
             by USC Librarians for USC schools that are not fully represented 
-            in Scopus."),
+            in Scopus.", strong("These data are updated at the beginning of each calendar year."),
             "All of the datasets, R-packages (",
             a(
               "text2sdg",
