@@ -406,8 +406,8 @@ ui <- dashboardPage(
           fluidRow(column(12, DT::dataTableOutput("auth_about"))),
           # graph
           h3("Scholar's Research Products by SDG"),
-          fluidRow(column(6, plotOutput("author_sdg_barplot")),
-                   column(6, img(src = "un_17sdgs.jpg", width = "100%"))),
+          fluidRow(column(8, plotlyOutput("author_sdg_barplot")),
+                   column(4, img(src = "un_17sdgs.jpg", width = "100%"))),
           # table
           h3("List of Scholar's Research Products"),
           fluidRow(
@@ -1093,28 +1093,30 @@ server <- function(input, output, session) {
           )
     )
 
-  output$author_sdg_barplot <- renderPlot(
+  output$author_sdg_barplot <- renderPlotly(
     {
       validate(
         need(input$author != "", label = "USC Author")
       )
-      usc_joined %>% 
+      p <- usc_joined %>% 
         filter(usc_joined$authorID == input$author) %>%
         distinct(pubID, .keep_all = TRUE) %>%
         mutate(across(starts_with("SDG"), ~replace(., . != 0, 1))) %>%
         summarise(across(starts_with("SDG"), sum, na.rm = TRUE)) %>% 
         t %>% 
         as.data.frame() %>% 
-        ggplot(aes(x = as.factor(1:17), y = V1, fill = factor(1:17))) + 
+        ggplot(aes(x = as.factor(1:17), y = V1, fill = factor(1:17),
+                   text = paste0("n = ", V1))) + 
         geom_col() + 
         scale_color_manual(values = sdg_colors, aesthetics = "fill") +
-        scale_y_continuous(breaks = scales::pretty_breaks()) +
+        scale_y_continuous(breaks = function(x) unique(floor(pretty(seq(min(x), (max(x) + 1) * 1.1))))) +
         labs(title = names(input$author),
              x = "SDG",
              y = "Count",
              fill = "SDG") +
         theme_minimal(base_size = 20) +
         theme(legend.position = "none")
+      ggplotly(p, tooltip = "text")
     }
   )
 
