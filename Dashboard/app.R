@@ -352,20 +352,21 @@ ui <- dashboardPage(
           #h1(textOutput(paste0("Top Researchers in", input$Division))),
           fluidRow(
             bootstrapPage(
-              column(12, 
+              column(8, 
                      plotOutput(outputId = "top_authors_sdg_table"), 
-                     br()
-              )
+              ),
+              br(),
+              column(4, img(src = "un_17sdgs.jpg", width = "100%"))
             )
           ),
           #h1(textOutput(paste0("Top Departments in ", input$Division))),
           fluidRow(
             bootstrapPage(
-              column(8, 
+              column(12, 
                      plotOutput(outputId = "top_departments_sdg_table")
               ), 
               br(),
-              column(4, img(src = "un_17sdgs.jpg", width = "100%"))
+              
             )
           )
         ) # end fluidPage
