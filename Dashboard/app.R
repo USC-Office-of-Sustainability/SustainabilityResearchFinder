@@ -1024,7 +1024,7 @@ server <- function(input, output, session) {
       ggplot(aes(x = reorder(as.factor(name),n), y = n)) +
       geom_col(fill = sdg_colors[as.numeric(input$Primary.SDG)], alpha = 1) +
       coord_flip() +
-      labs(title = paste0("Top USC Scholars by SDG ", input$Primary.SDG),
+      labs(title = paste0("USC Scholars & Research Products by SDG ", input$Primary.SDG),
            x = "Scholar",
            y = "Number of Research Products ") +
       theme_minimal(base_size = 20)
@@ -1050,7 +1050,7 @@ server <- function(input, output, session) {
       geom_col(fill = sdg_colors[as.numeric(input$Primary.SDG)], alpha = 1) +
       coord_flip() +
       scale_x_discrete(labels = label_wrap(40)) + # whole numbers 
-      labs(title = paste0("Top Departments/Centers/Institutes by SDG ", input$Primary.SDG),
+      labs(title = paste0("Departments/Centers/Institutes & Research Products by SDG ", input$Primary.SDG),
            x = "Departments/Centers/Institutes",
            y = "Number of Research Products ") +
       theme_minimal(base_size = 20)
