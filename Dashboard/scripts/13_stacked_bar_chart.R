@@ -1,5 +1,26 @@
 # stacked bar chart
+# get data
+usc_pubs <- read.csv("data_processed/usc_pubs_law.csv")
+usc_sdgs <- read.csv("data_processed/usc_sdgs_with_categories.csv")
+# usc_authors <- read.csv("data_processed/authors_only_revalued.csv")
+usc_authors <- read.csv("data_processed/usc_authors_law_fixed_dept.csv") %>%
+  rename(Division = Div, Department = Dept)
+usc_bridge <- read.csv("data_processed/bridge_law_fixed2.csv")
+# 2020-2022
+usc_pubs <- usc_pubs %>% filter(Year %in% c(2020, 2021, 2022))
+usc_pubs_sdgs <- merge(usc_pubs, usc_sdgs, 
+                       by.x = c("pubID", "Link"), by.y = c("pubID", "Link"))
+usc_pubs_sdgs$sustainability_category[is.na(usc_pubs_sdgs$sustainability_category)] = "Not-Related"
+tmp <- merge(usc_pubs, usc_bridge,
+             by = c("pubID", "Link"))
+tmp2 <- merge(tmp, usc_authors,
+              by = "authorID")
+usc_joined <- merge(tmp2, usc_sdgs,
+                    by = c("pubID", "Link"),
+                    all.x = TRUE)
+usc_joined$sustainability_category[is.na(usc_joined$sustainability_category)] = "Not-Related"
 
+# summarize data for the charts
 usc_by_product_sust_cat <- usc_pubs_sdgs %>%
   group_by(pubID, Year) %>%
   summarize(all_sustainability_categories = paste(sustainability_category[!duplicated(sustainability_category)], collapse = ";")) %>%
