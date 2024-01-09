@@ -1,6 +1,5 @@
 # fix authors + bridge manually
 
-
 usc_bridge <- read.csv("data_processed/bridge_law.csv")
 usc_authors <- read.csv("data_processed/usc_authors_law.csv")
 
@@ -11,6 +10,14 @@ usc_bridge$authorID[which(usc_bridge$authorID == 57224679598)] <- 57214836310
 # Gould1 -> 57657883900 for Jody Armour
 usc_authors <- usc_authors[-which(usc_authors$authorID == "Gould1"),]
 usc_bridge$authorID[which(usc_bridge$authorID == "Gould1")] <- 57657883900
+
+#  57216528127 -> 57692525700 for Adam Leventhal
+usc_authors <- usc_authors[-which(usc_authors$authorID == 57216528127),]
+usc_bridge$authorID[which(usc_bridge$authorID == 57216528127)] <- 57692525700
+
+# 57215497016 -> 57073146400 for Ibrahim Burak
+usc_authors <- usc_authors[-which(usc_authors$authorID == 57215497016),]
+usc_bridge$authorID[which(usc_bridge$authorID == 57215497016)] <- 57073146400
 
 # 56828355600 Annenberg
 usc_authors[which(usc_authors$authorID == 56828355600),]$Dept <- "Annenberg School for Communication and Journalism"
