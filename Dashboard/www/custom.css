@@ -39,6 +39,11 @@
   min-width: 300px;
 }
 
+.shiny-input-container:not(.shiny-input-container-inline) {
+  width: 70vw;
+  max-width: max-content;
+}
+
 .dt-buttons button.dt-button {
   background: transparent;
   border: 0.125rem solid #900;
@@ -82,4 +87,13 @@
 .dt-buttons button.dt-button:visited {
   border: 0.125rem solid #900;
   color: #900;
+}
+
+.content a {
+  color: #900;
+  text-decoration: underline;
+}
+
+.content a:hover, a:visited:hover, a:focus {
+  color: #01548f;
 }
