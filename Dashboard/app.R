@@ -145,24 +145,24 @@ ui <- dashboardPage(
           fluidRow(
             column(6,
               h3(
-                strong(
-                  "Are you interested in sustainability and the ",
-                  a(
-                    "UN Sustainable Development Goals (SDGs)",
-                    href="https://sdgs.un.org", 
-                    .noWS = "after",
-                    target = "_blank"
-                  ),
-                  "?"),
-                "If so, you have come to the right place!",
-                br(), 
+                "Welcome to the USC Sustainability Research Finder! This 
+                dashboard is a tool that helps users identify which USC 
+                research and scholars relate to the 17 United Nations 
+                Sustainable Development Goals (SDGs). With this information, 
+                students, staff, faculty and the general public can also find 
+                USC scholars and research products (eg. publications) that 
+                match their interests.",
                 br(),
-                strong(
-                  "This dashboard is a tool that enables you to see which research
-                publications at USC relate to the 17 UN SDGs. You can also use this 
-                tool to find USC scholars and publications that 
-                match your academic interest!"
+                br(),
+                "This dashboard is a work in progress and will be improved 
+                through feedback (",
+                a(
+                  "access the feedback form here",
+                  href = "https://docs.google.com/forms/d/e/1FAIpQLSd1WZQJpHjNW6mAnfCliwbb2GmLpewXESF8ydLqVFkpCFQhlQ/viewform",
+                  .noWS = "after",
+                  target = "_blank"
                 ),
+                ". To learn more about this tool visit the FAQ page.",
                 br(),
                 br(),
                 "Sustainability incorporates protection for the environment,
@@ -176,18 +176,11 @@ ui <- dashboardPage(
             ))
           ),
           
-          h1("Learn About The SDGs"),
+          h1("Learn About the UN Sustainable Development Goals (SDGs)"),
           fluidRow(
             column(6, h3(
-              "SDG stands for", 
-              a(
-                "UN sustainable development goals", 
-                href="https://sdgs.un.org",
-                .noWS = "after",
-                target = "_blank"
-              ),
-              ", which adopted by all United Nations Member States in 2015, 
-            provides a shared blueprint for peace and prosperity for people and
+            "The SDGs were adopted by all United Nations Member States in 2015, 
+            providing a shared blueprint for peace and prosperity for people and
             the planet, now and into the future. The SDGs are an urgent call
             for action by all countries - developed and developing - in a 
             global partnership. They recognize that ending poverty and other 
@@ -195,11 +188,22 @@ ui <- dashboardPage(
             health and education, reduce inequality, and spur economic growth –
             all while tackling climate change and working to preserve our 
             oceans and forests."
-            )),
+            ),
+            h3(
+              "Below displays a wordcloud based on all of the research text 
+              (abstract, title and keywords) from all the research products 
+              (eg. publications) that map to each SDG. Research products were 
+              mapped to the SDGs based on a keyword list that was edited by 
+              USC’s Office of Sustainability staff and interns as well as the 
+              USC Presidential Working Group. These keywords evolved from 
+              original lists composed by Elsevier and Carnegie Mellon 
+              University."
+            )
+            ),
             column(6, img(src = "un_17sdgs.jpg", width = "100%"))
             
           ),
-          
+          h2("Select an SDG below to see its most relevant keywords."),
           uiOutput("disclaimer"),
           div(
             style="font-size:24px;", 
@@ -212,7 +216,10 @@ ui <- dashboardPage(
           fluidRow(
             bootstrapPage(
               column(6, plotOutput(outputId ="plot3"), br()),
-              column(6, plotOutput(outputId = "sdg_total_by_year"), br())
+              column(6, 
+                     h2("Count of Research Products* by Year"),
+                     h3("*Products include publications, books, conference proceedings, and scholarly reports"),
+                     plotOutput(outputId = "sdg_total_by_year"), br())
               # column(4, ) # move image next to paragraph text
             )
           )
@@ -335,7 +342,9 @@ ui <- dashboardPage(
           ),
           div(
             style="font-size:24px;", 
-            pickerInput("Division", "Choose USC School/Unit",  
+            pickerInput("Division", 
+                        label = (HTML("<p style='font-size:24px;font-weight:700;margin:0;'>Choose USC School/Unit</p>
+                            <p style='font-size:20px;font-weight:400;margin:0;'>Default is all Schools. If desired, click in the box to select the specific school that you wish to investigate.</p>")),
                         choices = sort(unique(usc_authors$Div)), 
                         selected = sort(unique(usc_authors$Div)),
                         multiple = TRUE,
@@ -491,6 +500,39 @@ ui <- dashboardPage(
             groups that match their interests, as well as creating new research
             collaborations to further sustainability initiatives.",
             br(), br(),
+            strong("Q: How are research scholars and products (eg. 
+                   publications) categorized as ‘Sustainability-Focused’, 
+                   ‘SDG-Related’ or ‘Not-Related’?"),
+            br(),
+            "A: To classify research as 'SDG-Related', the research text 
+            (title, abstract and keywords) by that scholar had to include at 
+            least two keywords that mapped to one of the 17 UN SDGs (based 
+            on our ",
+            a(
+              "keyword list",
+              href = "https://github.com/USC-Office-of-Sustainability/SustainabilityCourseFinder/blob/main/shiny_app/usc_keywords.csv",
+              .noWS = "after",
+              target = "_blank"
+            ),
+            "). A keyword in the research text could only count once per SDG 
+            (no duplicate counts). To classify as 'Sustainability-Focused', 
+            the research text for each publication had to include at least two 
+            keywords that mapped to an environmental SDG (6, 7, 12, 13, 14, 15) 
+            AND at least two keywords that mapped to a socioeconomic SDG 
+            (1-5, 8-11, 16, 17)*. Research with text that did not map to any 
+            of the SDG keywords was classified as 'Not-Related' to 
+            sustainability. *Designations of which SDGs were environmental and 
+            which were socioeconomic were based on the SDG descriptions and 
+            targets: https://sdgs.un.org/goals. *Note this is a very brief 
+            description of our methods. Please see our ",
+            a(
+              "Github",
+              href = "https://github.com/USC-Office-of-Sustainability/SustainabilityResearchFinder",
+              target = "_blank"
+            ),
+            "for full details- including our precautions with keywords and 
+            context-dependencies.",
+            br(), br(),
             strong("Q: How do I get involved in research at USC?"),
             br(),
             "A: Here is our brief guide:",
@@ -630,11 +672,12 @@ server <- function(input, output, session) {
         scale_color_manual(values = sdg_colors,
                            aesthetics = c("fill")) +
         #geom_text(aes(label = Freq), vjust = -0.2, size = 4) +
-        labs(title = str_wrap("Count of Research Products* by Year", 40), 
-             subtitle = str_wrap("Products include publications, books, conference proceedings, and scholarly reports", 40),
-             fill = "SDG",
-             x = "Year",
-             y = "Count") +
+        labs(
+           # title = str_wrap("Count of Research Products* by Year", 40), 
+           # subtitle = str_wrap("Products include publications, books, conference proceedings, and scholarly reports", 40),
+           fill = "SDG",
+           x = "Year",
+           y = "Count") +
         #guides(alpha = FALSE) +
         theme_minimal(base_size = 20)
     })
@@ -873,11 +916,12 @@ server <- function(input, output, session) {
       usc_by_product_sust_cat$one_sustainability_category <- factor(usc_by_product_sust_cat$one_sustainability_category, levels = c("Sustainability-Focused", "Sustainability-Inclusive", "Not Related"))
       ggplot(usc_by_product_sust_cat, aes(fill = one_sustainability_category, y = n, x = Year)) +
         geom_bar(position="fill", stat="identity") +
-        scale_fill_manual(values = c("#990000", "#FFC72C", "#767676"), name = "") +
+        scale_fill_manual(values = c("#990000", "#FFC72C", "#767676"), name = "Sustainability Category") +
         scale_y_continuous(labels = scales::percent) +
         labs(title = str_wrap("Sustainability Related Products by Year", 40),
              y = "Percent") +
-        theme_minimal(base_size = 20)
+        theme_minimal(base_size = 20) +
+        theme(legend.position = "bottom", legend.direction="vertical", legend.box.spacing = margin(0))
     })
   
   # output$stacked_bar2 <- renderPlot(
@@ -898,11 +942,12 @@ server <- function(input, output, session) {
     usc_by_dept_sust_cat$one_sustainability_category <- factor(usc_by_dept_sust_cat$one_sustainability_category, levels = c("Sustainability-Focused", "Sustainability-Inclusive", "Not Related"))
     ggplot(usc_by_dept_sust_cat, aes(fill = one_sustainability_category, y = n, x = Year)) +
       geom_bar(position="fill", stat="identity") +
-      scale_fill_manual(values = c("#990000", "#FFC72C", "#767676"), name = "") +
+      scale_fill_manual(values = c("#990000", "#FFC72C", "#767676"), name = "Sustainability Category") +
       scale_y_continuous(labels = scales::percent) +
       labs(title = str_wrap("Sustainability Related Departments/Centers/Institutes by Year", 40),
            y = "Percent") +
-      theme_minimal(base_size = 20)
+      theme_minimal(base_size = 20) +
+      theme(legend.position = "bottom", legend.direction="vertical", legend.box.spacing = margin(0))
   })
   
   # tab 4
@@ -927,12 +972,13 @@ server <- function(input, output, session) {
       p <- ggplot(m, aes(category, value, 
                          fill = variable, 
                          text = paste(category, "<br>has", value, "SDG", 
-                                      variable))) +
+                                      sdg_names[variable]))) +
         geom_bar(position = "stack", stat = "identity", width = 1) +
         # coord_flip() +
         scale_x_discrete(labels = NULL) +
         # scale_x_discrete(labels = label_wrap(20)) +
         scale_color_manual(values = sdg_colors,
+                           # labels = sdg_names,
                            aesthetics = c("fill")) +
         labs(
           fill = "SDG",
@@ -1169,8 +1215,12 @@ server <- function(input, output, session) {
           paste0(paste(strsplit(x, " ")[[1]][1:50], collapse = " "), "...")
         }
       })
+      dei_joined %>%
+        group_by(pubID) %>%
+        mutate(Authors = paste(sort(unique(name)), collapse = "; "),
+               Divisions = paste(sort(unique(Div)), collapse = "; ")) -> dei_joined
       # missing source
-      dei_joined[, c("DEI_3.3_keywords", "sustainability_category", "SDGs", "Titles", "name", "Div", "Year", "Source.title", "Cited.by", "Abstract", "Open.Access")]
+      dei_joined[, c("DEI_3.3_keywords", "sustainability_category", "SDGs", "Titles", "Authors", "Divisions", "Year", "Source.title", "Cited.by", "Abstract", "Open.Access")] %>% distinct()
     }, rownames = FALSE, escape = FALSE, #extensions = 'Buttons', class = 'display',
     # sort by sustainability focused first
     # author before title
@@ -1185,7 +1235,7 @@ server <- function(input, output, session) {
         list(title = 'Sustainability Category'),
         NULL,
         list(title = 'Title'),
-        list(title = 'Name'),
+        list(title = 'USC Scholars'),
         list(title = 'Division'),
         NULL,
         list(title = 'Source'),
