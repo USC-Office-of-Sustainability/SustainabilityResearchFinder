@@ -143,39 +143,56 @@ ui <- dashboardPage(
         fluidPage(
           h1("About"),
           fluidRow(
-            column(6,
+            column(12,
               h3(
                 "Welcome to the USC Sustainability Research Finder! This 
                 dashboard is a tool that helps users identify which USC 
                 research and scholars relate to the 17 United Nations 
-                Sustainable Development Goals (SDGs). With this information, 
-                students, staff, faculty and the general public can also find 
-                USC scholars and research products (eg. publications) that 
-                match their interests.",
-                br(),
-                br(),
+                Sustainable Development Goals (SDGs). Sustainability 
+                incorporates protection for the environment, balancing a 
+                growing economy, and social responsibility to lead to, an 
+                improved quality of life for current and future generations.",
+                br(),br(),
+                "With this information, students, staff, faculty and the 
+                general public can also find USC scholars and research products 
+                (eg. publications) that match their interests. ",
+                # br(),
+                # br(),
                 "This dashboard is a work in progress and will be improved 
                 through feedback (",
                 a(
                   "access the feedback form here",
                   href = "https://docs.google.com/forms/d/e/1FAIpQLSd1WZQJpHjNW6mAnfCliwbb2GmLpewXESF8ydLqVFkpCFQhlQ/viewform",
-                  .noWS = "after",
+                  .noWS = "outside",
                   target = "_blank"
                 ),
-                ". To learn more about this tool visit the FAQ page.",
-                br(),
-                br(),
-                "Sustainability incorporates protection for the environment,
-              balancing a growing economy, and social responsibility to lead to 
-              an improved quality of life for current and future generations."
-              )), # end h3
+                "). To learn more about this tool visit the FAQ page.",
+              #   br(),
+              #   br(),
+              #   "Sustainability incorporates protection for the environment,
+              # balancing a growing economy, and social responsibility to lead to 
+              # an improved quality of life for current and future generations."
+              )) # end h3
+            
+          ),
+          fluidRow(id = "asgmtearth",
             column(6, img( # move next to next
               src="Asgmt_Earth_Research.png", 
-              height="450", 
-              style="display: block; margin-left: auto; margin-right: auto;"
-            ))
+              width="100%", 
+              # style="display: block; margin-left: auto; margin-right: auto;"
+            )),
+            column(
+              6,
+              h3(
+                strong("Assignment: Earth"),
+                "is USC’s Sustainability Framework for a greener campus 
+                       and planet. It articulates our commitment to addressing 
+                       the impacts of climate change and creating a more just, 
+                       equitable, and sustainable future. It’s a big assignment. ",
+                strong("We’re all in!")
+              )
+            )
           ),
-          
           h1("Learn About the UN Sustainable Development Goals (SDGs)"),
           fluidRow(
             column(6, h3(
@@ -443,7 +460,8 @@ ui <- dashboardPage(
             ),
             "at USC by Dr. Julie Hopper in the Office of Sustainability and 
             five USC students: Alison Chen, Aurora Massari, Bhavya Ramani, Ric 
-            Xian and Xinyi Zhang. ", 
+            Xian and Xinyi Zhang. Feedback was provided by the USC PWG Research 
+            Committee and incorporated by Dr. Julie Hopper and Alison Chen. ", 
             strong("USC research products in the dashboard dataset includes 
                    books, publications, conference proceedings, and scholarly 
                    reports",), "pulled from ",
