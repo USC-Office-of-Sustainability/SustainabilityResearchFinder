@@ -61,14 +61,14 @@ sdg_col_names <- syms(c("SDG.01", "SDG.02", "SDG.03", "SDG.04", "SDG.05", "SDG.0
                    "SDG.13", "SDG.14", "SDG.15", "SDG.16", "SDG.17"))
 
 # data
-usc_pubs <- read.csv("data_processed/usc_pubs_law.csv")
-usc_sdgs <- read.csv("data_processed/usc_sdgs_with_categories.csv")
-# usc_authors <- read.csv("data_processed/authors_only_revalued.csv")
-usc_authors <- read.csv("data_processed/usc_authors_law_fixed_dept.csv") %>%
+usc_pubs <- read.csv("usc_pubs_law.csv")
+usc_sdgs <- read.csv("usc_sdgs_with_categories.csv")
+# usc_authors <- read.csv("authors_only_revalued.csv")
+usc_authors <- read.csv("usc_authors_law_fixed_dept.csv") %>%
   rename(Division = Div, Department = Dept)
-usc_bridge <- read.csv("data_processed/bridge_law_fixed2.csv")
-# dei_data <- read.csv("data_processed/DEI_pubs.csv")
-dei_joined <- read.csv("data_processed/DEI_pubs_ordered.csv")
+usc_bridge <- read.csv("bridge_law_fixed2.csv")
+# dei_data <- read.csv("DEI_pubs.csv")
+dei_joined <- read.csv("DEI_pubs_ordered.csv")
 
 # 2020-2022
 usc_pubs <- usc_pubs %>% filter(Year %in% c(2020, 2021, 2022))

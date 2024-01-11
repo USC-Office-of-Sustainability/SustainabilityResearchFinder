@@ -97,3 +97,9 @@
 .content a:hover, a:visited:hover, a:focus {
   color: #01548f;
 }
+
+#asgmtearth {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
