@@ -21,6 +21,10 @@
 	background-color: #990000;
 }
 
+.main-sidebar { 
+  font-size: 20px; 
+}
+
 .content-wrapper {
         background-color: #fff;
 }
