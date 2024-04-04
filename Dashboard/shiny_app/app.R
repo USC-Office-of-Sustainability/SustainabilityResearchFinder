@@ -61,17 +61,18 @@ sdg_col_names <- syms(c("SDG.01", "SDG.02", "SDG.03", "SDG.04", "SDG.05", "SDG.0
                    "SDG.13", "SDG.14", "SDG.15", "SDG.16", "SDG.17"))
 
 # data
-usc_pubs <- read.csv("usc_pubs_law.csv")
-usc_sdgs <- read.csv("usc_sdgs_with_categories.csv")
+usc_pubs <- read.csv("usc_pubs_law_2020_23.csv")
+usc_sdgs <- read.csv("usc_sdgs_with_categories_2020_23.csv")
 # usc_authors <- read.csv("authors_only_revalued.csv")
-usc_authors <- read.csv("usc_authors_law_fixed_dept.csv") %>%
+usc_authors <- read.csv("usc_authors_2020_23_combined.csv")
+usc_authors <- usc_authors %>%
   rename(Division = Div, Department = Dept)
-usc_bridge <- read.csv("bridge_law_fixed2.csv")
+usc_bridge <- read.csv("usc_bridge_2020_23_combined.csv")
 # dei_data <- read.csv("DEI_pubs.csv")
-dei_joined <- read.csv("DEI_pubs_ordered.csv")
+dei_joined <- read.csv("DEI_pubs_ordered_2020_23.csv")
 
 # 2020-2022
-usc_pubs <- usc_pubs %>% filter(Year %in% c(2020, 2021, 2022))
+usc_pubs <- usc_pubs %>% filter(Year %in% c(2020, 2021, 2022, 2023))
 
 # url
 usc_pubs$url <- paste0("<a href='", usc_pubs$Link, "' target='_blank'>", usc_pubs$Link, "</a>")
@@ -99,9 +100,9 @@ usc_joined$sustainability_category[is.na(usc_joined$sustainability_category)] = 
 
 
 # create chart data outside app.R
-usc_by_product_sust_cat <- read.csv("usc_by_product_sust_cat.csv")
-# usc_by_author_sust_cat <- read.csv("usc_by_author_sust_cat.csv")
-usc_by_dept_sust_cat <- read.csv("usc_by_dept_sust_cat.csv")
+usc_by_product_sust_cat <- read.csv("usc_by_product_sust_cat_2020_23.csv")
+# usc_by_author_sust_cat <- read.csv("usc_by_author_sust_cat_2020_23.csv")
+usc_by_dept_sust_cat <- read.csv("usc_by_dept_sust_cat_2020_23.csv")
 
 authorChoices = setNames(usc_authors$authorID, usc_authors$fullname)
 
