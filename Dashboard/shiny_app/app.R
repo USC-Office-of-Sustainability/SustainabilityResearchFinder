@@ -718,8 +718,9 @@ server <- function(input, output, session) {
         summarise(across(starts_with("SDG"), sum, na.rm = TRUE)) %>%
         t %>%
         as.data.frame() %>%
-        ggplot(aes(x = as.factor(1:17), y = V1, fill = factor(1:17), 
-               text = paste0("n = ", V1))) +
+        mutate(V2 = as.factor(1:17)) %>%
+        ggplot(aes(x = V2, y = V1, fill = V2, 
+               text = paste(V1, "in SDG", sdg_names[as.numeric(V2)]))) +
         geom_col() +
         scale_color_manual(values = sdg_colors,
                            aesthetics = c("fill")) +
