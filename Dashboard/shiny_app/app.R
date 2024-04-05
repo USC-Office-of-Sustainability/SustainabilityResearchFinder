@@ -733,7 +733,8 @@ server <- function(input, output, session) {
              y = "Count") +
         #guides(alpha = FALSE) +
         theme_minimal(base_size = 18) +
-        theme(legend.position = "none")
+        theme(legend.position = "none",
+              text = element_text(size = 18, face = "bold"))
       ggplotly(p, tooltip = "text")
     })
   
@@ -1107,8 +1108,11 @@ server <- function(input, output, session) {
           x = "Departments/Centers/Institutes",
           y = "Count of Publications"
         ) +
-        theme_minimal(base_size = 20)
-      ggplotly(p, tooltip = "text") %>% layout(hoverlabel = list(font=list(size=18)))
+        theme_minimal(base_size = 20) +
+        theme(text = element_text(size = 20, face = "bold"))
+      ggplotly(p, tooltip = "text") %>% 
+        # layout(hoverlabel = list(font=list(size=18)))
+        layout(font = list(size=18))
     }
   )
   output$pubs_to_treemap <- renderPlot(
@@ -1344,7 +1348,8 @@ server <- function(input, output, session) {
              y = "Count",
              fill = "SDG") +
         theme_minimal(base_size = 20) +
-        theme(legend.position = "none")
+        theme(legend.position = "none",
+              text = element_text(size = 20, face = "bold"))
       ggplotly(p, tooltip = "text")
     }
   )
