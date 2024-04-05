@@ -1235,7 +1235,7 @@ server <- function(input, output, session) {
         mutate(Authors = paste(sort(unique(name)), collapse = "; "),
                Divisions = paste(sort(unique(Div)), collapse = "; ")) -> dei_joined
       # missing source
-      dei_joined[, c("DEI_3.3_keywords", "sustainability_category", "SDGs", "Titles", "Authors", "Divisions", "Year", "Source.title", "Cited.by", "Abstract", "Open.Access")] %>% distinct()
+      dei_joined[, c("DEI_3.3_keywords", "sustainability_category", "all_SDGs", "Titles", "Authors", "Divisions", "Year", "Source.title", "Cited.by", "Abstract", "Open.Access")] %>% distinct()
     }, rownames = FALSE, escape = FALSE, #extensions = 'Buttons', class = 'display',
     # sort by sustainability focused first
     # author before title
@@ -1248,7 +1248,7 @@ server <- function(input, output, session) {
       columns = list(
         list(title = 'Assignment Earth 3.3 Keywords'),
         list(title = 'Sustainability Category'),
-        NULL,
+        list(title = 'SDGs'),
         list(title = 'Title'),
         list(title = 'USC Scholars'),
         list(title = 'Division'),
