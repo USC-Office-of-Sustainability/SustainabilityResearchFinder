@@ -790,7 +790,57 @@ server <- function(input, output, session) {
         labs(title = paste0("Sustainability-Related Research in ", input$Year)) +
         theme_void(base_size = 18)
   })
-  
+  output$pie2_plotly <- renderPlotly({
+    df <- usc_joined %>% 
+      filter(Year == input$Year) %>%
+      group_by(authorID) %>%
+      summarize(all_sustainability_categories = paste(sustainability_category[!duplicated(sustainability_category)], collapse = ";")) %>%
+      mutate(one_sustainability_category = case_when(grepl("Focused", all_sustainability_categories)~"Sustainability-Focused",
+                                                     grepl("Inclusive", all_sustainability_categories)~"Sustainability-Inclusive",
+                                                     grepl("SDG-Related", all_sustainability_categories)~"SDG-Related",
+                                                     grepl("Not-Related", all_sustainability_categories)~"Not-Related")) %>%
+      group_by(one_sustainability_category) %>%
+      count() %>%
+      arrange(one_sustainability_category)
+    fig <-
+      plot_ly(
+        df,
+        labels = ~ one_sustainability_category,
+        values = ~ n,
+        type = 'pie',
+        sort = FALSE,
+        direction = "clockwise",
+        textposition = 'inside',
+        textinfo = 'percent',
+        insidetextfont = list(color = '#FFFFFF'),
+        hoverinfo = 'text',
+        text = ~ paste(n, one_sustainability_category, 'Scholars'),
+        marker = list(
+          colors = c("#767676", "#FFC72C", "#2F6DBA", "#990000"),
+          line = list(color = '#FFFFFF', width = 1)
+        ),
+        #The 'pull' attribute can also be used to create space between the sectors
+        showlegend = TRUE
+      )
+    fig <- fig %>% layout(
+      margin = list(l = 20, r = 20),
+      xaxis = list(
+        showgrid = FALSE,
+        zeroline = FALSE,
+        showticklabels = FALSE
+      ),
+      yaxis = list(
+        showgrid = FALSE,
+        zeroline = FALSE,
+        showticklabels = FALSE
+      ),
+      legend = list(
+        orientation = 'h'
+      ),
+      font = list(size = 18)
+    )
+    fig
+  })
   output$pie2 <- renderPlot( # add lines
     {
       # 3 categories:
@@ -816,10 +866,14 @@ server <- function(input, output, session) {
         summarize(all_sustainability_categories = paste(sustainability_category[!duplicated(sustainability_category)], collapse = ";")) %>%
         mutate(one_sustainability_category = case_when(grepl("Focused", all_sustainability_categories)~"Sustainability-Focused",
                                                        grepl("Inclusive", all_sustainability_categories)~"Sustainability-Inclusive",
+                                                       grepl("SDG-Related", all_sustainability_categories)~"SDG-Related",
                                                        grepl("Not-Related", all_sustainability_categories)~"Not-Related")) %>%
         select(authorID, one_sustainability_category)
       num_not_related <- usc_by_author_sust_cat %>%
         filter(one_sustainability_category == "Not-Related") %>%
+        nrow
+      num_sdg_related <- usc_by_author_sust_cat %>%
+        filter(one_sustainability_category == "SDG-Related") %>%
         nrow
       num_inclusive <- usc_by_author_sust_cat %>%
         filter(one_sustainability_category == "Sustainability-Inclusive") %>%
@@ -827,8 +881,9 @@ server <- function(input, output, session) {
       num_focused <- usc_by_author_sust_cat %>%
         filter(one_sustainability_category == "Sustainability-Focused") %>%
         nrow
-      pie_data <- data.frame(group = c("Not Related", "Inclusive", "Focused"),
+      pie_data <- data.frame(group = c("Not Related", "SDG-Related", "Inclusive", "Focused"),
                              value = c(num_not_related,
+                                       num_sdg_related,
                                        num_inclusive,
                                        num_focused))
       # compute positions of labels
@@ -844,18 +899,69 @@ server <- function(input, output, session) {
         geom_label_repel(aes(y = ypos, label = paste0(value)),
                          size = 4.5, nudge_x = 1, show.legend = FALSE) +
         # geom_text(aes(y = ypos, label = value), color = "black", size = 20/.pt) +
-        scale_fill_manual(values = c("#990000", "#FFC72C", "#767676"), name = "") +
+        scale_fill_manual(values = c("#2F6DBA", "#990000", "#FFC72C", "#767676"), name = "") +
         labs(title = str_wrap("Employees conducting Sustainability-Related Research", 40)) +
         theme_void(base_size = 18)
       total_count <- num_not_related + num_inclusive + num_focused
       pie_data$percent <- round(pie_data$value/total_count*100,1)
       pie(pie_data$value, 
           labels = paste(pie_data$group,paste0("(", pie_data$value, ", ",pie_data$percent,"%)"), sep = "\n"), # put count, % in next line
-          col = c("#767676", "#FFC72C", "#990000"), 
+          col = c("#767676", "#FFC72C", "#990000", "#2F6DBA"), 
           main = str_wrap("Scholars Conducting Sustainability-Related Research 2020-22", 40), 
           cex = 1.5, cex.main = 1.5)
     })
-  
+  output$pie3_plotly <- renderPlotly({
+    df <- usc_joined %>%
+      filter(Year == input$Year) %>%
+      group_by(Department) %>%
+      summarize(all_sustainability_categories = paste(sustainability_category[!duplicated(sustainability_category)], collapse = ";")) %>%
+      mutate(one_sustainability_category = case_when(grepl("Focused", all_sustainability_categories)~"Sustainability-Focused",
+                                                     grepl("Inclusive", all_sustainability_categories)~"Sustainability-Inclusive",
+                                                     grepl("SDG-Related", all_sustainability_categories)~"SDG-Related",
+                                                     grepl("Not-Related", all_sustainability_categories)~"Not-Related")) %>%
+      group_by(one_sustainability_category) %>%
+      count() %>%
+      arrange(one_sustainability_category)
+    fig <-
+      plot_ly(
+        df,
+        labels = ~ one_sustainability_category,
+        values = ~ n,
+        type = 'pie',
+        sort = FALSE,
+        direction = "clockwise",
+        textposition = 'inside',
+        textinfo = 'percent',
+        insidetextfont = list(color = '#FFFFFF'),
+        hoverinfo = 'text',
+        text = ~ paste(n, one_sustainability_category, 'Departments'),
+        marker = list(
+          colors = c("#767676", "#FFC72C", "#2F6DBA", "#990000"),
+          line = list(color = '#FFFFFF', width = 1)
+        ),
+        #The 'pull' attribute can also be used to create space between the sectors
+        showlegend = TRUE
+      )
+    fig <- fig %>% layout(
+      margin = list(l = 20, r = 20),
+      xaxis = list(
+        showgrid = FALSE,
+        zeroline = FALSE,
+        showticklabels = FALSE
+      ),
+      yaxis = list(
+        showgrid = FALSE,
+        zeroline = FALSE,
+        showticklabels = FALSE
+      ),
+      legend = list(
+        orientation = 'h'
+      ),
+      # hoverlabel = list(font=list(size=18)),
+      font = list(size = 18)
+    )
+    fig
+  })
   output$pie3 <- renderPlot(
     {
       # 3 categories:
@@ -910,29 +1016,33 @@ server <- function(input, output, session) {
         geom_label_repel(aes(y = ypos, label = paste0(value)),
                          size = 4.5, nudge_x = 1, show.legend = FALSE) +
         # geom_text(aes(y = ypos, label = value), color = "black", size = 20/.pt) +
-        scale_fill_manual(values = c("#990000", "#FFC72C", "#767676"), name = "") +
+        scale_fill_manual(values = c("#2F6DBA", "#990000", "#FFC72C", "#767676"), name = "") +
         labs(title = paste0("Sustainability Related Departments")) +
         theme_void(base_size = 18)
       total_count <- num_not_related + num_inclusive + num_focused
       pie_data$percent <- round(pie_data$value/total_count*100,1)
       pie(pie_data$value, 
           labels = paste(pie_data$group,paste0("(", pie_data$value, ", ",pie_data$percent,"%)"), sep = "\n"), # put count, % in next line
-          col = c("#767676", "#FFC72C", "#990000"), 
+          col = c("#767676", "#FFC72C", "#990000", "#2F6DBA"), 
           main = str_wrap("Department/Centers/Institutes Conducting Sustainability-Related Research 2020-22", 40), 
           cex = 1.5, cex.main = 1.5)
     })
+  
   output$stacked_bar_product <- renderPlot(
     {
       
-      usc_by_product_sust_cat$one_sustainability_category <- factor(usc_by_product_sust_cat$one_sustainability_category, levels = c("Sustainability-Focused", "Sustainability-Inclusive", "Not Related"))
+      usc_by_product_sust_cat$one_sustainability_category <- factor(usc_by_product_sust_cat$one_sustainability_category, levels = c("Sustainability-Focused", "Sustainability-Inclusive", "SDG-Related", "Not Related"))
       ggplot(usc_by_product_sust_cat, aes(fill = one_sustainability_category, y = n, x = Year)) +
         geom_bar(position="fill", stat="identity") +
-        scale_fill_manual(values = c("#990000", "#FFC72C", "#767676"), name = "Sustainability Category") +
+        scale_fill_manual(values = c("#2F6DBA", "#990000", "#FFC72C", "#767676"), name = "Sustainability Category") +
         scale_y_continuous(labels = scales::percent) +
-        labs(title = str_wrap("Sustainability Related Products by Year", 40),
+        labs(#title = str_wrap("Sustainability Related Products by Year", 40),
              y = "Percent") +
         theme_minimal(base_size = 20) +
-        theme(legend.position = "bottom", legend.direction="vertical", legend.box.spacing = margin(0))
+        theme(legend.position = "bottom", 
+              legend.direction="vertical", 
+              legend.box.spacing = margin(0),
+              text = element_text(size = 20, face = "bold"))
     })
   
   # output$stacked_bar2 <- renderPlot(
@@ -950,15 +1060,16 @@ server <- function(input, output, session) {
   
   output$stacked_bar3 <- renderPlot({
     
-    usc_by_dept_sust_cat$one_sustainability_category <- factor(usc_by_dept_sust_cat$one_sustainability_category, levels = c("Sustainability-Focused", "Sustainability-Inclusive", "Not Related"))
+    usc_by_dept_sust_cat$one_sustainability_category <- factor(usc_by_dept_sust_cat$one_sustainability_category, levels = c("Sustainability-Focused", "Sustainability-Inclusive", "SDG-Related", "Not Related"))
     ggplot(usc_by_dept_sust_cat, aes(fill = one_sustainability_category, y = n, x = Year)) +
       geom_bar(position="fill", stat="identity") +
-      scale_fill_manual(values = c("#990000", "#FFC72C", "#767676"), name = "Sustainability Category") +
+      scale_fill_manual(values = c("#2F6DBA", "#990000", "#FFC72C", "#767676"), name = "Sustainability Category") +
       scale_y_continuous(labels = scales::percent) +
-      labs(title = str_wrap("Sustainability Related Departments/Centers/Institutes by Year", 40),
+      labs(#title = str_wrap("Sustainability Related Departments/Centers/Institutes by Year", 40),
            y = "Percent") +
       theme_minimal(base_size = 20) +
-      theme(legend.position = "bottom", legend.direction="vertical", legend.box.spacing = margin(0))
+      theme(legend.position = "bottom", legend.direction="vertical", legend.box.spacing = margin(0),
+            text = element_text(size = 20, face = "bold"))
   })
   
   # tab 4
