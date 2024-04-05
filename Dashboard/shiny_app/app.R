@@ -1174,7 +1174,9 @@ server <- function(input, output, session) {
   #                          )
   #   }
   # )
-
+  output$top_authors_sdg_table_title <- renderText(
+    paste0("USC Scholars & Research Products by SDG ", input$Primary.SDG)
+  )
   output$top_authors_sdg_table <- renderPlot({
     validate(
       need(input$Primary.SDG != "", label = "SDG"),
@@ -1192,12 +1194,21 @@ server <- function(input, output, session) {
       ggplot(aes(x = reorder(as.factor(name),n), y = n)) +
       geom_col(fill = sdg_colors[as.numeric(input$Primary.SDG)], alpha = 1) +
       coord_flip() +
-      labs(title = paste0("USC Scholars & Research Products by SDG ", input$Primary.SDG),
+      labs(#title = paste0("USC Scholars & Research Products by SDG ", input$Primary.SDG),
            x = "Scholar",
-           y = "Number of Research Products ") +
-      theme_minimal(base_size = 20)
+           #y = "Number of Research Products "
+           ) +
+      theme_minimal(base_size = 20) +
+      theme(text = element_text(size = 20, face = "bold"),
+            axis.title.x = element_blank())
   })
-
+  output$top_departments_sdg_table_title <- renderText(
+    paste0("Departments/Centers/Institutes & Research Products by SDG ", input$Primary.SDG)
+  )
+  output$top_departments_axis <-
+    output$top_authors_axis <- renderUI({
+    h3(strong("Number of Research Products"), style = "margin-top: 0px")
+  })
   output$top_departments_sdg_table <- renderPlot({
     validate(
       need(input$Primary.SDG != "", label = "SDG"),
