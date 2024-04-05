@@ -233,10 +233,9 @@ ui <- dashboardPage(
             bootstrapPage(
               column(6, plotOutput(outputId ="plot3"), br()),
               column(6, 
-                     h2("Count of Research Products* by Year"),
+                     h2(strong("Count of Research Products* by Year")),
                      h3("*Products include publications, books, conference proceedings, and scholarly reports"),
                      plotOutput(outputId = "sdg_total_by_year"), br())
-              # column(4, ) # move image next to paragraph text
             )
           )
         ) # end fluidPage
@@ -286,13 +285,16 @@ ui <- dashboardPage(
           # h3("For 2020-2022"),
           # h4("*Employees include students, postdocs, staff and faculty that are on publications"),
           fluidRow(
-            column(6, plotOutput("pie2")),
+            # column(6, plotOutput("pie2")),
+            column(6, h2(strong("Sustainability Related Scholars"), align = "center"),plotlyOutput("pie2_plotly")),
             # column(6, plotOutput("stacked_bar2"))
-            column(6, plotOutput("stacked_bar_product"))
+            column(6, h2(strong("Sustainability Related Products by Year"), align = "center"), plotOutput("stacked_bar_product"))
+            # column(6, plotlyOutput("stacked_bar_product_plotly"))
           ),
           fluidRow(
-            column(6, plotOutput("pie3")),
-            column(6, plotOutput("stacked_bar3"))
+            # column(6, plotOutput("pie3")),
+            column(6, h2(strong("Sustainability Related Departments/Centers/Institutes"), align = "center"), plotlyOutput("pie3_plotly")),
+            column(6, h2(strong("Sustainability Related Departments/Centers/Institutes by Year"), align = "center"), plotOutput("stacked_bar3"))
           )# end fluidRow
         ) # end fluidPage
       ), # end tabItem 3
@@ -302,14 +304,7 @@ ui <- dashboardPage(
           h1("USC Research: SDGs by School"),
           h3("Select a USC School/Unit below to view the number of SDG-related
              publications by departments."),
-          # uiOutput("disclaimer"),
-          h4("Data is from 2020-2022. This app is a work in progress, and,
-         we are continually improving accuracy. If you have feedback,
-         please fill out our ",
-             a("feedback form",
-               href="https://forms.gle/P6QJDSJaaRusZLZh6", .noWS = "after",
-               target = "_blank"),
-             "."),
+          uiOutput("disclaimer3"),
           div(
             style="font-size:24px;", 
             selectInput(
@@ -319,13 +314,13 @@ ui <- dashboardPage(
               selected = "Dornsife College of Letters Arts and Sciences"
             )
           ),
-          h3("Research Products* and SDGs by Departments/Centers/Institutes"),
-          h4("Products include publications, books, conference proceedings, and scholarly reports"),
+          h2(strong("Research Products* and SDGs by Departments/Centers/Institutes")),
+          h3("Products include publications, books, conference proceedings, and scholarly reports"),
           h4("Hover over the columns to see Department/Centers/Institutes name. 
             Drag cursor over a section to zoom in and double click to zoom out. 
             You can also use the tools in the top right corner."),
           fluidRow(column(12, plotlyOutput(outputId = "pubs_to_bar"))),
-          h3("SDG-Related Research Across All Departments/Centers/Institutes"),
+          h2(strong("SDG-Related Research Across All Departments/Centers/Institutes")),
           fluidRow(column(12, plotOutput("pubs_to_treemap")))
         ) # end fluidPage
       ), # end tabItem 4
@@ -334,20 +329,13 @@ ui <- dashboardPage(
         fluidPage(
           h1("View USC Scholars and Schools by SDGs"),
           #h3("description"),
-          # uiOutput("disclaimer"),
-          h4("Data is from 2020-2022. This app is a work in progress, and,
-         we are continually improving accuracy. If you have feedback,
-         please fill out our ",
-             a("feedback form",
-               href="https://forms.gle/P6QJDSJaaRusZLZh6", .noWS = "after",
-               target = "_blank"),
-             "."),
+          uiOutput("disclaimer4"),
           div(
             style="font-size:24px;", 
             selectInput(
               inputId = "Primary.SDG", 
               label = "Choose SDG", 
-              choices = sdg_choices,
+              choices = sdg_choices
             )
           ),
           div(
@@ -369,24 +357,35 @@ ui <- dashboardPage(
           # h4("Please wait for data to load (~30 sec)"),
           br(),
           #h1(textOutput(paste0("Top Researchers in", input$Division))),
-          fluidRow(
+          fluidRow(align = "center",
             bootstrapPage(
               column(8, 
+                     h2(strong(textOutput(outputId = "top_authors_sdg_table_title"))),
                      plotOutput(outputId = "top_authors_sdg_table"), 
+                     uiOutput("top_authors_axis")
               ),
               br(),
               column(4, img(src = "un_17sdgs.jpg", width = "100%"))
             )
           ),
           #h1(textOutput(paste0("Top Departments in ", input$Division))),
-          fluidRow(
+          fluidRow(align = "center",
             bootstrapPage(
               column(12, 
-                     plotOutput(outputId = "top_departments_sdg_table")
+                     h2(strong(textOutput(outputId = "top_departments_sdg_table_title"))),
+                     plotOutput(outputId = "top_departments_sdg_table"),
+                     uiOutput("top_departments_axis")
               ), 
               br(),
               
             )
+          ),
+          h3("List of Research Products"),
+          fluidRow(
+            column(12,
+                   DT::dataTableOutput("pub_by_school_sdg_table")
+                   # TODO
+                   )
           )
         ) # end fluidPage
       ), # end tabItem 5
@@ -394,14 +393,7 @@ ui <- dashboardPage(
         tabName = "6",
         fluidPage(
           h1("Find SDGs and Research by USC Scholar"),
-          # uiOutput("disclaimer"),
-          h4("Data is from 2020-2022. This app is a work in progress, and,
-         we are continually improving accuracy. If you have feedback,
-         please fill out our ",
-             a("feedback form",
-               href="https://forms.gle/P6QJDSJaaRusZLZh6", .noWS = "after",
-               target = "_blank"),
-             "."),
+          uiOutput("disclaimer5"),
           # div(
           #   style="font-size:24px;", 
           #   selectInput(
@@ -424,11 +416,11 @@ ui <- dashboardPage(
           ),
           fluidRow(column(12, DT::dataTableOutput("auth_about"))),
           # graph
-          h3("Scholar's Research Products by SDG"),
+          h2(strong("Scholar's Research Products by SDG")),
           fluidRow(column(8, plotlyOutput("author_sdg_barplot")),
                    column(4, img(src = "un_17sdgs.jpg", width = "100%"))),
           # table
-          h3("List of Scholar's Research Products"),
+          h2(strong("List of Scholar's Research Products")),
           fluidRow(
             bootstrapPage(
               column(12, DT::dataTableOutput("author_pub_table"))
