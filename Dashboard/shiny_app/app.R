@@ -257,25 +257,19 @@ ui <- dashboardPage(
         fluidPage(
           h1("USC Research: SDGs By Year"),
           #h3("this is a description"),
-          # uiOutput("disclaimer"),
-          h4("Data is from 2020-2022. This app is a work in progress, and,
-         we are continually improving accuracy. If you have feedback,
-         please fill out our ",
-             a("feedback form",
-               href="https://forms.gle/P6QJDSJaaRusZLZh6", .noWS = "after",
-               target = "_blank"),
-             "."),
+          uiOutput("disclaimer2"),
           div(
             style="font-size:24px;",
             selectInput(
               inputId = "Year",
               label = "Choose Year", 
-              choices = sort(unique(usc_pubs_sdgs$Year))
+              choices = sort(unique(usc_pubs_sdgs$Year)),
+              selected = max(unique(usc_pubs_sdgs$Year))
             )
           ), 
           h4("Please wait for data to load (~30 sec)"), 
           fluidRow(
-            column(6, h3("Count of Research Products* per SDG"), 
+            column(6, h3(strong("Count of Research Products* per SDG")), 
                    h4("Products include publications, books, conference proceedings, and scholarly reports"),
                    plotlyOutput("year_sdg_barplot")),
             column(6, img(src = "un_17sdgs.jpg", width = "100%"))
