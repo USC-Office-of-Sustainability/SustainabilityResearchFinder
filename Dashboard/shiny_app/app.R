@@ -1229,11 +1229,61 @@ server <- function(input, output, session) {
       geom_col(fill = sdg_colors[as.numeric(input$Primary.SDG)], alpha = 1) +
       coord_flip() +
       scale_x_discrete(labels = label_wrap(40)) + # whole numbers 
-      labs(title = paste0("Departments/Centers/Institutes & Research Products by SDG ", input$Primary.SDG),
+      labs(#title = paste0("Departments/Centers/Institutes & Research Products by SDG ", input$Primary.SDG),
            x = "Departments/Centers/Institutes",
-           y = "Number of Research Products ") +
-      theme_minimal(base_size = 20)
+           #y = "Number of Research Products "
+           ) +
+      theme_minimal(base_size = 20) +
+      theme(text = element_text(size = 20, face = "bold"),
+            axis.title.x = element_blank())
   })
+  
+  output$pub_by_school_sdg_table <- DT::renderDataTable(
+    {
+      validate(
+        need(input$Primary.SDG != "", label = "SDG"),
+        need(input$Division != "", label = "USC School/Unit")
+      )
+      sdg_col = get_selected_sdg_col(input$Primary.SDG)
+      temp <- usc_joined %>%
+        filter(Division %in% input$Division) %>%
+        filter(!!sdg_col != 0)
+      # first 50 words
+      temp$Abstract <- sapply(temp$Abstract, function(x) {
+        if (length(strsplit(x, " ")[[1]]) < 50) {
+          x
+        } else {
+          paste0(paste(strsplit(x, " ")[[1]][1:50], collapse = " "), "...")
+        }
+      })
+      temp <- temp %>%
+        group_by(pubID) %>%
+        mutate(Authors = paste(sort(unique(name)), collapse = "; "),
+               Divisions = paste(sort(unique(Division)), collapse = "; ")) %>%
+        ungroup() %>%
+        select(sustainability_category, all_SDGs, Titles, Authors, Divisions, Year, Source.title, Cited.by, Abstract, Open.Access) %>%
+        distinct()
+    }, rownames = FALSE, escape = FALSE, options =
+      list(
+           columnDefs = list(list(width = '200px', targets = c(2)),
+                             list(width = '100px', targets = c(0,9)),
+                             list(width = '800px', targets = c(8))), # 0-indexed
+           autoWidth = TRUE,
+           scrollX = TRUE,
+           columns = list(
+             list(title = 'Sustainability Category'),
+             list(title = 'SDGs'),
+             list(title = 'Title'),
+             list(title = 'USC Scholars'),
+             list(title = 'Division'),
+             NULL,
+             list(title = 'Source'),
+             list(title = 'Cited by'),
+             NULL,
+             list(title = 'Open Access')
+           )
+      )
+  )
 
   # tab 6
   observeEvent(
