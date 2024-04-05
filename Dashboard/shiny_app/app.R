@@ -220,7 +220,7 @@ ui <- dashboardPage(
             
           ),
           h2("Select an SDG below to see its most relevant keywords."),
-          uiOutput("disclaimer"),
+          uiOutput("disclaimer1"),
           div(
             style="font-size:24px;", 
             selectizeInput(
@@ -613,14 +613,7 @@ ui <- dashboardPage(
         tabName = "8",
         fluidPage(
           h1("Sustainability-Research in Los Angeles"),
-          # uiOutput("disclaimer"),
-          h4("Data is from 2020-2022. This app is a work in progress, and,
-         we are continually improving accuracy. If you have feedback,
-         please fill out our ",
-             a("feedback form",
-               href="https://forms.gle/P6QJDSJaaRusZLZh6", .noWS = "after",
-               target = "_blank"),
-             "."),
+          uiOutput("disclaimer6"),
           downloadButton("download_dei_data", "Download"),
           fluidRow(column(12, DT::dataTableOutput("dei_table"))),
         )
@@ -664,9 +657,14 @@ get_selected_sdg_col <- function(sdg) {
 }
 
 server <- function(input, output, session) {
-  output$disclaimer <- renderUI({
+  output$disclaimer1 <-
+    output$disclaimer2 <-
+    output$disclaimer3 <-
+    output$disclaimer4 <-
+    output$disclaimer5 <-
+    output$disclaimer6 <- renderUI({
     tagList(
-      h4("Data is from 2020-2022. This app is a work in progress, and,
+      h4("Data is from 2020-2023. This app is a work in progress, and,
          we are continually improving accuracy. If you have feedback,
          please fill out our ",
          a("feedback form",
