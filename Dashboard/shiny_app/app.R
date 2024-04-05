@@ -186,11 +186,9 @@ ui <- dashboardPage(
               6,
               h3(
                 strong("Assignment: Earth"),
-                "is USC’s Sustainability Framework for a greener campus 
-                       and planet. It articulates our commitment to addressing 
-                       the impacts of climate change and creating a more just, 
-                       equitable, and sustainable future. It’s a big assignment. ",
-                strong("We’re all in!")
+                "is USC’s Sustainability Framework for creating a healthy, 
+                just and thriving campus and world.",
+                strong("It’s a big assignment. We’re all in!")
               )
             )
           ),
@@ -1279,4 +1277,3 @@ server <- function(input, output, session) {
 }
 
 # Run the application 
-shinyApp(ui = ui, server = server)
