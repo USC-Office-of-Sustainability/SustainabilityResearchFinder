@@ -662,6 +662,9 @@ server <- function(input, output, session) {
   # tab 2
   output$sdg_total_by_year  <- renderPlot(
     {
+      validate(
+        need(input$sdg_goal != "", label = "SDG")
+      )
       # set correct column name
       sdg_col = get_selected_sdg_col(input$sdg_goal)
       # bar chart
@@ -680,11 +683,17 @@ server <- function(input, output, session) {
            x = "Year",
            y = "Count") +
         #guides(alpha = FALSE) +
-        theme_minimal(base_size = 20)
+        theme_minimal(base_size = 20) +
+        theme(
+          text = element_text(size = 20, face = "bold")
+        )
     })
   
   output$plot3 <- renderImage(
     {
+      validate(
+        need(input$sdg_goal != "", label = "SDG")
+      )
       # When input$n is 1, filename is ./images/image1.jpeg
       filename <- normalizePath(file.path("./www",
                                           paste("sdg", input$sdg_goal, ".png", sep="")))
