@@ -380,11 +380,10 @@ ui <- dashboardPage(
               
             )
           ),
-          h3("List of Research Products"),
+          h2(strong("List of Some Research Products")),
           fluidRow(
             column(12,
                    DT::dataTableOutput("pub_by_school_sdg_table")
-                   # TODO
                    )
           )
         ) # end fluidPage
@@ -1254,6 +1253,15 @@ server <- function(input, output, session) {
       temp <- usc_joined %>%
         filter(Division %in% input$Division) %>%
         filter(!!sdg_col != 0)
+      temp <- temp %>%
+        arrange(desc(!!sdg_col)) %>%
+        group_by(pubID) %>%
+        mutate(Authors = paste(sort(unique(name)), collapse = "; "),
+               Divisions = paste(sort(unique(Division)), collapse = "; ")) %>%
+        ungroup() %>%
+        select(sustainability_category, all_SDGs, Titles, Authors, Divisions, Year, Source.title, Cited.by, Abstract, Open.Access) %>%
+        distinct() %>%
+        head(2000)
       # first 50 words
       temp$Abstract <- sapply(temp$Abstract, function(x) {
         if (length(strsplit(x, " ")[[1]]) < 50) {
@@ -1262,13 +1270,7 @@ server <- function(input, output, session) {
           paste0(paste(strsplit(x, " ")[[1]][1:50], collapse = " "), "...")
         }
       })
-      temp <- temp %>%
-        group_by(pubID) %>%
-        mutate(Authors = paste(sort(unique(name)), collapse = "; "),
-               Divisions = paste(sort(unique(Division)), collapse = "; ")) %>%
-        ungroup() %>%
-        select(sustainability_category, all_SDGs, Titles, Authors, Divisions, Year, Source.title, Cited.by, Abstract, Open.Access) %>%
-        distinct()
+      temp
     }, rownames = FALSE, escape = FALSE, options =
       list(
            columnDefs = list(list(width = '200px', targets = c(2)),
