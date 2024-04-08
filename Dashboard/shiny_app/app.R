@@ -1362,35 +1362,11 @@ server <- function(input, output, session) {
       validate(
         need(input$author != "", label = "USC Author")
       )
-      pubs <- usc_joined %>%
+      usc_joined %>%
         filter(usc_joined$authorID == input$author) %>%
-        select(Titles, url, all_SDGs, Year)
-      sdgs_only <- usc_joined %>%
-        filter(usc_joined$authorID == input$author) %>%
-        select(starts_with("SDG")) %>%
-        replace(is.na(.), 0)
-      w <- which(sdgs_only != 0, arr.ind = TRUE)
-      if (length(w) == 0) {
-        # pubs$SDGs <- ""
-        pubs[, c("all_SDGs", "Titles", "Year", "url")] 
-        return (pubs)
-      }
-      # sdgs_only[w] <- as.numeric(substr(names(sdgs_only)[w[, "col"]], start = 5, stop = 6))
-      # sdgs_collapsed <- apply(sdgs_only, 1, function(x) {
-      #   res = ""
-      #   for (i in 1:length(x)) {
-      #     if (x[i] != 0) {
-      #       if (res == "") {
-      #         res = x[i]
-      #       } else {
-      #         res = paste(res, x[i], sep = ", ")
-      #       }
-      #     }
-      #   }
-      #   res
-      # })
-      # pubs$SDGs <- sdgs_collapsed
-      pubs[, c("all_SDGs", "Titles", "Year", "url")] %>% distinct()
+        select(all_SDGs, Titles, Year, url) %>%
+        distinct() %>%
+        arrange(desc(Year))
   }, rownames = FALSE, escape = FALSE,
   options = list(
     columnDefs = list(list(width = '500px', targets = c(1)) # 0-indexed
