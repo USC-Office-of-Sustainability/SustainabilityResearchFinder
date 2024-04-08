@@ -799,7 +799,8 @@ server <- function(input, output, session) {
       mutate(one_sustainability_category = case_when(grepl("Focused", all_sustainability_categories)~"Sustainability-Focused",
                                                      grepl("Inclusive", all_sustainability_categories)~"Sustainability-Inclusive",
                                                      grepl("SDG-Related", all_sustainability_categories)~"SDG-Related",
-                                                     grepl("Not-Related", all_sustainability_categories)~"Not-Related")) %>%
+                                                     grepl("Not-Related", all_sustainability_categories)~"Not Related")) %>%
+      mutate(one_sustainability_category = factor(one_sustainability_category, levels = c("Sustainability-Focused", "Sustainability-Inclusive", "SDG-Related", "Not Related"))) %>%
       group_by(one_sustainability_category) %>%
       count() %>%
       arrange(one_sustainability_category)
@@ -817,7 +818,7 @@ server <- function(input, output, session) {
         hoverinfo = 'text',
         text = ~ paste(n, one_sustainability_category, 'Scholars'),
         marker = list(
-          colors = c("#767676", "#FFC72C", "#2F6DBA", "#990000"),
+          colors = c("#2F6DBA", "#990000","#FFC72C","#767676"),
           line = list(color = '#FFFFFF', width = 1)
         ),
         #The 'pull' attribute can also be used to create space between the sectors
@@ -919,7 +920,8 @@ server <- function(input, output, session) {
       mutate(one_sustainability_category = case_when(grepl("Focused", all_sustainability_categories)~"Sustainability-Focused",
                                                      grepl("Inclusive", all_sustainability_categories)~"Sustainability-Inclusive",
                                                      grepl("SDG-Related", all_sustainability_categories)~"SDG-Related",
-                                                     grepl("Not-Related", all_sustainability_categories)~"Not-Related")) %>%
+                                                     grepl("Not-Related", all_sustainability_categories)~"Not Related")) %>%
+      mutate(one_sustainability_category = factor(one_sustainability_category, levels = c("Sustainability-Focused", "Sustainability-Inclusive", "SDG-Related", "Not Related"))) %>%
       group_by(one_sustainability_category) %>%
       count() %>%
       arrange(one_sustainability_category)
@@ -937,7 +939,7 @@ server <- function(input, output, session) {
         hoverinfo = 'text',
         text = ~ paste(n, one_sustainability_category, 'Departments'),
         marker = list(
-          colors = c("#767676", "#FFC72C", "#2F6DBA", "#990000"),
+          colors = c("#2F6DBA", "#990000","#FFC72C","#767676"),
           line = list(color = '#FFFFFF', width = 1)
         ),
         #The 'pull' attribute can also be used to create space between the sectors
