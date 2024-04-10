@@ -120,7 +120,7 @@ ui <- dashboardPage(
       # menuItem("Learn About The SDGs", tabName = "2"),
       menuItem("USC Research: SDGs by Year", tabName = "3"),
       menuItem("USC Research: SDGs by School", tabName = "4"),
-      menuItem("View USC Scholars and Schools by SDGs", tabName = "5"),
+      menuItem("USC Scholars and Research by SDGs", tabName = "5"),
       menuItem("Find SDGs and Research by USC Scholar", tabName = "6"),
       menuItem("Sustainability Research in Los Angeles", tabName = "8")
     )
@@ -327,7 +327,7 @@ ui <- dashboardPage(
       tabItem(
         tabName = "5",
         fluidPage(
-          h1("View USC Scholars and Schools by SDGs"),
+          h1("USC Scholars and Research by SDGs"),
           #h3("description"),
           uiOutput("disclaimer4"),
           div(
