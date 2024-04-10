@@ -234,7 +234,7 @@ ui <- dashboardPage(
               column(6, plotOutput(outputId ="plot3"), br()),
               column(6, 
                      h2(strong("Count of Research Products* by Year")),
-                     h3("*Products include publications, books, conference proceedings, and scholarly reports"),
+                     h3("*Products include publications, books, conference proceedings, and scholarly reports", style = "margin-top: 0px;"),
                      plotOutput(outputId = "sdg_total_by_year"), br())
             )
           )
@@ -361,6 +361,7 @@ ui <- dashboardPage(
             bootstrapPage(
               column(8, 
                      h2(strong(textOutput(outputId = "top_authors_sdg_table_title"))),
+                     h3(textOutput(outputId = "top_authors_sdg_table_subtitle"), style = "margin-top: 0px"),
                      plotOutput(outputId = "top_authors_sdg_table"), 
                      uiOutput("top_authors_axis")
               ),
@@ -368,19 +369,28 @@ ui <- dashboardPage(
               column(4, img(src = "un_17sdgs.jpg", width = "100%"))
             )
           ),
-          #h1(textOutput(paste0("Top Departments in ", input$Division))),
           fluidRow(align = "center",
-            bootstrapPage(
-              column(12, 
-                     h2(strong(textOutput(outputId = "top_departments_sdg_table_title"))),
-                     plotOutput(outputId = "top_departments_sdg_table"),
-                     uiOutput("top_departments_axis")
-              ), 
-              br(),
-              
-            )
-          ),
-          h2(strong("List of Some Research Products")),
+                   bootstrapPage(
+                     column(12,
+                            h2(strong(textOutput(outputId = "top_authors_keywords_title"))),
+                            h3(textOutput(outputId = "top_authors_keywords_subtitle"), style = "margin-top: 0px"),
+                            plotOutput(outputId = "top_authors_keywords_plot"),
+                            uiOutput("top_authors_keywords_axis"))
+                   )),
+          #h1(textOutput(paste0("Top Departments in ", input$Division))),
+          # fluidRow(align = "center",
+          #   bootstrapPage(
+          #     column(12, 
+          #            h2(strong(textOutput(outputId = "top_departments_sdg_table_title"))),
+          #            plotOutput(outputId = "top_departments_sdg_table"),
+          #            uiOutput("top_departments_axis")
+          #     ), 
+          #     br(),
+          #     
+          #   )
+          # ),
+          h2(strong("List of Research Products Ranked by SDG Keyword Count")),
+          h4(em("*Limited to 2000 products")), # italics
           fluidRow(
             column(12,
                    DT::dataTableOutput("pub_by_school_sdg_table")
@@ -1180,7 +1190,10 @@ server <- function(input, output, session) {
   #   }
   # )
   output$top_authors_sdg_table_title <- renderText(
-    paste0("USC Scholars & Research Products by SDG ", input$Primary.SDG)
+    paste0("Scholars by SDG ", input$Primary.SDG)
+  )
+  output$top_authors_sdg_table_subtitle <- renderText(
+    paste0("Ranked by research product count")
   )
   output$top_authors_sdg_table <- renderPlot({
     validate(
@@ -1199,13 +1212,44 @@ server <- function(input, output, session) {
       ggplot(aes(x = reorder(as.factor(name),n), y = n)) +
       geom_col(fill = sdg_colors[as.numeric(input$Primary.SDG)], alpha = 1) +
       coord_flip() +
-      labs(#title = paste0("USC Scholars & Research Products by SDG ", input$Primary.SDG),
+      labs(
            x = "Scholar",
-           #y = "Number of Research Products "
            ) +
       theme_minimal(base_size = 20) +
       theme(text = element_text(size = 20, face = "bold"),
             axis.title.x = element_blank())
+  })
+  output$top_authors_keywords_title <- renderText(
+    paste0("Scholars by SDG ", input$Primary.SDG)
+  )
+  output$top_authors_keywords_subtitle <- renderText(
+    paste("Ranked by SDG", input$Primary.SDG, "cumulative keyword count across all research products")
+  )
+  output$top_authors_keywords_plot <- renderPlot({
+    validate(
+      need(input$Primary.SDG != "", label = "SDG"),
+      need(input$Division != "", label = "USC School/Unit")
+    )
+    sdg_col = get_selected_sdg_col(input$Primary.SDG)
+    usc_joined %>%
+      filter(Division %in% input$Division) %>%
+      filter(!!sdg_col != 0) %>%
+      group_by(authorID, name) %>%
+      summarize(n = sum(!!sdg_col)) %>%
+      arrange(desc(n)) %>%
+      head(10) %>%
+      ggplot(aes(x = reorder(as.factor(name),n), y = n)) +
+      geom_col(fill = sdg_colors[as.numeric(input$Primary.SDG)], alpha = 1) +
+      coord_flip() +
+      labs(
+        x = "Scholar",
+      ) +
+      theme_minimal(base_size = 20) +
+      theme(text = element_text(size = 20, face = "bold"),
+            axis.title.x = element_blank())
+  })
+  output$top_authors_keywords_axis <- renderUI({
+    h3(strong("Number of Keywords"), style = "margin-top: 0px")
   })
   output$top_departments_sdg_table_title <- renderText(
     paste0("Departments/Centers/Institutes & Research Products by SDG ", input$Primary.SDG)
