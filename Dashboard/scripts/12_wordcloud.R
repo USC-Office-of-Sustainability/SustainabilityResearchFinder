@@ -7,14 +7,8 @@ list_of_packages <- c("tm", "tidyverse", "dplyr", "here", "wordcloud",
 lapply(list_of_packages, library, character.only = TRUE)
 
 set.seed(1234)
-
-usc_pubs <- read.csv(here::here("data_processed/usc_pubs_law.csv"))
-usc_sdgs <- read.csv(here::here("data_processed/usc_sdgs.csv"))
-usc_pubs <- usc_pubs %>% filter(Year %in% c(2020, 2021, 2022))
-usc_pubs_sdgs <- merge(usc_pubs, usc_sdgs, 
-                       by.x = c("pubID", "Link"), by.y = c("pubID", "Link"))
-
-sdg_col_names <- usc_sdgs %>% select(starts_with("SDG")) %>% names()
+features <- read.csv(here::here("data_processed/usc_text2sdg_features_2020_23.csv"))
+sdg_col_names <- features$sdg %>% unique %>% sort
 sdg_colors <- c("1" = "#E5243B", "2" = "#DDA63A", "3" = "#4C9F38", 
                 "4" = "#C5192D", "5" = "#FF3A21", "6" = "#26BDE2",
                 "7" = "#FCC30B", "8" = "#A21942", "9" = "#FD6925",
@@ -30,19 +24,9 @@ morestopwords <- c("used","also","using","ghg","found","model","models-","soc",
                    "one","work")
 
 create_sdg_wordcloud <- function(i, sdg_col, sdg_color) {
-  target_text <- usc_pubs_sdgs %>%
-    filter(!!sdg_col != 0) %>%
-    select(Titles, Abstract, Author.Keywords, Indexed.Keywords) %>%
-    head(1000)
-  target_text$all <- paste(target_text$Titles, 
-                           target_text$Abstract, 
-                           target_text$Author.Keywords, 
-                           target_text$Indexed.Keywords)
-  
-  # remove numbers and punctuation
-  target_text$all <- gsub("[^[:alpha:][:blank:]]", "", target_text$all)
-  
-  docs <- Corpus(VectorSource(target_text$all))
+  target_text <- features %>%
+    filter(sdg == sdg_col)
+  docs <- Corpus(VectorSource(target_text$features))
   m <- docs %>% 
     tm_map(stripWhitespace) %>%
     tm_map(content_transformer(tolower)) %>%
@@ -52,7 +36,7 @@ create_sdg_wordcloud <- function(i, sdg_col, sdg_color) {
     as.matrix
   words <- sort(rowSums(m), decreasing = TRUE) 
   df <- data.frame(word = names(words), freq = words)
-  png(here::here(paste0("www/sdg", i, ".png")))
+  png(here::here(paste0("shiny_app/www/sdg", i, ".png")))
   wordcloud(words = df$word, freq = df$freq, min.freq = 1,
             max.words = 50, random.order = FALSE, rot.per = 0,
             colors = sdg_color, scale = c(8,1))
@@ -60,6 +44,6 @@ create_sdg_wordcloud <- function(i, sdg_col, sdg_color) {
 }
 
 for (i in 1:17) {
-  create_sdg_wordcloud(i, sym(sdg_col_names[i]), sdg_colors[i])
+  create_sdg_wordcloud(i, sdg_col_names[i], sdg_colors[i])
 }
 
