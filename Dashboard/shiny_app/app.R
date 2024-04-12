@@ -219,8 +219,8 @@ ui <- dashboardPage(
             column(6, img(src = "un_17sdgs.jpg", width = "100%"))
             
           ),
-          h2("Select an SDG below to see its most relevant keywords."),
           uiOutput("disclaimer1"),
+          h2("Select an SDG below to see its most frequent keywords from the keyword list found in the titles and abstracts."),
           div(
             style="font-size:24px;", 
             selectizeInput(
