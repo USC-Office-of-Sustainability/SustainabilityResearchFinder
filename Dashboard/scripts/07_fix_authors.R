@@ -19,6 +19,16 @@ usc_bridge$authorID[which(usc_bridge$authorID == 57216528127)] <- 57692525700
 usc_authors <- usc_authors[-which(usc_authors$authorID == 57215497016),]
 usc_bridge$authorID[which(usc_bridge$authorID == 57215497016)] <- 57073146400
 
+# 57189185230 -> 57204376126
+# 57219003786 -> 57204376126 for Cameron J. Thrash
+usc_authors <- usc_authors[-which(usc_authors$authorID == 57189185230),]
+usc_bridge$authorID[which(usc_bridge$authorID == 57189185230)] <- 57204376126
+usc_authors <- usc_authors[-which(usc_authors$authorID == 57219003786),]
+usc_bridge$authorID[which(usc_bridge$authorID == 57219003786)] <- 57204376126
+usc_authors$firstname[which(usc_authors$authorID == 57204376126)] <- "Cameron J."
+usc_authors$lastname[which(usc_authors$authorID == 57204376126)] <- "Thrash"
+usc_authors$fullname[which(usc_authors$authorID == 57204376126)] <- "Thrash, Cameron J."
+
 # 56828355600 Annenberg
 usc_authors[which(usc_authors$authorID == 56828355600),]$Dept <- "Annenberg School for Communication and Journalism"
 usc_authors[which(usc_authors$authorID == 56828355600),]$Email <- "chi.zhang.7@usc.edu"
