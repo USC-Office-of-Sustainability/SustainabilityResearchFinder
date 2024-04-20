@@ -298,7 +298,7 @@ for (j in 1:nrow(not_covered_pubs)) {
 }
 
 write.csv(other_authors,
-          here::here("data_processed/other_authors.csv"),
+          here::here("data_processed/other_authors_2020_23.csv"),
           row.names = FALSE)
 
 # 2 results 57557858100
@@ -401,7 +401,7 @@ for (i in 1:nrow(all_usc_authors_dept_div)) {
   # affl_segs <- unique(affl_segs) # breaks up names w ,
   affiliations <- paste(affl_segs, collapse = " ")
   matched_dept <- apply(usc_departments, 1, function(x) {
-    if (grepl(x['Pattern'], affiliations)) {
+    if (grepl(tolower(x['Pattern']), tolower(affiliations))) {
       x
     }
   })
@@ -417,7 +417,7 @@ for (i in 1:nrow(all_usc_authors_dept_div)) {
   all_usc_authors_dept_div[i,]$Dept <- paste(departments[!duplicated(departments)], collapse = ";")
   
   matched_schools <- apply(usc_schools, 1, function(x) {
-    if (grepl(x['pattern'], affiliations)) {
+    if (grepl(tolower(x['pattern']), tolower(affiliations))) {
       x['name']
     }
   })
@@ -429,7 +429,7 @@ for (i in 1:nrow(all_usc_authors_dept_div)) {
 }
 
 write.csv(all_usc_authors_dept_div,
-          here::here("data_processed/all_usc_authors_dept_div_11_6_23.csv"),
+          here::here("data_processed/all_usc_authors_dept_div_4_16_24.csv"),
           row.names = FALSE)
 
 # authors_other <- read.csv(here::here("data_processed/authors_other.csv"))
@@ -596,6 +596,8 @@ new_authorIDs <- sapply(all_usc_authors_dept_div$authorID, function(x) {
 })
 
 new_authorIDs <- unname(new_authorIDs)
+# check that new_authorsIDs are actually different
+all.equal(new_authorIDs, as.character(all_usc_authors_dept_div$authorID))
 
 authors_combined_new_ids <- all_usc_authors_dept_div
 authors_combined_new_ids$authorID <- new_authorIDs
@@ -905,10 +907,10 @@ authors_after_fix[which(authors_after_fix$authorID == "57226278102"),]$firstname
 
 
 write.csv(authors_after_fix,
-          "data_processed/authors_after_fix_11_6_23.csv",
+          "data_processed/authors_after_fix_4_16_24.csv",
           row.names = FALSE)
 write.csv(bridge_table_after_fix,
-          "data_processed/bridge_after_fix_11_6_23.csv",
+          "data_processed/bridge_after_fix_4_16_24.csv",
           row.names = FALSE)
 ###############################################################################
 library(stringi)
