@@ -64,10 +64,10 @@ sdg_col_names <- syms(c("SDG.01", "SDG.02", "SDG.03", "SDG.04", "SDG.05", "SDG.0
 usc_pubs <- read.csv("usc_pubs_law_2020_23.csv")
 usc_sdgs <- read.csv("usc_sdgs_with_categories_2020_23.csv")
 # usc_authors <- read.csv("authors_only_revalued.csv")
-usc_authors <- read.csv("usc_authors_2020_23_combined.csv")
+usc_authors <- read.csv("usc_authors_2020_23_combined_edit.csv")
 usc_authors <- usc_authors %>%
   rename(Division = Div, Department = Dept)
-usc_bridge <- read.csv("usc_bridge_2020_23_combined.csv")
+usc_bridge <- read.csv("usc_bridge_2020_23_combined_edit.csv")
 # dei_data <- read.csv("DEI_pubs.csv")
 dei_joined <- read.csv("DEI_pubs_ordered_2020_23.csv")
 
