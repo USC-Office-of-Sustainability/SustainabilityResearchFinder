@@ -19,7 +19,7 @@ law_pubs_to_add <- usc_law_pubs %>%
   filter(Include.in.Dashboard == "Yes")
 
 
-usc_authors <- read.csv(here::here("data_processed/author_dept_11_6_23.csv"))
+usc_authors <- read.csv(here::here("data_processed/author_dept_4_16_24.csv"))
 unique(law_pubs_to_add$Author.s..ID)[!unique(law_pubs_to_add$Author.s..ID) %in% usc_authors$authorID]
 
 # author info
@@ -64,7 +64,7 @@ law_pubs <- law_pubs_to_add %>%
   select(names(usc_data)) %>%
   distinct
 
-usc_bridge <- read.csv(here::here("data_processed/bridge_after_fix_11_6_23.csv"))
+usc_bridge <- read.csv(here::here("data_processed/bridge_after_fix_4_16_24.csv"))
 usc_bridge_law <- rbind(usc_bridge, law_bridge)
 write.csv(usc_bridge_law,
           file = here::here("data_processed/bridge_law.csv"),

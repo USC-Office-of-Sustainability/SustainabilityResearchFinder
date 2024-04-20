@@ -1,6 +1,6 @@
 # create department + division table
 library(dplyr)
-authors_all <- read.csv("data_processed/authors_all_11_6_23.csv")
+authors_all <- read.csv("data_processed/authors_all_4_16_24.csv")
 
 usc_departments <- read.csv("data_processed/usc_departments.csv") %>%
   rename(Division = School.Institute.Center,
@@ -35,7 +35,7 @@ authors_split2$Dept <- gsub("&", "and", authors_split2$Dept)
 # remove office of provost - faculty affairs
 # authors_split2[-which(authors_split2$Div == "Office of the Provost" & authors_split2$Dept == "Academic and Faculty Affairs"),] -> authors_split2
 # remove sarah nguyen in viterbi
-authors_split2[-which(authors_split2$fullname == "Nguyen, Sarah Hoan" & authors_split2$Div == "Viterbi School of Engineering"),] -> authors_split2
+# authors_split2[-which(authors_split2$fullname == "Nguyen, Sarah Hoan" & authors_split2$Div == "Viterbi School of Engineering"),] -> authors_split2
 
 # fix 17##- departments
 authors_split2$Dept[grep("1710", authors_split2$Dept)] <- "Health Systems Operations"
@@ -184,5 +184,5 @@ author_dept2 %>%
   select(-n, -hasOther) -> author_dept3
 
 write.csv(author_dept3,
-          "data_processed/author_dept_11_6_23.csv",
+          "data_processed/author_dept_4_16_24.csv",
           row.names = FALSE)
