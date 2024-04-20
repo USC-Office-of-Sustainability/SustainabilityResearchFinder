@@ -1,4 +1,4 @@
-# Create word clouds for each SDG using Title, Abstract, Keywords
+# Create word clouds for each SDG using keywords
 
 # Load the required packages --------------------------------------------------
 # install.packages("name") to install any missing packages

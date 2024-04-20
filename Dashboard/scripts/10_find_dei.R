@@ -3,7 +3,9 @@ library(stringr)
 library(dplyr)
 usc_pubs <- read.csv("data_processed/usc_pubs_law.csv")
 usc_sdgs <- read.csv("data_processed/usc_sdgs_with_categories.csv")
-usc_pubs <- usc_pubs %>% filter(Year %in% c(2020, 2021, 2022)) %>% filter(!Document.Type %in% c("Letter", "Retracted", "Note", "Erratum"))
+usc_pubs <- usc_pubs %>% 
+  filter(Year %in% c(2020, 2021, 2022)) %>% 
+  filter(!Document.Type %in% c("Letter", "Retracted", "Note", "Erratum"))
 
 usc_pubs_sdgs <- merge(usc_pubs, usc_sdgs, 
                        by = c("pubID", "Link"), 
