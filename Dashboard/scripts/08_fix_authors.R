@@ -14,6 +14,10 @@ separate_authorIDs_to_fix <- as.data.frame(t(sapply(authorIDs_to_fix, function(x
 # create map
 auth_map <- separate_authorIDs_to_fix$V1
 names(auth_map) <- separate_authorIDs_to_fix$V2
+julie_map_df <- data.frame(authorID_new = unname(auth_map), authorID_old = names(auth_map))
+write.csv(julie_map_df,
+          "data_processed/julie_map_df.csv",
+          row.names = FALSE)
 
 usc_bridge <- read.csv("data_processed/bridge_law_fixed.csv")
 usc_authors <- read.csv("data_processed/usc_authors_law_fixed.csv")
