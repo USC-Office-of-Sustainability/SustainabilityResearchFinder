@@ -10,7 +10,7 @@ library(stringi)
 library(pluralize)
 
 # clean keywords
-usc_pwg_keywords <- read.csv(here::here("data_raw/USC_PWG-E_2023Keywords_11_06_23.csv"))
+usc_pwg_keywords <- read.csv(here::here("data_raw/USC_PWG-E_Keywords_1_24_24.csv"))
 # # causes errors
 usc_pwg_keywords <- usc_pwg_keywords[-grep("#", usc_pwg_keywords$keyword),]
 # remove punctuation
@@ -19,6 +19,8 @@ usc_pwg_keywords$keyword <- gsub("[^[:alnum:][:space:]]", " ", usc_pwg_keywords$
 usc_pwg_keywords$keyword <- tolower(usc_pwg_keywords$keyword)
 # remove duplicates bc otherwise text2sdg will count the word twice
 usc_pwg_keywords <- usc_pwg_keywords[!duplicated(usc_pwg_keywords),]
+# remove the word race and related
+usc_pwg_keywords <- usc_pwg_keywords[-which(usc_pwg_keywords$keyword %in% c("race gender", "gender and sex", "sex and gender", "race and gender", "gender and race", "class and gender", "gender and class", "race")),]
 # create system for text2sdg
 usc_pwg_system <- usc_pwg_keywords %>%
   mutate(system = "usc_pwg",
@@ -32,7 +34,7 @@ usc_data <- read.csv(here::here("data_processed/usc_pubs_law.csv"))
 # context dependency
 apply_context_dependency <- function(tt) {
   tt <- tolower(tt)
-  corrections <- read.csv("data_raw/context_dependencies_09_20_23.csv")
+  corrections <- read.csv("data_raw/context_dependencies_01_19_24.csv")
   corrections$before <- tolower(corrections$before)
   corrections$after <- tolower(corrections$after)
   tt <- stri_replace_all_regex(tt,
@@ -152,6 +154,7 @@ write.csv(hits_sum_link,
 # env 6 7 12-15
 # socio economic 1-5 8-11 16-17
 usc_sdgs <- read.csv("data_processed/usc_sdgs.csv")
+usc_sdgs$num_sdgs <- rowSums(select(usc_sdgs,starts_with("SDG")) != 0)
 sustainabilityresearch <- usc_sdgs %>%
   mutate(
     sustainability_category = 
@@ -161,11 +164,8 @@ sustainabilityresearch <- usc_sdgs %>%
              SDG.05 > 0 | SDG.08 > 0 |
              SDG.09 > 0 | SDG.10 > 0 | SDG.11 > 0 |
              SDG.16 > 0 | SDG.17 > 0) ~ "Sustainability-Focused",  
-        (SDG.13 > 0 | SDG.14 > 0 | SDG.15 > 0| SDG.01 > 0 |
-           SDG.02 > 0 | SDG.03 > 0 | SDG.04 > 0 |  
-           SDG.05 > 0 | SDG.06 > 0 | SDG.07 > 0 | SDG.08 > 0 |   
-           SDG.09 > 0 | SDG.10 > 0 | SDG.11 > 0 | SDG.12 > 0 | 
-           SDG.16 > 0 | SDG.17 > 0) ~ "Sustainability-Inclusive"))
+        (num_sdgs >= 2) ~ "Sustainability-Inclusive",
+        (num_sdgs == 1) ~ "SDG-Related"))
 # everything in here is sustainability inclusive so next line does nothing
 sustainabilityresearch$sustainability_category[is.na(sustainabilityresearch$sustainability_category)] = "Not-Related"
 write.csv(sustainabilityresearch,
