@@ -11,7 +11,7 @@ con <- getCurlHandle(followlocation = TRUE,
                      ssl.verifypeer = FALSE, 
                      verbose = TRUE,
                      cookie = USCDirectoryCookie)
-authors_after_fix <- read.csv("data_processed/authors_after_fix_11_6_23.csv")
+authors_after_fix <- read.csv("data_processed/authors_after_fix_4_16_24.csv")
 authors_only <- authors_after_fix %>%
   filter(Dept == "")
 authors_only[,c("FirstSearch", "LastSearch","First", "Last", "Department", "Division", "Email", "PositionTitle", "Type")] = ""
@@ -278,7 +278,7 @@ for (i in 1:nrow(authors_only)) {
 #   filter(same_first == FALSE) %>% View
 
 write.csv(authors_only,
-          here::here("data_processed/authors_no_dept_major_first_11_6_23.csv"),
+          here::here("data_processed/authors_no_dept_major_first_4_16_24.csv"),
           row.names = FALSE)
 
 # combine authors together
@@ -286,7 +286,7 @@ authors_original <- authors_after_fix %>%
   filter(Dept != "")
 unique(authors_only$Dept)
 # authors_only$Dept <- authors_only$Department
-authors_only <- read.csv("data_processed/authors_no_dept_major_first_11_6_23.csv")
+authors_only <- read.csv("data_processed/authors_no_dept_major_first_4_16_24.csv")
 authors_only$Div <- gsub("^;", "", authors_only$Div)
 authors_only$Div <- gsub(";$", "", authors_only$Div)
 authors_only$Division <- gsub("USC ", "", authors_only$Division)
@@ -391,6 +391,7 @@ author_division_count[idxs,]$Division <- ""
 author_division_count[idxs,]$Department <- ""
 author_division_count[idxs,]$Last <- ""
 author_division_count[idxs,]$First <- ""
+author_division_count[idxs,]$Divisions <- author_division_count[idxs,]$Div
 
 author_division_count %>%
   mutate(Dept = Department, Div = Divisions) %>%
@@ -454,7 +455,7 @@ authors_only_separate2$Div2 <- ""
 for (i in 1:nrow(authors_only_separate2)) {
   
   matched_dept <- apply(usc_departments, 1, function(x) {
-    if (grepl(x['Pattern'], authors_only_separate2$Dept[i])) {
+    if (grepl(x['Pattern'], authors_only_separate2$Dept[i], ignore.case = TRUE)) {
       x
     }
   })
@@ -509,7 +510,7 @@ authors_original[, empty_cols] <- ""
 authors_all <- rbind(authors_original, authors_only_separate4)
 
 write.csv(authors_all,
-          "data_processed/authors_all_11_6_23.csv",
+          "data_processed/authors_all_4_16_24.csv",
           row.names = FALSE)
 # authors_only <- read.csv(here::here("data_processed/authors_only.csv"))
 # fix sunny's firstname
