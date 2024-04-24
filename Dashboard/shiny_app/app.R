@@ -1,4 +1,4 @@
-# 11.17.23
+# 4.22.24
 # This is a Shiny web application. You can run the application by clicking
 # the 'Run App' button above.
 #
@@ -8,10 +8,6 @@
 
 # Load the required packages --------------------------------------------------
 # install.packages("name") to install any missing packages
-# list_of_packages <- c("shiny", "shinydashboard", "tidyverse", "plotly",
-#                       "wordcloud", "DT", "ggplot2", "ggrepel", "here", 
-#                       "reshape2", "scales", "ggbreak", "treemapify")
-# invisible(lapply(list_of_packages, library, character.only = TRUE))
 library(shiny)
 library(shinydashboard)
 library(tidyverse)
@@ -630,7 +626,7 @@ ui <- dashboardPage(
             target = "_blank"), 
           ". You can also support the Office of Sustainability by donating", 
           a("here", 
-            href="https://green.usc.edu/get-involved/give-to-the-office-of-sustainability/",
+            href="https://sustainability.usc.edu/give-now/",
             .noWS = "after",
             target = "_blank"), 
           ". More questions or suggestions in regard to this tool? Please fill out our",
