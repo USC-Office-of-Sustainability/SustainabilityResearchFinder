@@ -1,8 +1,8 @@
 # stacked bar chart
 library(dplyr)
 # data
-usc_pubs <- read.csv("data_processed/usc_pubs_law_2020_23.csv")
-usc_sdgs <- read.csv("data_processed/usc_sdgs_with_categories_2020_23.csv")
+# usc_pubs <- read.csv("data_processed/usc_pubs_law_2020_23.csv")
+# usc_sdgs <- read.csv("data_processed/usc_sdgs_with_categories_2020_23_manual_fix.csv")
 # usc_authors <- read.csv("data_processed/authors_only_revalued.csv")
 usc_authors <- read.csv("shiny_app/usc_authors_2020_23_combined_edit.csv") %>%
   rename(Division = Div, Department = Dept)
@@ -11,25 +11,23 @@ usc_bridge <- read.csv("shiny_app/usc_bridge_2020_23_combined_edit.csv")
 # dei_joined <- read.csv("data_processed/DEI_pubs_ordered.csv")
 
 # 2020-2022
-usc_pubs <- usc_pubs %>% filter(Year %in% c(2020, 2021, 2022, 2023))
+# usc_pubs <- usc_pubs %>% 
+#   filter(Year %in% c(2020, 2021, 2022, 2023)) %>% 
+#   filter(!Document.Type %in% c("Letter", "Retracted", "Note", "Erratum"))
 
 # url
 # usc_pubs$url <- paste0("<a href='", usc_pubs$Link, "' target='_blank'>", usc_pubs$Link, "</a>")
 
 # merge
-usc_pubs_sdgs <- merge(usc_pubs, usc_sdgs, 
-                       by = c("pubID", "Link"),
-                       all.x = TRUE)
-usc_pubs_sdgs$sustainability_category[is.na(usc_pubs_sdgs$sustainability_category)] = "Not-Related"
+usc_pubs_sdgs <- read.csv("data_processed/usc_pubs_with_sdgs_2020_23_manual_fix.csv") %>% 
+  filter(Year %in% c(2020, 2021, 2022, 2023)) %>% 
+  filter(!Document.Type %in% c("Letter", "Retracted", "Note", "Erratum"))
 
-tmp <- merge(usc_pubs, usc_bridge,
+tmp <- merge(usc_pubs_sdgs, usc_bridge,
              by = c("pubID", "Link"))
-tmp2 <- merge(tmp, usc_authors,
+usc_joined <- merge(tmp, usc_authors,
               by = "authorID")
-usc_joined <- merge(tmp2, usc_sdgs,
-                    by = c("pubID", "Link"),
-                    all.x = TRUE)
-usc_joined$sustainability_category[is.na(usc_joined$sustainability_category)] = "Not-Related"
+# usc_joined$sustainability_category[is.na(usc_joined$sustainability_category)] = "Not-Related"
 
 # summarize data for the charts
 usc_by_product_sust_cat <- usc_pubs_sdgs %>%

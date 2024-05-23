@@ -1,16 +1,11 @@
 # for finding DEI related pubs
 library(stringr)
 library(dplyr)
-usc_pubs <- read.csv("data_processed/usc_pubs_law_2020_23.csv")
-usc_sdgs <- read.csv("data_processed/usc_sdgs_with_categories_2020_23.csv")
-usc_pubs <- usc_pubs %>% 
+usc_pubs_sdgs <- read.csv("data_processed/usc_pubs_with_sdgs_2020_23_manual_fix.csv")
+usc_pubs_sdgs <- usc_pubs_sdgs %>% 
   filter(Year %in% c(2020, 2021, 2022, 2023)) %>% 
   filter(!Document.Type %in% c("Letter", "Retracted", "Note", "Erratum"))
 
-usc_pubs_sdgs <- merge(usc_pubs, usc_sdgs, 
-                       by = c("pubID", "Link"), 
-                       all.x = TRUE)
-usc_pubs_sdgs$sustainability_category[is.na(usc_pubs_sdgs$sustainability_category)] = "Not-Related"
 sustainabilityrelated <- usc_pubs_sdgs %>% 
   filter(sustainability_category %in% c("Sustainability-Focused", "Sustainability-Inclusive"))
 sustainabilityrelated$alltext <- paste(sustainabilityrelated$Titles,
@@ -54,25 +49,6 @@ dei_joined <- dei_joined %>% mutate(important_keywords = grepl(specific_pattern,
 dei_joined <- dei_joined[order(match(dei_joined$important_keywords, c(TRUE,FALSE)), 
                                match(dei_joined$sustainability_category, 
                                      c("Sustainability-Focused", "Sustainability-Inclusive"))),]
-# sdgs_only <- dei_joined %>%
-#   select(starts_with("SDG")) %>%
-#   replace(is.na(.), 0)
-# w <- which(sdgs_only != 0, arr.ind = TRUE)
-# sdgs_only[w] <- as.numeric(substr(names(sdgs_only)[w[, "col"]], start = 5, stop = 6))
-# sdgs_collapsed <- apply(sdgs_only, 1, function(x) {
-#   res = ""
-#   for (i in 1:length(x)) {
-#     if (x[i] != 0) {
-#       if (res == "") {
-#         res = x[i]
-#       } else {
-#         res = paste(res, x[i], sep = ", ")
-#       }
-#     }
-#   }
-#   res
-# })
-# dei_joined$SDGs <- sdgs_collapsed
 write.csv(dei_joined,
           here::here("shiny_app/DEI_pubs_ordered_2020_23.csv"),
           row.names = FALSE)

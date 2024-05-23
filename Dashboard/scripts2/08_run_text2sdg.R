@@ -11,7 +11,7 @@ library(stringi)
 library(pluralize)
 
 # clean keywords
-usc_pwg_keywords <- read.csv(here::here("data_raw/USC_PWG-E_Keywords_4_9_24.csv"), fileEncoding = "CP1252")
+usc_pwg_keywords <- read.csv(here::here("data_raw/USC_PWG-E_Keywords_5_16_24.csv"), fileEncoding = "CP1252")
 # # <ca> causes errors
 # usc_pwg_keywords$keyword <- iconv(usc_pwg_keywords$keyword, from = "ISO-8859-1", to = "UTF-8")
 # weird character Ê
@@ -39,7 +39,7 @@ usc_data <- read.csv(here::here("data_processed/usc_pubs_law_2020_23.csv"))
 # context dependency
 apply_context_dependency <- function(tt) {
   tt <- tolower(tt)
-  corrections <- read.csv("data_raw/context_dependencies_01_19_24.csv")
+  corrections <- read.csv("data_raw/context_dependencies_05_16_24.csv")
   corrections$before <- tolower(corrections$before)
   corrections$after <- tolower(corrections$after)
   # cannot completely remove punctuation (bc (\w[ \w]*){1,3})
@@ -207,7 +207,7 @@ sustainabilityresearch$sustainability_category[is.na(sustainabilityresearch$sust
 write.csv(sustainabilityresearch,
           here::here("data_processed/usc_sdgs_with_categories_2020_23.csv"),
           row.names = FALSE)
-write.csv(sustainabilityresearch,
-          here::here("shiny_app/usc_sdgs_with_categories_2020_23.csv"),
-          row.names = FALSE)
+# write.csv(sustainabilityresearch,
+#           here::here("shiny_app/usc_sdgs_with_categories_2020_23.csv"),
+#           row.names = FALSE)
 

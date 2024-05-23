@@ -2,28 +2,25 @@
 library(reshape2)
 library(dplyr)
 # load data
-usc_pubs <- read.csv("data_processed/usc_pubs_law_2020_23.csv")
-usc_sdgs <- read.csv("data_processed/usc_sdgs_with_categories_2020_23.csv")
+# usc_pubs <- read.csv("data_processed/usc_pubs_law_2020_23.csv")
+# usc_sdgs <- read.csv("data_processed/usc_sdgs_with_categories_2020_23_manual_fix.csv")
 usc_authors <- read.csv("shiny_app/usc_authors_2020_23_combined_edit.csv") %>%
   rename(Division = Div, Department = Dept)
 usc_bridge <- read.csv("shiny_app/usc_bridge_2020_23_combined_edit.csv")
 # 2020-2022
-usc_pubs <- usc_pubs %>% filter(Year %in% c(2020, 2021, 2022, 2023))
+# usc_pubs <- usc_pubs %>% 
+#   filter(Year %in% c(2020, 2021, 2022, 2023)) %>% 
+#   filter(!Document.Type %in% c("Letter", "Retracted", "Note", "Erratum"))
 # merge
-usc_pubs_sdgs <- merge(usc_pubs, usc_sdgs, 
-                       by = c("pubID", "Link"),
-                       all.x = TRUE)
-usc_pubs_sdgs$sustainability_category[is.na(usc_pubs_sdgs$sustainability_category)] = "Not-Related"
+usc_pubs_sdgs <- read.csv("data_processed/usc_pubs_with_sdgs_2020_23_manual_fix.csv")
+usc_pubs_sdgs <- usc_pubs_sdgs %>% 
+  filter(Year %in% c(2020, 2021, 2022, 2023)) %>% 
+  filter(!Document.Type %in% c("Letter", "Retracted", "Note", "Erratum"))
 
-tmp <- merge(usc_pubs, usc_bridge,
+tmp <- merge(usc_pubs_sdgs, usc_bridge,
              by = c("pubID", "Link"))
-tmp2 <- merge(tmp, usc_authors,
+usc_joined <- merge(tmp, usc_authors,
               by = "authorID")
-usc_joined <- merge(tmp2, usc_sdgs,
-                    by = c("pubID", "Link"),
-                    all.x = TRUE)
-usc_joined$sustainability_category[is.na(usc_joined$sustainability_category)] = "Not-Related"
-
 
 # By year summary of scholars 
 # (year, # of focused, inclusive or not -related scholars)
@@ -144,7 +141,7 @@ write.csv(dept_summary_overall,
 
 # pubs per year per sustainability classification
 
-usc_joined %>%
+usc_pubs_sdgs %>%
   group_by(Year, sustainability_category) %>%
   summarize(num_pubs = n()) -> pubs_per_year_per_classification
 write.csv(pubs_per_year_per_classification,
@@ -239,6 +236,8 @@ write.csv(final_author_summary,
           row.names = FALSE)
 
 
+
+## numbers generated below are different since they are based off of author summary file
 library(readxl)
 read_excel("STARS_AC-9_USC_2020_2021_2022_Revised_02_07_24.xlsx", col_types = "text") -> new_data
 new_data %>%
