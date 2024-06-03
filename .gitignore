@@ -7,3 +7,4 @@ CKIDS/
 Dashboard/data_processed/*.csv
 *.cookie
 Dashboard/scopus_api/env/
+*.db

@@ -214,7 +214,8 @@ First, in scripts_2020/01_read_data.R, we combine all the Scopus
 publication data into one file. We also arbitrarily assign a pubID to
 each publication. We only keep publications with specific year (2020-22)
 and document type (article, conference paper, review, editorial, data
-paper, book chapter, book, short survey).
+paper, book chapter, book, short survey). The combined data is the
+publication file.
 
 2.  Identify USC authors
 
@@ -227,7 +228,6 @@ the affiliation for each author has multiple schools and is the same for
 all the authors of the publication. As a result, for the publications
 that are incorrectly formatted, I searched ten authorIDs (first nine and
 last one) up on Scopus via Elsevier API.
-
 <details>
 <summary>
 Using Elsevier API
@@ -316,7 +316,6 @@ division names and rematch the departments to the department patterns.
 
 To run the code in scripts_2020/03_get_usc_author_info.R, create a
 “uscdirectory.cookie” file.
-
 <details>
 <summary>
 Where to Find the Cookie
@@ -338,7 +337,7 @@ Search Julie Hopper in the USC Directory Search bar.
 </li>
 <li>
 Find the entry in the network where the Request URL looks like
-`https://uscdirectory.usc.edu/web/directory/faculty-staff/proxy.php?basic=julie%20hopper`
+https://uscdirectory.usc.edu/web/directory/faculty-staff/proxy.php?basic=julie%20hopper
 </li>
 <li>
 Scroll down to the Request Headers section and copy the cookie to your
@@ -367,10 +366,10 @@ scripts_2020/05_add_law_pubs.R, I used the law publication spreadsheet
 to create columns needed to create three files: author, bridge, and
 publication.
 
-7.  Fix authors manually when we notice errors
+6.  Fix authors manually when we notice errors
 
-Over time, we noticed duplicate authors that were not combined, so in
-scripts_2020/07_fix_authors.R, we tracked all the changes. For each
+Over time, we noticed duplicate authors that were not combined, so we
+tracked all the changes in scripts_2020/07_fix_authors.R. For each
 combination, we would remove the entry from the author file and replace
 the old authorID with the new authorID in the bridge file as shown
 below.
@@ -381,7 +380,7 @@ usc_authors <- usc_authors[-which(usc_authors$authorID == "Gould1"),]
 usc_bridge$authorID[which(usc_bridge$authorID == "Gould1")] <- 57657883900
 ```
 
-8.  Fix authors based on spreadsheet
+7.  Fix authors based on spreadsheet
 
 There were some authors with the same first and last name but different
 departments and divisions, so Julie Hopper helped check them. Then in
@@ -390,13 +389,13 @@ method as step 2 (scripts_2020/02_identify_usc_authors.R) using a
 dictionary to map old authorIDs to new authorIDs and updating the author
 and bridge file.
 
-9.  Fix departments
+8.  Fix departments
 
 There were still too many departments with mistakes so Julie Hopper
 manually fixed them. In addition, we incorporated more METRANS
 affiliated researchers in scripts_2020/09_fix_dept.R.
 
-10. Past authorIDs
+9.  Past authorIDs
 
 Throughout this process, multiple authorIDs were combined together, but
 old authorIDs were simply replaced with new authorIDs and the history
@@ -411,50 +410,84 @@ up.
 
 1.  Read data
 
-Combine all publication data:
-
-- Old 2020-22 data
-- Add missing pubs from 2020-22
-- New 2023 data
-
-Some publications got updated information, so only keep the most recent
-one. Continue to assign pubID
+Similar to reading 2020-22 data, we combined all publication data: old
+2020-22 data, missing publications from 2020-22, and new 2023 data. Some
+publications got updated information, so we only kept the most recent
+one. We also removed all documents of type retracted, letter, note and
+erratum and only kept publications with years 2020-23. We continued to
+arbitrarily assign pubIDs to the new publications. The combined data is
+the publication data.
 
 2.  Identify USC authors
 
-- identify usc authors in the new data
-- based on 02 but improved
-- when the authors with affiliations column does not match up with the
-  author name column, use the last name to find the affiliation that
-  starts with the same lastname
+Next, we want to identify USC authors in the new data. Most of the code
+in scripts_2023/02_identify_usc_authors.R was based on
+scripts_2020/02_identify_usc_authors.R with some improvements. When the
+authors with affiliation column does not match up with the author name
+column, I used the last name to find the affiliation that starts with
+the same lastname. The bridge table is generated using the pubID and
+authorID columns.
 
 3.  Identify USC departments and divisions
 
-- based on 03 04 09
-- combine ids that were previously combined
+Next, we want to identify the departments and divisions each author
+belongs to. The code for this in scripts_2023/03_identify_usc_dept_div.R
+is a combination of scripts_2020/03_get_usc_author_info.R,
+scripts_2020/04_create_dept_div.R, and scripts_2020/09_fix_dept.R.
+First, I used regular expressions to match each author’s affiliations
+with the list of USC departments and list of USC divisions to create a
+column of departments and divisions for each author. Then, I separated
+the departments and divisions such that for each row, there is only one
+department with its corresponding division for one author. Finally, I
+did the same department fixes and METRANS additions as for the 2020
+data.
+
+In addition, for authors that already exist, I combined the author IDs
+that were previously combined based on the past authorID file generated
+by scripts_2020/14_past_authorIDs.R.
+
+The result is an author file and an updated bridge file.
 
 4.  Combine with 2020 data
 
-- combine new bridge + author info with old
-- combine author info for duplicate id, keep the first entry
-- remove duplicates
+Next, we want to combine the 2023 author and bridge files with the old
+author and bridge files. When combining the author data, we want to keep
+the first entry but still have the affiliation information. Also, we
+removed duplicates in the bridge file.
 
 5.  Add law publications
 
-- remove law publications that already exist
-- assign pubID to the new law pubs
-- create columns to match existing bridge, author, pub files
-- all law departments are law
+scripts_2023/05_add_law_pubs.R is almost exactly the same as
+scripts_2020/05_add_law_pubs.R for adding new law publications. We have
+a new spreadsheet of law publications to add. We removed law
+publications that already exist in our dataset, manually assigned
+authorIDs in the spreadsheet, assigned pubIDs to the new law
+publications, and created columns to match the existing author, bridge,
+and publication files. In addition, all law departments are labeled as
+Law.
 
 6.  Combine authors
 
-- lowercase!
-- combine same first last, dept, div
-- exclude middle name and combine first last dept div
-- combine same first letter, last, dept, div - manually checked by Xinyi
-  Zhang
+Next we need to combine authors that have multiple ids. The code for
+this in scripts_2023/06_combine_authors.R is based on
+scripts_2020/02_identify_usc_authors.R. I combined authors with the same
+First Last name, department, and division. I kept the authorID that had
+more publications. I continued to make dictionaries with named vectors
+to map old authorIDs to new authorIDs. I also combined authors with the
+same first name, last name, department, and division, but excluded the
+middle name/initial. Finally, for authors with only one letter as first
+name, I combined the authors with the same first letter, last name,
+department, and division. This was manually double checked by Xinyi
+Zhang since sometimes the first letter is a little too general. All of
+the combining was done using lowercase names since there were some
+entries that were all in uppercase and some names were capitalized
+differently.
 
 7.  Manually edit authors
+
+There are still authors that are missed, so in
+scripts_2023/07_manual_edit_authors.R, I combined authorIDs manually
+whenever we notice them.
 
 ### Mapping the Data
 
