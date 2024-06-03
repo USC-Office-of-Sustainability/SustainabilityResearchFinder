@@ -337,7 +337,7 @@ Search Julie Hopper in the USC Directory Search bar.
 </li>
 <li>
 Find the entry in the network where the Request URL looks like
-https://uscdirectory.usc.edu/web/directory/faculty-staff/proxy.php?basic=julie%20hopper
+<code>https://uscdirectory.usc.edu/web/directory/faculty-staff/proxy.php?basic=julie%20hopper</code>
 </li>
 <li>
 Scroll down to the Request Headers section and copy the cookie to your
