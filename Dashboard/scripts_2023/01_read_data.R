@@ -5,8 +5,7 @@ library(dplyr)
 missing_pubs <- read.csv("data_raw/MissingScopus_pubs_from_2020_2021_2022.csv")
 new_pubs <- read.csv("data_raw/updated_scopus_2023_03_08_24.csv")
 previous_pubs <- read.csv("data_processed/usc_pubs_all.csv")
-
-# combine + remove duplicates
+# make all the colnames/headers the same
 setdiff(names(missing_pubs), names(previous_pubs))
 missing_pubs <- missing_pubs %>%
   rename(Titles = Title,
@@ -15,12 +14,13 @@ setdiff(names(new_pubs), names(previous_pubs))
 new_pubs <- new_pubs %>%
   rename(Titles = Title,
          "Indexed.Keywords" = Index.Keywords)
+# combine + remove duplicates
 all_pubs <- bind_rows(previous_pubs, missing_pubs, new_pubs) %>%
   select(pubID, names(new_pubs)) %>%
   distinct()
 
 # remove document types - Letter, Retracted, Note, Erratum
-# 20-23
+# select only 2020-23
 final_pubs <- all_pubs %>%
   filter(!Document.Type %in% c("Letter", "Retracted", "Note", "Erratum")) %>%
   filter(Year %in% c(2020, 2021, 2022, 2023)) %>%

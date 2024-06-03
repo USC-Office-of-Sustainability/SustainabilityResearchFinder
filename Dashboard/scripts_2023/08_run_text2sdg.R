@@ -11,11 +11,11 @@ library(stringi)
 library(pluralize)
 
 # clean keywords
-usc_pwg_keywords <- read.csv(here::here("data_raw/USC_PWG-E_Keywords_5_16_24.csv"), fileEncoding = "CP1252")
+usc_pwg_keywords <- read.csv("data_raw/USC_PWG-E_Keywords_5_16_24.csv", fileEncoding = "CP1252")
 # # <ca> causes errors
 # usc_pwg_keywords$keyword <- iconv(usc_pwg_keywords$keyword, from = "ISO-8859-1", to = "UTF-8")
 # weird character Ê
-usc_pwg_keywords$keyword <- gsub("Ê", "", usc_pwg_keywords$keyword)
+usc_pwg_keywords$keyword <- gsub('\u00CA', "", usc_pwg_keywords$keyword)
 # # causes errors
 usc_pwg_keywords <- usc_pwg_keywords[-grep("#", usc_pwg_keywords$keyword),]
 # remove punctuation
@@ -107,11 +107,6 @@ write.csv(hits_link_count,
 # singularize is not 100% accurate
 # takes 2 min
 hits_sum <- hits %>%
-  group_by(document) %>%
-  # distinct(sdg) %>%
-  count(sdg) %>%
-  filter(n >= 2) %>%
-  left_join(hits) %>%
   group_by(document, sdg) %>%
   summarize(nkeywords = length(unique(singularize(features)))) %>%
   filter(nkeywords >= 2) %>%

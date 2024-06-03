@@ -14,7 +14,7 @@ sustainabilityrelated$alltext <- paste(sustainabilityrelated$Titles,
                                        sustainabilityrelated$Indexed.Keywords)
 sustainabilityrelated$alltext <- tolower(sustainabilityrelated$alltext)
 
-dei_keywords <- read.csv(here::here("data_raw/AsgmtEarth_DEI_3.3_Catalog_Keywords - Keywords for crossmapping.csv"))
+dei_keywords <- read.csv(here::here("data_raw/AsgmtEarth_DEI_3.3_Catalog_Keywords.csv"))
 # dei_pattern <- "disproportionate impact|environmental disruptions?|environmental justice|local communities|local community|neighborhoods?|local people|Los Angeles|risk exposures?|sustainability|non-white"
 dei_pattern <- paste(tolower(trimws(dei_keywords$Keywords)), collapse = "|")
 dei_pubs <- sustainabilityrelated[grep(dei_pattern, sustainabilityrelated$alltext),]
