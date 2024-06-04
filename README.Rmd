@@ -29,7 +29,7 @@ This [Sustainability Resesarch Finder](https://usc-sustainability.shinyapps.io/r
 ## Installation
 
 1. [Clone](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository){target="_blank"} this repository to open, view, and edit all the files in this repository on your computer (locally). 
-2. Download the [complete data files](https://drive.google.com/drive/folders/1yof3Zt-exhlxRMrYZ1xewjEb9u1jK6j_?usp=drive_link){target="_blank"} and put the files into the Dashboard/shiny_app/ folder.
+2. Download the [complete data files](https://drive.google.com/drive/folders/1Jj5dhdVERt-s9POk06r6aMRfYci0F0mQ?usp=drive_link){target="_blank"} and put the files into the Dashboard/shiny_app/ folder.
 3. Open RStudio and click on ![the Project button in RStudio](README_files/RProjectButton.PNG) in the top right to open the [project](https://support.posit.co/hc/en-us/articles/200526207-Using-RStudio-Projects#:~:text=Opening%20Projects,Rproj){target="_blank"} file `Dashboard.Rproj`. This will automatically set the working directory as the project directory. 
 
 ```{r, eval=FALSE}
@@ -140,7 +140,7 @@ Next, in scripts_2020/02_identify_usc_authors.R, we want to identify the USC aut
   </ol>
   <strong>Setting up the API key</strong>
   <ol>
-      <li>Create a .Renviron* file with </li>
+      <li>Create a .Renviron file with </li>
   </ol>
   
 ```{r, eval=FALSE}
@@ -148,7 +148,7 @@ Elsevier_API=API_KEY
 Institution_Token=INSTITUTION_KEY
 ```
   
-  *Don't add this file to GitHub!
+  *Don't add the .Renviron file to GitHub!
   
   <strong>Using the API</strong>
 ```{r, eval=FALSE}
@@ -285,7 +285,7 @@ scripts_2023/12_stacked_bar_chart_data.R is an example of doing calculations out
 
 ### Shiny App
 
-The main file for the [shiny app](https://rstudio.github.io/shinydashboard/){target="_blank"} is shiny_app/app.R. The www/ folder is expected by a Shiny application to contain images and stylesheets. The data needed to run the shiny app is located on [Google Drive](https://drive.google.com/drive/folders/1yof3Zt-exhlxRMrYZ1xewjEb9u1jK6j_?usp=drive_link){target="_blank"} since the files are too big to store on GitHub. 
+The main file for the [shiny app](https://rstudio.github.io/shinydashboard/){target="_blank"} is shiny_app/app.R. The www/ folder is expected by a Shiny application to contain images and stylesheets. The data needed to run the shiny app is located on [Google Drive](https://drive.google.com/drive/folders/1Jj5dhdVERt-s9POk06r6aMRfYci0F0mQ?usp=drive_link){target="_blank"} since the files are too big to store on GitHub. 
 
 Our dashboard is hosted on the web with [Shinyapps.io](https://shiny.posit.co/r/articles/share/shinyapps/){target="_blank"}. Also, we did some load testing using Python [Locust](https://locust.io/){target="_blank"}.
 

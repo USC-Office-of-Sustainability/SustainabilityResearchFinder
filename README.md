@@ -43,7 +43,7 @@ target="_blank">Sustainability Tracking, Assessment &amp; Rating System
     target="_blank">Clone</a> this repository to open, view, and edit
     all the files in this repository on your computer (locally).
 2.  Download the <a
-    href="https://drive.google.com/drive/folders/1yof3Zt-exhlxRMrYZ1xewjEb9u1jK6j_?usp=drive_link"
+    href="https://drive.google.com/drive/folders/1Jj5dhdVERt-s9POk06r6aMRfYci0F0mQ?usp=drive_link"
     target="_blank">complete data files</a> and put the files into the
     Dashboard/shiny_app/ folder.
 3.  Open RStudio and click on ![the Project button in
@@ -247,7 +247,7 @@ Email support for an institution token
 <strong>Setting up the API key</strong>
 <ol>
 <li>
-Create a .Renviron\* file with
+Create a .Renviron file with
 </li>
 </ol>
 
@@ -256,7 +256,7 @@ Elsevier_API=API_KEY
 Institution_Token=INSTITUTION_KEY
 ```
 
-\*Don’t add this file to GitHub!
+\*Don’t add the .Renviron file to GitHub!
 
 <strong>Using the API</strong>
 
@@ -588,7 +588,7 @@ The main file for the
 target="_blank">shiny app</a> is shiny_app/app.R. The www/ folder is
 expected by a Shiny application to contain images and stylesheets. The
 data needed to run the shiny app is located on <a
-href="https://drive.google.com/drive/folders/1yof3Zt-exhlxRMrYZ1xewjEb9u1jK6j_?usp=drive_link"
+href="https://drive.google.com/drive/folders/1Jj5dhdVERt-s9POk06r6aMRfYci0F0mQ?usp=drive_link"
 target="_blank">Google Drive</a> since the files are too big to store on
 GitHub.
 
