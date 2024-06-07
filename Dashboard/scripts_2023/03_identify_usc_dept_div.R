@@ -18,8 +18,8 @@ focused_usc_authors_dept_div$Dept <- ""
 focused_usc_authors_dept_div$Div <- ""
 
 
-usc_schools <- read.csv(here::here("data_processed/usc_schools.csv"))
-usc_departments <- read.csv(here::here("data_processed/usc_departments.csv"))
+usc_schools <- read.csv(here::here("data_raw/usc_schools.csv"))
+usc_departments <- read.csv(here::here("data_raw/usc_departments.csv"))
 
 # takes 5 min
 for (i in 1:nrow(focused_usc_authors_dept_div)) {
@@ -71,7 +71,7 @@ focused_usc_authors_dept_div_separate <- focused_usc_authors_dept_div %>%
   tidyr::separate_rows(Div, sep=";") %>%
   mutate(Div = ifelse(Div == "", "Other", Div))
 
-usc_departments <- read.csv("data_processed/usc_departments.csv") %>%
+usc_departments <- read.csv("data_raw/usc_departments.csv") %>%
   rename(Division = School.Institute.Center,
          Department = Department.Group)
 df <- data.frame(Division = c(unique(usc_departments$Division), "Other"),
@@ -104,7 +104,7 @@ focused_usc_authors_dept_div_separate_fixed %>%
 
 
 # additional dept fix 09_fix_dept.R
-dept_edits <- read.csv("just_departments_edits2.csv") %>%
+dept_edits <- read.csv("data_manual/just_departments_edits2.csv") %>%
   filter(Change == TRUE)
 
 for (i in 1:nrow(dept_edits)) {

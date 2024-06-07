@@ -1,7 +1,7 @@
 # fix departments
 library(dplyr)
 library(readxl)
-dept_edits <- read.csv("just_departments_edits2.csv") %>%
+dept_edits <- read.csv("data_manual/just_departments_edits2.csv") %>%
   filter(Change == TRUE)
 usc_authors <- read.csv("data_processed/usc_authors_law_fixed2.csv")
 

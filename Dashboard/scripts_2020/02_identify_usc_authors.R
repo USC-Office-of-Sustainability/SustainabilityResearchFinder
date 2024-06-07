@@ -387,8 +387,8 @@ all_usc_authors_dept_div$Dept <- ""
 all_usc_authors_dept_div$Div <- ""
 
 
-usc_schools <- read.csv(here::here("data_processed/usc_schools.csv"))
-usc_departments <- read.csv(here::here("data_processed/usc_departments.csv"))
+usc_schools <- read.csv(here::here("data_raw/usc_schools.csv"))
+usc_departments <- read.csv(here::here("data_raw/usc_departments.csv"))
 
 # takes 5 min
 for (i in 1:nrow(all_usc_authors_dept_div)) {
@@ -708,7 +708,7 @@ write.csv(authors_to_check,
 
 # 
 
-six_or_more <- read.csv("data_processed/authors_to_check - six or more.csv")
+six_or_more <- read.csv("data_manual/authors_to_check - six or more.csv")
 # check
 which(six_or_more$COMBINE_TF == TRUE)
 which(six_or_more$combine..duplicate.the.row.if.there.are.multiple.combines. != "")
@@ -791,7 +791,7 @@ write.csv(bridge_table3,
           row.names = FALSE)
 
 # 
-less_six <- read.csv("data_processed/authors_to_check - less than six.csv")
+less_six <- read.csv("data_manual/authors_to_check - less than six.csv")
 less_six_i <- less_six %>%
   filter(combine..duplicate.the.row.if.there.are.multiple.combines. != "") %>%
   select(combine..duplicate.the.row.if.there.are.multiple.combines.,

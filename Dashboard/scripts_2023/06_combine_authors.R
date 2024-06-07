@@ -366,7 +366,7 @@ write.csv(combine_these_firstletter2,
           row.names = FALSE,
           "check_usc_authors_firstletter_lastname_combined.csv")
 
-returned_list <- read.csv("data_processed/First_initial_Last_Name_Author_merge_corrected_JH.xlsx - check_usc_authors_firstletter_l.csv")
+returned_list <- read.csv("data_manual/First_initial_Last_Name_Author_merge_corrected_JH.xlsx - check_usc_authors_firstletter_l.csv")
 combine_these_firstletter <- merge(combine_these_firstletter2, returned_list, 
                                     by.x = c("firstletter", "lastname", "authorID.x", "Dept", "Div"),
                                     by.y = c("firstletter", "lastname", "authorID.x", "Shared.Dept", "Shared.Div")) %>%

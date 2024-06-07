@@ -449,7 +449,7 @@ author_division_count %>%
 ###
 authors_only_separate2$Dept <- trimws(gsub("^(Dornsife|Viterbi|Marshall|KSOM|Annenberg|Pharmacy|Rossier|USC Libraries|DEN) ", "", authors_only_separate2$Dept))
 
-usc_departments <- read.csv("data_processed/usc_departments.csv")
+usc_departments <- read.csv("data_raw/usc_departments.csv")
 authors_only_separate2$Dept2 <- ""
 authors_only_separate2$Div2 <- ""
 for (i in 1:nrow(authors_only_separate2)) {

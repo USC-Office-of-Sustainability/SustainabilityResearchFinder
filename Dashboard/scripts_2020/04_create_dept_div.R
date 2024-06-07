@@ -2,7 +2,7 @@
 library(dplyr)
 authors_all <- read.csv("data_processed/authors_all_4_16_24.csv")
 
-usc_departments <- read.csv("data_processed/usc_departments.csv") %>%
+usc_departments <- read.csv("data_raw/usc_departments.csv") %>%
   rename(Division = School.Institute.Center,
          Department = Department.Group)
 df <- data.frame(Division = c(unique(usc_departments$Division), "Other"),
