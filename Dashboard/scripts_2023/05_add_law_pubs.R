@@ -4,10 +4,12 @@ bridge_2020_23 <- read.csv("data_processed/bridge_table_2020_23.csv")
 usc_pubs_2020_23 <- read.csv("data_processed/usc_pubs_2020_23.csv")
 
 law_2023 <- read.csv("data_raw/USC_Law_2023.csv")
+law_2024 <- read.csv("data_raw/USC_Law_2024.csv")
 sum(duplicated(law_2023 %>% select(Title, Year, USC.Author_Last_First))) # no duplicates in spreadsheet
 
+binded_2023_2024 <- rbind(law_2023, law_2024)
 # remove the law pubs that are already in the list of publications
-law_pubs_to_add <- merge(law_2023, usc_pubs_2020_23, 
+law_pubs_to_add <- merge(binded_2023_2024, usc_pubs_2020_23,
                   by.x = c("Title", "Year"), 
                   by.y = c("Titles", "Year"),
                   suffixes = c("", ".y"),

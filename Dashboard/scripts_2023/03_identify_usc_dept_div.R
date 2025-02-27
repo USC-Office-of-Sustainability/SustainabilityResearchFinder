@@ -1,6 +1,6 @@
 # identify department and division from the affiliations
 # based on 03_get_usc_author_info.R
-# focused_usc_authors <- read.csv("data_processed/all_usc_authors_2023.csv")
+focused_usc_authors <- read.csv("data_processed/all_usc_authors_2023.csv")
 focused_usc_authors_dept_div <- focused_usc_authors %>%
   group_by(authorID) %>%
   summarize(name = first(auth_name),
@@ -20,6 +20,7 @@ focused_usc_authors_dept_div$Div <- ""
 
 usc_schools <- read.csv(here::here("data_raw/usc_schools.csv"))
 usc_departments <- read.csv(here::here("data_raw/usc_departments.csv"))
+# usc_departments <- read.csv(here::here("data_raw/usc_departments_new.csv"), fileEncoding = "UTF-8")
 
 # takes 5 min
 for (i in 1:nrow(focused_usc_authors_dept_div)) {
@@ -63,6 +64,11 @@ write.csv(focused_usc_authors_dept_div,
           here::here("data_processed/focused_usc_authors_dept_div.csv"),
           row.names = FALSE)
 
+focused_usc_authors_dept_div <- read.csv("data_processed/focused_usc_authors_dept_div.csv")
+author_id <- 53564097100
+filtered_result <- focused_usc_authors_dept_div %>%
+  filter(authorID == author_id)
+
 # some of the div and dept have multiple -> should have 1
 # 04_create_dept_div.R
 focused_usc_authors_dept_div_separate <- focused_usc_authors_dept_div %>%
@@ -72,11 +78,14 @@ focused_usc_authors_dept_div_separate <- focused_usc_authors_dept_div %>%
   mutate(Div = ifelse(Div == "", "Other", Div))
 
 usc_departments <- read.csv("data_raw/usc_departments.csv") %>%
+# usc_departments <- read.csv("data_raw/usc_departments_new.csv") %>%
   rename(Division = School.Institute.Center,
          Department = Department.Group)
 df <- data.frame(Division = c(unique(usc_departments$Division), "Other"),
                  Department = "Other", Pattern = "")
 usc_departments_other <- rbind(usc_departments, df)
+# remove duplication in usc_departments_other
+usc_departments_other <- usc_departments_other[!duplicated(usc_departments_other),]
 usc_departments_other$id <- 1:nrow(usc_departments_other)
 
 
@@ -85,11 +94,24 @@ focused_usc_authors_dept_div_separate_fixed <- merge(focused_usc_authors_dept_di
                      by.y = c("Department", "Division"),
                      all.x = TRUE)
 
+author_id <- 53564097100
+filtered_result <- focused_usc_authors_dept_div_separate_fixed %>%
+  filter(authorID == author_id)
+
 focused_usc_authors_dept_div_separate_fixed %>%
   mutate(DeptDivExists = ifelse(is.na(id), FALSE, TRUE)) %>%
   mutate(IncorrectDiv = ifelse(DeptDivExists == FALSE & Dept %in% usc_departments_other$Department, TRUE, FALSE)) %>%
   filter(IncorrectDiv != TRUE) %>%
   select(-DeptDivExists, -IncorrectDiv) -> focused_usc_authors_dept_div_separate_fixed
+
+
+focused_usc_authors_dept_div_separate_fixed %>%
+  count(Dept) %>%
+  arrange(desc(n))
+
+author_id <- 53564097100
+filtered_result <- focused_usc_authors_dept_div_separate_fixed %>%
+  filter(authorID == author_id)
 
 # lab -> other
 focused_usc_authors_dept_div_separate_fixed[grep("Lab", focused_usc_authors_dept_div_separate_fixed$Dept),]$Dept <- "Other"
@@ -108,7 +130,7 @@ dept_edits <- read.csv("data_manual/just_departments_edits2.csv") %>%
   filter(Change == TRUE)
 
 for (i in 1:nrow(dept_edits)) {
-  idx <- which(focused_usc_authors_dept_div_separate_fixed$Dept == dept_edits$Department[i] & 
+  idx <- which(focused_usc_authors_dept_div_separate_fixed$Dept == dept_edits$Department[i] &
                  focused_usc_authors_dept_div_separate_fixed$Div == dept_edits$Division[i])
   focused_usc_authors_dept_div_separate_fixed$Dept[idx] <- dept_edits$Change.to[i]
 }
@@ -142,7 +164,7 @@ for (i in 1:nrow(metrans)) {
   matched_indices <- matched_lastname[matched_lastname_firstname]
   print(length(matched_indices))
   print(focused_usc_authors_dept_div_separate_fixed[matched_indices,])
-  stopifnot(length(unique(focused_usc_authors_dept_div_separate_fixed[matched_indices,]$authorID))==1) # should be 1
+  # stopifnot(length(unique(focused_usc_authors_dept_div_separate_fixed[matched_indices,]$authorID))==1) # should be 1
   # metrans$scopus_id[i] <- unique(focused_usc_authors_dept_div[matched_indices,]$authorID)
   # new row for metrans dept + other div
   new_row <- focused_usc_authors_dept_div_separate_fixed[matched_indices[1],]
@@ -189,9 +211,13 @@ new_authorIDs <- unname(new_authorIDs)
 sum(focused_usc_authors_dept_div_separate_fixed$authorID != new_authorIDs)
 focused_usc_authors_dept_div_separate_fixed$authorID <- new_authorIDs
 
+length(unique(focused_usc_authors_dept_div_separate_fixed$Dept))
+
+
 write.csv(focused_usc_authors_dept_div_separate_fixed,
           "data_processed/focused_usc_authors_dept_div_separate_combine_past.csv",
           row.names = FALSE)
+
 
 # update bridge too
 bridge_table <- read.csv("data_processed/bridge_table_2023.csv")

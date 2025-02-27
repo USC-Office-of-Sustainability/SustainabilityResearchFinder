@@ -11,7 +11,7 @@ library(stringi)
 library(pluralize)
 
 # clean keywords
-usc_pwg_keywords <- read.csv("data_raw/USC_PWG-E_Keywords_5_16_24.csv", fileEncoding = "CP1252")
+usc_pwg_keywords <- read.csv("data_raw/USC_PWG-E_Keywords_11_5_24.csv", fileEncoding = "CP1252")
 # # <ca> causes errors
 # usc_pwg_keywords$keyword <- iconv(usc_pwg_keywords$keyword, from = "ISO-8859-1", to = "UTF-8")
 # weird character Ê
@@ -39,7 +39,7 @@ usc_data <- read.csv(here::here("data_processed/usc_pubs_law_2020_23.csv"))
 # context dependency
 apply_context_dependency <- function(tt) {
   tt <- tolower(tt)
-  corrections <- read.csv("data_raw/context_dependencies_05_16_24.csv")
+  corrections <- read.csv("data_raw/context_dependencies_01_21_25.csv")
   corrections$before <- tolower(corrections$before)
   corrections$after <- tolower(corrections$after)
   # cannot completely remove punctuation (bc (\w[ \w]*){1,3})
@@ -106,12 +106,37 @@ write.csv(hits_link_count,
 # animal and animals is 1 keyword
 # singularize is not 100% accurate
 # takes 2 min
+# hits_sum <- hits %>%
+#  group_by(document, sdg) %>%
+#  summarize(nkeywords = length(unique(singularize(features)))) %>%
+#  filter(nkeywords >= 2) %>%
+#  dcast(document ~ sdg, fill = 0)
+
+
+social_economic_SDGs <- c("SDG-01", "SDG-02", "SDG-03", "SDG-04", "SDG-05", "SDG-08", "SDG-09", 
+                          "SDG-10", "SDG-11", "SDG-16", "SDG-17")
+
+environmental_SDGs <- c("SDG-06", "SDG-07", "SDG-12", "SDG-13", "SDG-14", "SDG-15")
+
 hits_sum <- hits %>%
   group_by(document, sdg) %>%
   summarize(nkeywords = length(unique(singularize(features)))) %>%
   filter(nkeywords >= 2) %>%
-  dcast(document ~ sdg, fill = 0)
-
+  dcast(document ~ sdg, fill = 0) %>%
+  left_join(
+    hits %>%
+      filter(sdg %in% social_economic_SDGs) %>%
+      group_by(document) %>%
+      summarize(social_economic_SDGs = paste(unique(features), collapse = ", ")),
+    by = "document"
+  ) %>%
+  left_join(
+    hits %>%
+      filter(sdg %in% environmental_SDGs) %>%
+      group_by(document) %>%
+      summarize(environmental_SDGs = paste(unique(features), collapse = ", ")),
+    by = "document"
+  )
 
 # each keyword appearance as separate keyword
 # hits_sum <- dcast(hits_link_count %>%

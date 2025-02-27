@@ -4,17 +4,17 @@ library(dplyr)
 # load data
 # usc_pubs <- read.csv("data_processed/usc_pubs_law_2020_23.csv")
 # usc_sdgs <- read.csv("data_processed/usc_sdgs_with_categories_2020_23_manual_fix.csv")
-usc_authors <- read.csv("shiny_app/usc_authors_2020_23_combined_edit.csv") %>%
+usc_authors <- read.csv("shiny_app/usc_authors_2020_24_combined_edit.csv") %>%
   rename(Division = Div, Department = Dept)
-usc_bridge <- read.csv("shiny_app/usc_bridge_2020_23_combined_edit.csv")
+usc_bridge <- read.csv("shiny_app/usc_bridge_2020_24_combined_edit.csv")
 # 2020-2022
 # usc_pubs <- usc_pubs %>% 
 #   filter(Year %in% c(2020, 2021, 2022, 2023)) %>% 
 #   filter(!Document.Type %in% c("Letter", "Retracted", "Note", "Erratum"))
 # merge
-usc_pubs_sdgs <- read.csv("data_processed/usc_pubs_with_sdgs_2020_23_manual_fix.csv")
+usc_pubs_sdgs <- read.csv("data_processed/usc_pubs_with_sdgs_2020_24_manual_fix.csv")
 usc_pubs_sdgs <- usc_pubs_sdgs %>% 
-  filter(Year %in% c(2020, 2021, 2022, 2023)) %>% 
+  filter(Year %in% c(2020, 2021, 2022, 2023, 2024)) %>%
   filter(!Document.Type %in% c("Letter", "Retracted", "Note", "Erratum"))
 
 tmp <- merge(usc_pubs_sdgs, usc_bridge,
@@ -37,10 +37,10 @@ usc_joined %>%
   count() -> scholars_summary_by_year
 
 write.csv(scholars_summary_by_year,
-          "scholars_summary_by_year_2020_23.csv",
+          "new_scholars_summary_by_year_2020_24.csv",
           row.names = FALSE)
 
-# overall summary of scholars 
+# overall summary of scholars
 # (#of focused, inclusive or not-related scholars)
 
 usc_joined %>%
@@ -50,17 +50,17 @@ usc_joined %>%
                                                  grepl("Inclusive", all_sustainability_categories)~"Sustainability-Inclusive",
                                                  grepl("SDG", all_sustainability_categories)~"SDG-Related",
                                                  grepl("Not-Related", all_sustainability_categories)~"Not Related")) %>%
-  select(authorID, one_sustainability_category) %>% 
+  select(authorID, one_sustainability_category) %>%
   group_by(one_sustainability_category) %>%
   count() -> scholars_summary_overall
 
 write.csv(scholars_summary_overall,
-          "scholars_summary_overall_2020_23.csv",
+          "new_scholars_summary_overall_2020_24.csv",
           row.names = FALSE)
 
 
 
-# By year summary of Departments/Centers/Institutes 
+# By year summary of Departments/Centers/Institutes
 # (year, # of focused ,inclusive or not-related)
 
 usc_joined %>%
@@ -70,14 +70,14 @@ usc_joined %>%
                                                  grepl("Inclusive", all_sustainability_categories)~"Sustainability-Inclusive",
                                                  grepl("SDG", all_sustainability_categories)~"SDG-Related",
                                                  grepl("Not-Related", all_sustainability_categories)~"Not Related")) %>%
-  select(Department, one_sustainability_category, Year) %>% 
+  select(Department, one_sustainability_category, Year) %>%
   group_by(one_sustainability_category, Year) %>%
   count() -> dept_centers_summary_by_year
 write.csv(dept_centers_summary_by_year,
-          "dept_centers_summary_by_year_2020_23.csv",
+          "new_dept_centers_summary_by_year_2020_24.csv",
           row.names = FALSE)
 
-# Overall summary of Departments/Centers/ Institutes 
+# Overall summary of Departments/Centers/ Institutes
 # (# of focused, inclusive or not -related)
 
 usc_joined %>%
@@ -87,11 +87,11 @@ usc_joined %>%
                                                  grepl("Inclusive", all_sustainability_categories)~"Sustainability-Inclusive",
                                                  grepl("SDG", all_sustainability_categories)~"SDG-Related",
                                                  grepl("Not-Related", all_sustainability_categories)~"Not Related")) %>%
-  select(Department, one_sustainability_category) %>% 
+  select(Department, one_sustainability_category) %>%
   group_by(one_sustainability_category) %>%
   count() -> dept_centers_summary_overall
 write.csv(dept_centers_summary_overall,
-          "dept_centers_summary_overall_2020_23.csv",
+          "new_dept_centers_summary_overall_2020_24.csv",
           row.names = FALSE)
 
 # By year summary of just Departments
@@ -103,7 +103,7 @@ usc_joined %>%
 usc_joined %>%
   filter(grepl("Program", Department)) %>% select(Department) %>% distinct() %>% pull() %>% sort()
 
-write.csv(just_departments, "just_departments.csv", row.names = FALSE)
+write.csv(just_departments, "new_just_departments.csv", row.names = FALSE)
 
 usc_joined %>%
   filter(!grepl("Center", Department) & !grepl("Institute", Department)) %>%
@@ -113,11 +113,11 @@ usc_joined %>%
                                                  grepl("Inclusive", all_sustainability_categories)~"Sustainability-Inclusive",
                                                  grepl("SDG", all_sustainability_categories)~"SDG-Related",
                                                  grepl("Not-Related", all_sustainability_categories)~"Not Related")) %>%
-  select(Department, one_sustainability_category, Year) %>% 
+  select(Department, one_sustainability_category, Year) %>%
   group_by(one_sustainability_category, Year) %>%
   count() -> dept_summary_by_year
 write.csv(dept_summary_by_year,
-          "dept_summary_by_year_2020_23.csv",
+          "new_dept_summary_by_year_2020_24.csv",
           row.names = FALSE)
 
 
@@ -131,12 +131,12 @@ usc_joined %>%
                                                  grepl("Inclusive", all_sustainability_categories)~"Sustainability-Inclusive",
                                                  grepl("SDG", all_sustainability_categories)~"SDG-Related",
                                                  grepl("Not-Related", all_sustainability_categories)~"Not Related")) %>%
-  select(Department, one_sustainability_category) %>% 
+  select(Department, one_sustainability_category) %>%
   group_by(one_sustainability_category) %>%
   count() -> dept_summary_overall
 
 write.csv(dept_summary_overall,
-          "dept_summary_overall_2020_23.csv",
+          "new_dept_summary_overall_2020_24.csv",
           row.names = FALSE)
 
 # pubs per year per sustainability classification
@@ -145,15 +145,15 @@ usc_pubs_sdgs %>%
   group_by(Year, sustainability_category) %>%
   summarize(num_pubs = n()) -> pubs_per_year_per_classification
 write.csv(pubs_per_year_per_classification,
-          "pubs_per_year_per_classification_2020_23.csv",
+          "new_pubs_per_year_per_classification_2020_24.csv",
           row.names = FALSE)
 
-# larger summary file with every row having the Usc scholar name, 
-# string of affiliations, string of research paper titles, string of 
-# SDG keywords, string of SDG #s, and focused, inclusive or not-related 
-# classification (if they have just 1 paper across the three years that 
-# is focused then they are focused, if they have just 1 paper that is 
-# related but not any that are focused then they are 'SDG-Related' or 
+# larger summary file with every row having the Usc scholar name,
+# string of affiliations, string of research paper titles, string of
+# SDG keywords, string of SDG #s, and focused, inclusive or not-related
+# classification (if they have just 1 paper across the three years that
+# is focused then they are focused, if they have just 1 paper that is
+# related but not any that are focused then they are 'SDG-Related' or
 # 'Inclusive', then otherwise they are not-related
 
 
@@ -171,7 +171,8 @@ only_sdg %>%
   select(-variable, -goal, -value) %>%
   distinct() -> only_sdg
 
-features <- read.csv("data_processed/usc_text2sdg_features.csv")
+# features <- read.csv("data_processed/usc_text2sdg_features.csv")
+features <- read.csv("data_processed/usc_text2sdg_features_2020_23.csv")
 features %>%
   group_by(document, pubID, Link) %>%
   mutate(features = paste(unique(features), collapse = ",")) %>%
@@ -198,13 +199,15 @@ usc_joined_only_sdg %>%
             # Titles = paste(unique(Titles), collapse = ";"),
             Years = paste(unique(Year), collapse = ";"),
             sdgs_all = paste(sdgs, collapse = ","),
+            social_economic_SDGs = paste(unique(social_economic_SDGs), collapse = ","),
+            environmental_SDGs = paste(unique(environmental_SDGs), collapse = ","),
             keywords_all = paste(features[!is.na(features)], collapse = ","),
-            sustainability_category = 
-              ifelse("Sustainability-Focused" %in% sustainability_category, 
-                     "Sustainability-Focused", 
-                     ifelse("Sustainability-Inclusive" %in% sustainability_category, 
+            sustainability_category =
+              ifelse("Sustainability-Focused" %in% sustainability_category,
+                     "Sustainability-Focused",
+                     ifelse("Sustainability-Inclusive" %in% sustainability_category,
                             "Sustainability-Inclusive",
-                            ifelse("SDG-Related" %in% sustainability_category, 
+                            ifelse("SDG-Related" %in% sustainability_category,
                                    "SDG-Related", "Not Related")))) -> author_summary
 # NA coercion warning
 author_summary$sdgs <- sapply(author_summary$sdgs_all, function(x) {
@@ -231,8 +234,34 @@ final_author_summary <- merge(author_summary, titles) %>%
 # final_author_summary$firstname[which(final_author_summary$authorID == "57204376126")] <- "Cameron J."
 # final_author_summary$lastname[which(final_author_summary$authorID == "57204376126")] <- "Thrash"
 
+
+#
+# social_economic_sdgs <- c(1, 2, 3, 4, 5, 8, 9, 10, 11, 16, 17)
+# environmental_sdgs <- c(6, 7, 12, 13, 14, 15)
+#
+# # Function to separate SDGs into categories
+# categorize_sdgs <- function(sdg_string, category) {
+#   # Split the string into individual SDGs
+#   sdg_list <- unlist(strsplit(sdg_string, ",\\s*"))
+#   # Keep only those that match the category
+#   selected_sdgs <- sdg_list[sdg_list %in% as.character(category)]
+#   # Collapse back into a comma-separated string
+#   return(paste(selected_sdgs, collapse = ", "))
+# }
+#
+# # Apply the function to create new columns
+# final_author_summary <- final_author_summary %>%
+#   mutate(
+#     social_economic_SDGs = sapply(sdgs, categorize_sdgs, category = social_economic_sdgs),
+#     environmental_SDGs = sapply(sdgs, categorize_sdgs, category = environmental_sdgs)
+#   ) %>%
+#   relocate(social_economic_SDGs, environmental_SDGs, .after = sdgs)
+#
+#
+
+
 write.csv(final_author_summary,
-          "author_summary_2020_23.csv",
+          "new_usc_authors_2020_24_combined_dept_data.csv",
           row.names = FALSE)
 
 

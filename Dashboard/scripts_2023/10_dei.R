@@ -1,9 +1,9 @@
 # for finding DEI related pubs
 library(stringr)
 library(dplyr)
-usc_pubs_sdgs <- read.csv("data_processed/usc_pubs_with_sdgs_2020_23_manual_fix.csv")
+usc_pubs_sdgs <- read.csv("data_processed/usc_pubs_with_sdgs_2020_24_manual_fix.csv")
 usc_pubs_sdgs <- usc_pubs_sdgs %>% 
-  filter(Year %in% c(2020, 2021, 2022, 2023)) %>% 
+  filter(Year %in% c(2020, 2021, 2022, 2023, 2024)) %>% 
   filter(!Document.Type %in% c("Letter", "Retracted", "Note", "Erratum"))
 
 sustainabilityrelated <- usc_pubs_sdgs %>% 
@@ -32,8 +32,8 @@ write.csv(dei_final,
 
 # sorted by specific keywords then sustainability category
 dei_data <- read.csv("data_processed/DEI_pubs_2020_23.csv")
-usc_bridge <- read.csv("shiny_app/usc_bridge_2020_23_combined_edit.csv")
-usc_authors <- read.csv("shiny_app/usc_authors_2020_23_combined_edit.csv")
+usc_bridge <- read.csv("shiny_app/usc_bridge_2020_24_combined_edit.csv")
+usc_authors <- read.csv("shiny_app/usc_authors_2020_24_combined_edit.csv")
 
 tmp <- merge(dei_data, usc_bridge,
              by.x = c("pubID", "Link"), by.y = c("pubID", "Link"))
@@ -50,6 +50,6 @@ dei_joined <- dei_joined[order(match(dei_joined$important_keywords, c(TRUE,FALSE
                                match(dei_joined$sustainability_category, 
                                      c("Sustainability-Focused", "Sustainability-Inclusive"))),]
 write.csv(dei_joined,
-          here::here("shiny_app/DEI_pubs_ordered_2020_23.csv"),
+          here::here("shiny_app/DEI_pubs_ordered_2020_24.csv"),
           row.names = FALSE)
 
