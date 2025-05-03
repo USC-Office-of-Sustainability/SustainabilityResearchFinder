@@ -103,7 +103,7 @@ which(duplicated(updated_pubs$pubID))
 
 # save as csv
 write.csv(updated_pubs,
-          file = here::here("data_processed/usc_pubs_2020_23.csv"),
+          file = here::here("data_processed/usc_pubs_2020_24.csv"),
           row.names = FALSE)
 
 # counts rows group by Year in updated_pubs

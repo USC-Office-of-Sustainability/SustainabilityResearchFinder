@@ -1,6 +1,6 @@
 # identify new usc authors from affiliations
 library(dplyr)
-pubs <- read.csv("data_processed/usc_pubs_2020_23.csv")
+pubs <- read.csv("data_processed/usc_pubs_2020_24.csv")
 # first pubID 25916
 focused_pubs <- pubs %>%
   filter(pubID > 25915) # number of pubs in data_processed/usc_pubs_all.csv
@@ -188,11 +188,11 @@ focused_usc_authors$first_name <- sapply(focused_usc_authors$full_name, function
 table(focused_pubs$Year)
 
 write.csv(focused_usc_authors,
-          here::here("data_processed/all_usc_authors_2023.csv"),
+          here::here("data_processed/all_usc_authors_2024.csv"),
           row.names = FALSE)
 
 bridge_table <- focused_usc_authors %>%
   select(pubID, Link, authorID)
 write.csv(bridge_table,
-          here::here("data_processed/bridge_table_2023.csv"),
+          here::here("data_processed/bridge_table_2024.csv"),
           row.names = FALSE)

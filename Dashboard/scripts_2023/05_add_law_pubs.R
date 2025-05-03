@@ -1,7 +1,7 @@
 # add law pubs before combining authors?
-usc_authors_2020_23 <- read.csv("data_processed/usc_authors_2020_23.csv")
-bridge_2020_23 <- read.csv("data_processed/bridge_table_2020_23.csv")
-usc_pubs_2020_23 <- read.csv("data_processed/usc_pubs_2020_23.csv")
+usc_authors_2020_23 <- read.csv("data_processed/usc_authors_2020_24.csv")
+bridge_2020_23 <- read.csv("data_processed/bridge_table_2020_24.csv")
+usc_pubs_2020_23 <- read.csv("data_processed/usc_pubs_2020_24.csv")
 
 law_2023 <- read.csv("data_raw/USC_Law_2023.csv")
 law_2024 <- read.csv("data_raw/USC_Law_2024.csv")
@@ -65,7 +65,7 @@ law_authors2 <- law_authors %>%
 
 usc_pubs_law <- rbind(usc_pubs_2020_23, law_pubs)
 write.csv(usc_pubs_law,
-          "data_processed/usc_pubs_law_2020_23.csv",
+          "data_processed/usc_pubs_law_2020_24.csv",
           row.names = FALSE)
 usc_authors_law <- rbind(usc_authors_2020_23, law_authors2)
 # fix law departments
@@ -91,9 +91,9 @@ usc_authors_law %>%
 #   slice(1) %>% View
 # sum(duplicated(usc_authors_law))
 write.csv(usc_authors_law,
-          "data_processed/usc_authors_law_2020_23.csv",
+          "data_processed/usc_authors_law_2020_24.csv",
           row.names = FALSE)
 usc_bridge_law <- rbind(bridge_2020_23, law_bridge)
 write.csv(usc_bridge_law,
-          "data_processed/usc_bridge_law_2020_23.csv",
+          "data_processed/usc_bridge_law_2020_24.csv",
           row.names = FALSE)

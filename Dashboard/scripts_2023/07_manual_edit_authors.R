@@ -1,8 +1,8 @@
 library(dplyr)
 # manual edits 07_fix_authors.R
-usc_authors <- read.csv("data_processed/usc_authors_2020_23_combined.csv")
-usc_authors_original <- read.csv("data_processed/usc_authors_2020_23_combined.csv")
-usc_bridge <- read.csv("data_processed/usc_bridge_2020_23_combined.csv")
+usc_authors <- read.csv("data_processed/usc_authors_2020_24_combined.csv")
+usc_authors_original <- read.csv("data_processed/usc_authors_2020_24_combined.csv")
+usc_bridge <- read.csv("data_processed/usc_bridge_2020_24_combined.csv")
 
 usc_authors_n_pub <- merge(usc_authors,
                            usc_bridge) %>%

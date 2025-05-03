@@ -57,8 +57,8 @@ sdg_col_names <- syms(c("SDG.01", "SDG.02", "SDG.03", "SDG.04", "SDG.05", "SDG.0
                    "SDG.13", "SDG.14", "SDG.15", "SDG.16", "SDG.17"))
 
 # data
-# usc_pubs <- read.csv("usc_pubs_law_2020_23.csv")
-# usc_sdgs <- read.csv("usc_sdgs_with_categories_2020_23.csv")
+# usc_pubs <- read.csv("usc_pubs_law_2020_24.csv")
+# usc_sdgs <- read.csv("usc_sdgs_with_categories_2020_24.csv")
 # usc_authors <- read.csv("authors_only_revalued.csv")
 usc_authors <- read.csv("usc_authors_2020_24_combined_edit.csv")
 usc_authors <- usc_authors %>%

@@ -11,7 +11,7 @@ con <- getCurlHandle(followlocation = TRUE,
                      ssl.verifypeer = FALSE, 
                      verbose = TRUE,
                      cookie = USCDirectoryCookie)
-authors_after_fix <- read.csv("data_processed/authors_after_fix_4_16_24.csv")
+authors_after_fix <- read.csv("data_processed/2020 Data/authors_after_fix_4_16_24.csv")
 authors_only <- authors_after_fix %>%
   filter(Dept == "")
 authors_only[,c("FirstSearch", "LastSearch","First", "Last", "Department", "Division", "Email", "PositionTitle", "Type")] = ""
@@ -93,6 +93,7 @@ for (i in 1:nrow(authors_only)) {
                                            "User-Agent" = "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Mobile Safari/537.36",
                                            "X-Requested-With" = "XMLHttpRequest")))
   # search with first name without initials added
+  
   if (tt == "") {
     firstnames = strsplit(authors_only$firstname[i], " ")[[1]]
     if (length(firstnames) > 1) {
@@ -127,9 +128,7 @@ for (i in 1:nrow(authors_only)) {
     }
     
   }
-  
   if (tt != "") {
-    vals = fromJSON(tt)
     if (is.null(names(vals))) { # multiple results
       # search faculty first then student
       vals_students <- list()
@@ -143,8 +142,10 @@ for (i in 1:nrow(authors_only)) {
           vals_faculty[[length(vals_faculty)+1]] <- v
         }
       }
+      print(vals_faculty)
       if (length(vals_faculty) >= 1) {
         for (j in 1:length(vals_faculty)) {
+          
           v = vals_faculty[[j]]
           if (first_search %in% v$givenname & authors_only$lastname[i] == v$uscdisplaysn) {
             authors_only[i,]$InUSCDirectory = TRUE

@@ -2,8 +2,8 @@ library(readxl)
 library(dplyr)
 
 manual <- readxl::read_excel("data_manual/USC_Pubs_by_SDGs_Classification_for_manual_review.xlsx")
-usc_pubs <- read.csv("data_processed/usc_pubs_law_2020_23.csv")
-usc_sdgs <- read.csv("data_processed/usc_sdgs_with_categories_2020_23.csv")
+usc_pubs <- read.csv("data_processed/usc_pubs_law_2020_24.csv")
+usc_sdgs <- read.csv("data_processed/usc_sdgs_with_categories_2020_24.csv")
 usc_pubs_sdgs <- merge(usc_pubs, usc_sdgs, 
                        by = c("pubID", "Link"),
                        all.x = TRUE)

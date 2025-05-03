@@ -34,7 +34,7 @@ usc_pwg_system <- usc_pwg_keywords %>%
   select(system, sdg, query)
 
 
-usc_data <- read.csv(here::here("data_processed/usc_pubs_law_2020_23.csv"))
+usc_data <- read.csv(here::here("data_processed/usc_pubs_law_2020_24.csv"))
 
 # context dependency
 apply_context_dependency <- function(tt) {
@@ -99,7 +99,7 @@ hits_link_count <- merge(hits, usc_data[c("document", "pubID", "Link")], by = "d
 # hits_link_count$count <- str_count(hits_link_count$alltext, hits_link_count$features)
 
 write.csv(hits_link_count, 
-          here::here("data_processed/usc_text2sdg_features_2020_23.csv"), 
+          here::here("data_processed/usc_text2sdg_features_2020_24.csv"),
           row.names = FALSE)
 
 
@@ -193,7 +193,7 @@ sdgs_collapsed <- apply(sdgs_only, 1, function(x) {
 hits_sum_link$all_SDGs <- sdgs_collapsed
 
 write.csv(hits_sum_link, 
-          here::here("data_processed/usc_sdgs_2020_23.csv"), 
+          here::here("data_processed/usc_sdgs_2020_24.csv"),
           row.names = FALSE)
 # 
 # # manual fixes?
@@ -209,7 +209,7 @@ write.csv(hits_sum_link,
 # new column for 3 sustainability categories
 # env 6 7 12-15
 # socio economic 1-5 8-11 16-17
-usc_sdgs <- read.csv("data_processed/usc_sdgs_2020_23.csv")
+usc_sdgs <- read.csv("data_processed/usc_sdgs_2020_24.csv")
 usc_sdgs$num_sdgs <- rowSums(select(usc_sdgs,starts_with("SDG")) != 0)
 sustainabilityresearch <- usc_sdgs %>%
   mutate(
@@ -225,9 +225,9 @@ sustainabilityresearch <- usc_sdgs %>%
 # everything in here is sustainability inclusive so next line does nothing
 sustainabilityresearch$sustainability_category[is.na(sustainabilityresearch$sustainability_category)] = "Not-Related"
 write.csv(sustainabilityresearch,
-          here::here("data_processed/usc_sdgs_with_categories_2020_23.csv"),
+          here::here("data_processed/usc_sdgs_with_categories_2020_24.csv"),
           row.names = FALSE)
 # write.csv(sustainabilityresearch,
-#           here::here("shiny_app/usc_sdgs_with_categories_2020_23.csv"),
+#           here::here("shiny_app/usc_sdgs_with_categories_2020_24.csv"),
 #           row.names = FALSE)
 

@@ -3,8 +3,8 @@
 # combine authors with same first last dept div
 # ignore other dept -> maybe ignore other div instead?
 library(dplyr)
-# usc_authors_2020_23_filtered <- read.csv("data_processed/usc_authors_2020_23.csv")
-usc_authors_2020_23_filtered <- read.csv("data_processed/usc_authors_law_2020_23.csv", na.strings = c("", "NA"))
+# usc_authors_2020_23_filtered <- read.csv("data_processed/usc_authors_2020_24.csv")
+usc_authors_2020_23_filtered <- read.csv("data_processed/usc_authors_law_2020_24.csv", na.strings = c("", "NA"))
 # need to fix some weird symbols 
 usc_authors_2020_23_filtered$fullname <- gsub("’", "'", usc_authors_2020_23_filtered$fullname)
 usc_authors_2020_23_filtered$lastname <- gsub("’", "'", usc_authors_2020_23_filtered$lastname)
@@ -14,8 +14,8 @@ usc_authors_2020_23_filtered$lastname <- gsub("’", "'", usc_authors_2020_23_fi
 # usc_authors_2020_23_filtered[which(usc_authors_2020_23_filtered$fullname == toupper(usc_authors_2020_23_filtered$fullname)),]$fullname <- stringr::str_to_title(usc_authors_2020_23_filtered[which(usc_authors_2020_23_filtered$fullname == toupper(usc_authors_2020_23_filtered$fullname)),]$fullname)
 # get number of publications for each ID
 # want to keep the ID w more publications
-# bridge_table_2020_23 <- read.csv("data_processed/bridge_table_2020_23.csv")
-bridge_table_2020_23 <- read.csv("data_processed/usc_bridge_law_2020_23.csv")
+# bridge_table_2020_23 <- read.csv("data_processed/bridge_table_2020_24.csv")
+bridge_table_2020_23 <- read.csv("data_processed/usc_bridge_law_2020_24.csv")
 
 # usc_authors_n_pub <- merge(usc_authors_2020_23_filtered, 
 #                            bridge_table_2020_23)
@@ -323,10 +323,10 @@ bridge_table3$authorID <- new_authorIDs
 
 
 # write.csv(usc_authors_2020_23_filtered3, 
-#           "data_processed/usc_authors_2020_23_combined.csv",
+#           "data_processed/usc_authors_2020_24_combined.csv",
 #           row.names = FALSE)
 # write.csv(bridge_table3,
-#           "data_processed/usc_bridge_2020_23_combined.csv",
+#           "data_processed/usc_bridge_2020_24_combined.csv",
 #           row.names = FALSE)
 
 # combine A with Aaron if same dept and div -> track this!
@@ -424,10 +424,10 @@ bridge_table4 <- bridge_table4 %>%
   distinct()
 
 write.csv(usc_authors_2020_23_filtered4, 
-          "data_processed/usc_authors_2020_23_combined.csv",
+          "data_processed/usc_authors_2020_24_combined.csv",
           row.names = FALSE)
 write.csv(bridge_table4,
-          "data_processed/usc_bridge_2020_23_combined.csv",
+          "data_processed/usc_bridge_2020_24_combined.csv",
           row.names = FALSE)
 
 # combine same div but other dept?

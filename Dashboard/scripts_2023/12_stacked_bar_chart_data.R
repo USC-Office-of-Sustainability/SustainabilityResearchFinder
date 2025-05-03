@@ -1,7 +1,7 @@
 # stacked bar chart
 library(dplyr)
 # data
-# usc_pubs <- read.csv("data_processed/usc_pubs_law_2020_23.csv")
+# usc_pubs <- read.csv("data_processed/usc_pubs_law_2020_24.csv")
 # usc_sdgs <- read.csv("data_processed/usc_sdgs_with_categories_2020_23_manual_fix.csv")
 # usc_authors <- read.csv("data_processed/authors_only_revalued.csv")
 usc_authors <- read.csv("shiny_app/usc_authors_2020_24_combined_edit.csv") %>%

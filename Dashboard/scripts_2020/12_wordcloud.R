@@ -7,7 +7,7 @@ list_of_packages <- c("tm", "tidyverse", "dplyr", "here", "wordcloud",
 lapply(list_of_packages, library, character.only = TRUE)
 
 set.seed(1234)
-features <- read.csv(here::here("data_processed/usc_text2sdg_features_2020_23.csv"))
+features <- read.csv(here::here("data_processed/usc_text2sdg_features_2020_24.csv"))
 sdg_col_names <- features$sdg %>% unique %>% sort
 sdg_colors <- c("1" = "#E5243B", "2" = "#DDA63A", "3" = "#4C9F38", 
                 "4" = "#C5192D", "5" = "#FF3A21", "6" = "#26BDE2",

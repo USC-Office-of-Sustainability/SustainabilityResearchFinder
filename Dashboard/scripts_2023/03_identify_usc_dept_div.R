@@ -1,6 +1,6 @@
 # identify department and division from the affiliations
 # based on 03_get_usc_author_info.R
-focused_usc_authors <- read.csv("data_processed/all_usc_authors_2023.csv")
+focused_usc_authors <- read.csv("data_processed/all_usc_authors_2024.csv")
 focused_usc_authors_dept_div <- focused_usc_authors %>%
   group_by(authorID) %>%
   summarize(name = first(auth_name),
@@ -220,7 +220,7 @@ write.csv(focused_usc_authors_dept_div_separate_fixed,
 
 
 # update bridge too
-bridge_table <- read.csv("data_processed/bridge_table_2023.csv")
+bridge_table <- read.csv("data_processed/bridge_table_2024.csv")
 new_authorIDs <- sapply(bridge_table$authorID, function(x) {
   if (as.character(x) %in% separate_past_authorIDs$all_authorIDs) {
     past_authorIDs_map[as.character(x)]
@@ -231,6 +231,6 @@ new_authorIDs <- sapply(bridge_table$authorID, function(x) {
 new_authorIDs <- unname(new_authorIDs)
 bridge_table$authorID <- new_authorIDs
 write.csv(bridge_table,
-          "data_processed/bridge_table_2023_combine_past.csv",
+          "data_processed/bridge_table_2024_combine_past.csv",
           row.names = FALSE)
 
