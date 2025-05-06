@@ -55,10 +55,36 @@ Engineering.
     href="https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository"
     target="_blank">Clone</a> this repository to open, view, and edit
     all the files in this repository on your computer (locally).
-2.  Download the <a
-    href="https://drive.google.com/drive/folders/1Jj5dhdVERt-s9POk06r6aMRfYci0F0mQ?usp=drive_link"
-    target="_blank">complete data files</a> and put the files into the
-    corresponding folders.
+2.  Due to GitHub file size limitations, the complete USC research data
+    could not be completely uploaded to the repository. As a result, the
+    large data files are stored here <a
+    href="https://drive.google.com/drive/folders/1FCNpPjeOBa0_kFAvGWjBKQ6TDEydviDi?usp=sharing"
+    target="_blank">Complete Data Files on Google Drive</a>. Please
+    download all three folders (“data_processed”, “data_raw”,
+    “shiny_app”) and put them in the “Dashboard” folder of the cloned
+    repository. You may be asked whether to replace those folder, and
+    please click “replace”, as the folders on Google Drive contain the
+    most complete data. The folder structure should look like this:
+
+``` text
+├── Dashboard
+│   ├── Dashboard.Rproj
+│   ├── STARS
+│   ├── aux_funcs
+│   ├── data_manual
+│   ├── data_processed
+│   ├── data_raw
+│   ├── scripts_2020
+│   ├── scripts_2023
+│   └── shiny_app
+├── LICENSE
+├── README.Rmd
+├── README.md
+├── README_files
+├── SustainabilityResearchFinder.Rproj
+└── docs
+```
+
 3.  Open RStudio and click on ![the Project button in
     RStudio](README_files/RProjectButton.PNG) in the top right to open
     the <a
@@ -119,6 +145,15 @@ To update keywords and/or context dependencies, add the new files to
 data_raw/. In scripts_2023/08_run_text2sdg.R, updated the file names in
 the two read.csv() functions. Then run 08_run_text2sdg.R and all the
 following scripts (09, 10, etc.).
+
+The current version uses the following keywords file and context
+dependencies file:
+
+- **Keywords file**:  
+  [`USC_PWG-E_Keywords_11_5_24.csv`](https://github.com/USC-Office-of-Sustainability/SustainabilityResearchFinder/tree/master/Dashboard/data_raw/USC_PWG-E_Keywords_11_5_24.csv)
+
+- **Context dependencies file**:  
+  [`context_dependencies_01_21_25.csv`](https://github.com/USC-Office-of-Sustainability/SustainabilityResearchFinder/tree/master/Dashboard/data_raw/context_dependencies_01_21_25.csv)
 
 To add new publications from Scopus, add the new file to data_raw/ and
 then in scripts_2023/01_read_data.R, read the file and bind the new data
@@ -625,7 +660,7 @@ The main file for the
 target="_blank">shiny app</a> is shiny_app/app.R. The www/ folder is
 expected by a Shiny application to contain images and stylesheets. The
 data needed to run the shiny app is located on <a
-href="https://drive.google.com/drive/folders/1Jj5dhdVERt-s9POk06r6aMRfYci0F0mQ?usp=drive_link"
+href="https://drive.google.com/drive/folders/1TfTNNMqb9SnHM0J_f8IxTGSnKx80idpg?usp=drive_link"
 target="_blank">Google Drive</a> since the files are too big to store on
 GitHub.
 

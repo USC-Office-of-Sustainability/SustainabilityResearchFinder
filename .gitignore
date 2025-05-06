@@ -9,9 +9,10 @@ CKIDS/
 .DS_Store
 .keep
 .idea
-Dashboard/data_processed
 Dashboard/aux_funcs
-Dashboard/data_raw
+Dashboard/USC_directory_searcher_app
+Dashboard/data_processed
+
 Dashboard/shiny_app/usc_pubs_with_sdgs_2020_24_manual_fix.csv
 Dashboard/shiny_app/usc_authors_2020_24_combined_edit.csv
 Dashboard/shiny_app/DEI_pubs_ordered_2020_24.csv
@@ -19,3 +20,6 @@ Dashboard/shiny_app/usc_bridge_2020_24_combined_edit.csv
 Dashboard/shiny_app/usc_by_author_sust_cat_2020_24.csv
 Dashboard/shiny_app/usc_by_dept_sust_cat_2020_24.csv
 Dashboard/shiny_app/usc_by_product_sust_cat_2020_24.csv
+Dashboard/data_raw/USC2020.csv
+Dashboard/data_raw/USC2021.csv
+Dashboard/data_raw/USC2022.csv
