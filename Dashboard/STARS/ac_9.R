@@ -22,6 +22,98 @@ tmp <- merge(usc_pubs_sdgs, usc_bridge,
 usc_joined <- merge(tmp, usc_authors,
               by = "authorID")
 
+
+
+# scholar classifications
+dept_researcher_classification <- usc_joined %>%
+  group_by(authorID, fullname, Department, Division) %>%
+  summarize(
+    all_sustainability_categories = paste(
+      unique(sustainability_category),
+      collapse = ";"
+    ),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    researcher_classification = case_when(
+      grepl("Focused", all_sustainability_categories) ~ "Sustainability-Focused",
+      grepl("Inclusive", all_sustainability_categories) ~ "Sustainability-Inclusive",
+      grepl("SDG", all_sustainability_categories) ~ "SDG-Related",
+      grepl("Not-Related", all_sustainability_categories) ~ "Not Related",
+      TRUE ~ "Not Classified"
+    )
+  ) %>%
+  select(Division, Department, authorID, fullname, researcher_classification)
+
+write.csv(
+  dept_researcher_classification,
+  "usc_department_researcher_classification.csv",
+  row.names = FALSE
+)
+
+
+
+dept_researcher_classification_23_24 <- usc_joined %>%
+  filter(Year %in% c(2023, 2024)) %>%
+  group_by(authorID, fullname, Department, Division) %>%
+  summarize(
+    all_sustainability_categories = paste(
+      unique(sustainability_category),
+      collapse = ";"
+    ),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    researcher_classification = case_when(
+      grepl("Focused", all_sustainability_categories) ~ "Sustainability-Focused",
+      grepl("Inclusive", all_sustainability_categories) ~ "Sustainability-Inclusive",
+      grepl("SDG", all_sustainability_categories) ~ "SDG-Related",
+      grepl("Not-Related", all_sustainability_categories) ~ "Not Related",
+      TRUE ~ "Not Classified"
+    )
+  ) %>%
+  select(Division, Department, authorID, fullname, researcher_classification)
+
+write.csv(
+  dept_researcher_classification_23_24,
+  "usc_department_researcher_classification_2023_24.csv",
+  row.names = FALSE
+)
+
+
+
+dept_2023_24 <- usc_joined %>%
+  filter(Year %in% c(2023, 2024)) %>%
+  group_by(Division, Department) %>%
+  summarize(
+    all_sustainability_categories = paste(
+      unique(sustainability_category),
+      collapse = ";"
+    ),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    sustainability_classification = case_when(
+      grepl("Focused", all_sustainability_categories) ~ "Sustainability-Focused",
+      grepl("Inclusive", all_sustainability_categories) ~ "Sustainability-Inclusive",
+      grepl("SDG", all_sustainability_categories) ~ "SDG-Related",
+      grepl("Not-Related", all_sustainability_categories) ~ "Not Related",
+      TRUE ~ "Not Classified"
+    )
+  ) %>%
+  select(Division, Department, sustainability_classification)
+
+write.csv(
+  dept_2023_24,
+  "usc_departments_sustainability_category_counts_2023_24.csv",
+  row.names = FALSE
+)
+
+
+
+
+
+
 # By year summary of scholars 
 # (year, # of focused, inclusive or not -related scholars)
 
