@@ -1,114 +1,112 @@
-# add 2023 data
 library(dplyr)
 
-# all the data
-previous_pubs <- read.csv("data_processed/usc_pubs_all.csv")
-missing_pubs <- read.csv("data_raw/MissingScopus_pubs_from_2020_2021_2022.csv")
-new_pubs <- read.csv("data_raw/updated_scopus_2023_03_08_24.csv")
-new_pubs_2024 <- read.csv("data_raw/partial_scopus_2025_01_01.csv")
-# make all the colnames/headers the same
-setdiff(names(missing_pubs), names(previous_pubs))
-missing_pubs <- missing_pubs %>%
-  rename(Titles = Title,
-         "Indexed.Keywords" = Index.Keywords)
+# ==============================================================================
+# 01_read_data.R
+# Read Scopus exports from multiple years, unify column names, merge, deduplicate
+# by Link (keeping earlier year), filter out non-research document types,
+# assign unique pubIDs, drop unused columns, and save.
+#
+# MAINTENANCE: To add a new year, just append one line to NEW_YEAR_FILES below.
+# ==============================================================================
 
+# ┌─────────────────────────────────────────────────────────────────────────────┐
+# │  CONFIG — edit this section only                                           │
+# └─────────────────────────────────────────────────────────────────────────────┘
 
-pubs_with_2022 <- bind_rows(previous_pubs, missing_pubs) %>%
-   filter(Year %in% c(2020, 2021, 2022))
+# Each entry: file path + which year to extract from that file.
+# Order matters: earlier entries take priority when the same Link appears.
+NEW_YEAR_FILES <- list(
+  list(path = "data_raw/2023_scopus_downloaded_03_08_2024.csv", year = 2023),
+  list(path = "data_raw/2024_scopus_downloaded_01_01_2025.csv", year = 2024),
+  list(path = "data_raw/2025_scopus_downloaded_02_10_2026.csv", year = 2025)
+)
 
+EXCLUDED_DOC_TYPES <- c("Letter", "Retracted", "Note", "Erratum")
 
+# Columns actually used by downstream scripts (02-13) + shiny app
+KEEP_COLS <- c(
+  "pubID", "Authors", "Author.full.names", "Author.s..ID", "Titles", "Year",
+  "Source.title", "Volume", "Issue", "Art..No.", "Page.start", "Page.end",
+  "Page.count", "DOI", "Cited.by", "Link", "Affiliations",
+  "Authors.with.affiliations", "Abstract", "Indexed.Keywords",
+  "Author.Keywords", "Publisher", "Document.Type", "Publication.Stage",
+  "Open.Access", "Source", "EID"
+)
 
-setdiff(names(new_pubs), names(previous_pubs))
-pubs_2023_only <- new_pubs %>%
-  rename(Titles = Title,
-         "Indexed.Keywords" = Index.Keywords) %>%
-  filter(Year == 2023)
+# ┌─────────────────────────────────────────────────────────────────────────────┐
+# │  LOGIC — no need to touch below                                            │
+# └─────────────────────────────────────────────────────────────────────────────┘
 
-pubs_with_2023 <- bind_rows(pubs_with_2022, pubs_2023_only) %>%
-  group_by(Link) %>%
-  mutate(is_duplicated = n() > 1) %>%  # Check if Link is duplicated
-  filter(!(is_duplicated & Year == 2023)) %>%  # Drop rows where Link is duplicated AND Year == 2023
-  select(-is_duplicated) %>%  # Clean up the temporary column
-  ungroup()
+VALID_YEARS <- 2020:max(sapply(NEW_YEAR_FILES, `[[`, "year"))
 
+# Standardize column names across different Scopus export formats
+rename_scopus <- function(df) {
+  if ("Title" %in% names(df))          df <- rename(df, Titles = Title)
+  if ("Index.Keywords" %in% names(df)) df <- rename(df, Indexed.Keywords = Index.Keywords)
+  if ("X" %in% names(df))              df <- select(df, -X)
+  df
+}
 
-pubs_2023_prev <- pubs_with_2023 %>%
-  filter(Year != 2023)
+# Merge new year into existing data; if same Link exists, keep the older row
+add_year <- function(existing, new_df, target_year) {
+  new_rows <- new_df %>% filter(Year == target_year)
+  bind_rows(existing, new_rows) %>%
+    group_by(Link) %>%
+    filter(!(n() > 1 & Year == target_year)) %>%
+    ungroup()
+}
 
-# antijoin pubs_2023_prev pubs_with_2022
-diff <- anti_join(pubs_2023_prev, pubs_with_2022)
+# --- Build base: historical 2020-2022 ----------------------------------------
+previous_pubs <- read.csv("data_processed/all_usc_pubs_2020_2021_2022.csv")
+missing_pubs  <- read.csv("data_raw/MissingScopus_pubs_from_2020_2021_2022.csv")
 
+all_pubs <- bind_rows(previous_pubs, rename_scopus(missing_pubs)) %>%
+  filter(Year %in% 2020:2022)
 
+# --- Incrementally add each new year ------------------------------------------
+for (entry in NEW_YEAR_FILES) {
+  new_df <- rename_scopus(read.csv(entry$path))
+  all_pubs <- add_year(all_pubs, new_df, entry$year)
+}
 
-
-
-
-pubs_2024_only <- new_pubs_2024 %>%
-  rename(Titles = Title,
-         "Indexed.Keywords" = Index.Keywords) %>%
-  filter(Year == 2024)
-
-
-pubs_with_2024 <- bind_rows(pubs_with_2023, pubs_2024_only) %>%
-  group_by(Link) %>%
-  mutate(is_duplicated = n() > 1) %>%  # Check if Link is duplicated
-  filter(!(is_duplicated & Year == 2024)) %>%  # Drop rows where Link is duplicated AND Year == 2023
-  select(-is_duplicated) %>%  # Clean up the temporary column
-  ungroup()
-
-pubs_2024_prev <- pubs_with_2024 %>%
-  filter(Year != 2024)
-
-
-
-
-
-
-all_pubs <- pubs_with_2024
-
-
-
-# remove document types - Letter, Retracted, Note, Erratum
-# select only 2020-23
+# --- Filter document types and year range -------------------------------------
 final_pubs <- all_pubs %>%
-  filter(!Document.Type %in% c("Letter", "Retracted", "Note", "Erratum")) %>%
-  filter(Year %in% c(2020, 2021, 2022, 2023, 2024)) %>%
+  filter(Year %in% VALID_YEARS,
+         !Document.Type %in% EXCLUDED_DOC_TYPES) %>%
   distinct()
 
-final_pubs
-
-# assign pubID according to EID
-final_pubs %>%
+# --- Assign pubIDs ------------------------------------------------------------
+# 1) Propagate existing pubIDs within same EID (from previous_pubs)
+# 2) For duplicates within (pubID, EID), keep the last row (most recent data)
+# 3) Assign new sequential pubIDs starting from max+1 for any remaining NAs
+final_pubs <- final_pubs %>%
   group_by(EID) %>%
-  tidyr::fill(pubID, .direction = "downup") -> final_pubs
-# distinct makes no difference since some of the cited by #s change
-
-# assume that the newer publications appear lower in the df
-# keep the last row
-final_pubs %>%
+  tidyr::fill(pubID, .direction = "downup") %>%
+  ungroup() %>%
   group_by(pubID, EID) %>%
-  slice(n()) -> updated_pubs
+  slice_tail(n = 1) %>%
+  ungroup()
 
-# uniquecourses=coursesAC1 [!duplicated(coursesAC1 [,'courseID']),]
+n_missing <- sum(is.na(final_pubs$pubID))
+if (n_missing > 0) {
+  start_id <- max(final_pubs$pubID, na.rm = TRUE) + 1
+  final_pubs$pubID[is.na(final_pubs$pubID)] <- seq(start_id, length.out = n_missing)
+}
 
-# assign NA pubID to a continuing pubID #
-starting_pubID <- max(updated_pubs$pubID, na.rm = TRUE) + 1
-ending_pubID <- starting_pubID + sum(is.na(updated_pubs$pubID)) - 1
-missing_pubIDs <- seq(from = starting_pubID, to = ending_pubID, by = 1)
-updated_pubs$pubID[is.na(updated_pubs$pubID)] <- missing_pubIDs
+# --- Validate -----------------------------------------------------------------
+stopifnot("Duplicate EIDs found"   = !any(duplicated(final_pubs$EID)))
+stopifnot("Duplicate pubIDs found" = !any(duplicated(final_pubs$pubID)))
 
-# no more duplicated EID, pubIDs
-which(duplicated(updated_pubs$EID))
-which(duplicated(updated_pubs$pubID))
+# --- Keep only needed columns and save ----------------------------------------
+for (col in KEEP_COLS) {
+  if (!col %in% names(final_pubs)) final_pubs[[col]] <- NA
+}
+final_pubs <- final_pubs %>% select(all_of(KEEP_COLS))
 
-# save as csv
-write.csv(updated_pubs,
-          file = here::here("data_processed/usc_pubs_2020_24.csv"),
+write.csv(final_pubs,
+          file = here::here("data_processed/01_all_usc_pubs.csv"),
           row.names = FALSE)
 
-# counts rows group by Year in updated_pubs
-updated_pubs %>%
-  group_by(Year) %>%
-  summarise(n = n())
-
-updated_pubs
+cat("=== Publications per year ===\n")
+print(table(final_pubs$Year))
+cat("Total:", nrow(final_pubs), "\n")

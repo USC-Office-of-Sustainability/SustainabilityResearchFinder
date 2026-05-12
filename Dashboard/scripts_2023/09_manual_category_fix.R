@@ -2,18 +2,12 @@ library(readxl)
 library(dplyr)
 
 manual <- readxl::read_excel("data_manual/USC_Pubs_by_SDGs_Classification_for_manual_review.xlsx")
-usc_pubs <- read.csv("data_processed/usc_pubs_law_2020_24.csv")
-usc_sdgs <- read.csv("data_processed/usc_sdgs_with_categories_2020_24.csv")
+usc_pubs <- read.csv("data_processed/05_pubs_with_law.csv")
+usc_sdgs <- read.csv("data_processed/08_pubs_sdg_categorized.csv")
 usc_pubs_sdgs <- merge(usc_pubs, usc_sdgs, 
                        by = c("pubID", "Link"),
                        all.x = TRUE)
 usc_pubs_sdgs$sustainability_category[is.na(usc_pubs_sdgs$sustainability_category)] = "Not-Related"
-
-
-# compare <- merge(usc_pubs_sdgs, manual, by = "pubID", suffixes = c("", ".y")) %>%
-#   mutate(sustainability_category.y =
-#            ifelse(sustainability_category.y == "NA", "Not-Related", sustainability_category.y)) %>%
-#   select(names(usc_pubs_sdgs), sustainability_category.y, Manual_category)
 
 
 compare <- merge(usc_pubs_sdgs, manual, by = "Link", suffixes = c("", ".y")) %>%
@@ -23,21 +17,18 @@ compare <- merge(usc_pubs_sdgs, manual, by = "Link", suffixes = c("", ".y")) %>%
   unique()
 
 
-filtered_2024 <- usc_pubs_sdgs %>%
-  filter(Year == 2024)
-
-
-filtered_2024 <- filtered_2024 %>%
+# Add all publications not covered by the manual review spreadsheet
+# (previously only Year == 2024 was added; this handles 2025 and any future years automatically)
+not_reviewed <- usc_pubs_sdgs %>%
+  filter(!Link %in% compare$Link) %>%
   mutate(
-    sustainability_category.y = sustainability_category, 
-    Manual_category = sustainability_category, 
+    sustainability_category.y = sustainability_category,
+    Manual_category = sustainability_category
   )
 
-
-
-
-# bind filtered_2024 with compare
-compare <- rbind(compare, filtered_2024)
+compare <- rbind(compare, not_reviewed)
+cat("Publications added without manual review:", nrow(not_reviewed),
+    "| Years:", paste(sort(unique(not_reviewed$Year)), collapse = ", "), "\n")
 
 all.equal(compare$sustainability_category, compare$sustainability_category.y)
 # besides some NA
@@ -62,7 +53,6 @@ manual_classification_first_pass_2025 <- read.csv("data_manual/pub_manual_reclas
 # go through every row in compare, and if the Titles col in compare matched pub col in manual_classification_first_pass_2025,
 # change the compare's sustainability_category to the one in manual_classification_first_pass_2025's new_classification col
 for (i in 1:nrow(compare)) {
-  # print(compare$Titles[i])
   if (compare$Titles[i] %in% manual_classification_first_pass_2025$pub) {
     print(paste("change row", i, "from", compare$sustainability_category[i],
                 "to", manual_classification_first_pass_2025$new_classification[which(manual_classification_first_pass_2025$pub == compare$Titles[i])]))
@@ -77,7 +67,6 @@ manual_classification_second_pass_2025 <- read.csv("data_manual/pub_manual_recla
 # go through every row in compare, and if the Titles col in compare matched pub col in manual_classification_second_pass_2025,
 # change the compare's sustainability_category to the one in manual_classification_second_pass_2025's new_classification col
 for (i in 1:nrow(compare)) {
-  # print(compare$Titles[i])
   if (compare$Titles[i] %in% manual_classification_second_pass_2025$pub) {
     print(paste("change row", i, "from", compare$sustainability_category[i],
                 "to", manual_classification_second_pass_2025$new_classification[which(manual_classification_second_pass_2025$pub == compare$Titles[i])]))
@@ -95,9 +84,9 @@ print(not_found_pubs_second_pass)
 
 
 write.csv(compare, 
-          "data_processed/usc_pubs_with_sdgs_2020_24_manual_fix.csv",
+          "data_processed/09_pubs_sdg_manual_fixed.csv",
           row.names = FALSE)
-write.csv(compare, 
-          "shiny_app/usc_pubs_with_sdgs_2020_24_manual_fix.csv",
+write.csv(compare,
+          "shiny_app/09_pubs_sdg_manual_fixed.csv",
           row.names = FALSE)
 

@@ -1,198 +1,230 @@
-# identify new usc authors from affiliations
 library(dplyr)
-pubs <- read.csv("data_processed/usc_pubs_2020_24.csv")
-# first pubID 25916
-focused_pubs <- pubs %>%
-  filter(pubID > 25915) # number of pubs in data_processed/usc_pubs_all.csv
 
-# identify USC authors in the new pubs
+# ==============================================================================
+# 02_identify_usc_authors.R
+# For new publications (pubID > max of historical data), split each paper's
+# semicolon-delimited author fields into one-row-per-author, determine which
+# authors are USC-affiliated, and parse their names.
+#
+# Outputs:
+#   - 02_usc_authors_identified.csv   (one row per author-publication pair)
+#   - 02_bridge_pubid_authorid.csv     (pubID-Link-authorID mapping)
+# ==============================================================================
 
-# all usc authors 2020-22
-# all_usc_authors <- read.csv("data_processed/all_usc_authors.csv")
-# existing_authorID <- unique(all_usc_authors$auth_ids)
+# --- Config -------------------------------------------------------------------
+HISTORICAL_MAX_PUBID <- 25915  # max pubID in all_usc_pubs_2020_2021_2022.csv
 
-# based off of 02_identify_usc_authors.R
-usc_regex <- paste0("([uU]ni[versity\\.]{0,} ([oO]f )?[sS]ou?th[ernm]{0,}[,-]? ?",
-                    "[Cc]alifornia)|([kK]eck [Ss]chool [Oo]f [Mm]edicine)|",
-                    "([Kk]eck [Mm]edical [Cc]enter)|([Kk]eck [Mm]edical [Ss]chool)")
-usc_affiliation_ids <- c(60029311, 60015183, 60022143, 60009207, 60015400,
-                         60013994, 60099658, 60019009, 60086699, 60005801,
-                         60026672, 60006209, 60268548)
+USC_REGEX <- paste0(
+  "([uU]ni[versity\\.]{0,} ([oO]f )?[sS]ou?th[ernm]{0,}[,-]? ?[Cc]alifornia)",
+  "|([kK]eck [Ss]chool [Oo]f [Mm]edicine)",
+  "|([Kk]eck [Mm]edical [Cc]enter)",
+  "|([Kk]eck [Mm]edical [Ss]chool)"
+)
 
-# check authors, authors full name, authors ID columns match
-same_num_auth <- apply(focused_pubs, 1, function(x) {
-  n_authors <- length(strsplit(x['Authors'], ";")[[1]])
-  n_full_name <- length(strsplit(x['Author.full.names'], ";")[[1]])
-  n_id <- length(strsplit(x['Author.s..ID'], ";")[[1]])
-  all(sapply(list(n_authors, n_full_name, n_id), function(y) y == n_authors))
+# Historical USC author IDs — used to rescue initials-only authors whose
+# affiliation is missing in all new publications but are known USC authors.
+historical_authorIDs <- read.csv("data_processed/author_lookup_table.csv") %>%
+  pull(authorID) %>% as.character() %>% unique()
+
+# --- Read and filter to new publications only ---------------------------------
+pubs <- read.csv("data_processed/01_all_usc_pubs.csv")
+focused_pubs <- pubs %>% filter(pubID > HISTORICAL_MAX_PUBID)
+cat("New publications to process:", nrow(focused_pubs), "\n")
+
+# --- Clean Authors.with.affiliations ------------------------------------------
+focused_pubs$Authors.with.affiliations <- focused_pubs$Authors.with.affiliations %>%
+  gsub("&amp;", "&", .) %>%
+  gsub(";,", ",", .)
+
+# --- Data integrity checks ----------------------------------------------------
+cat("\n=== Data Integrity Checks ===\n")
+
+# Check 1: Authors and Author.s..ID should have same count per row
+#   Author.full.names may be shorter (Scopus 2025 skips initials-only authors)
+check1 <- apply(focused_pubs, 1, function(x) {
+  n_name <- length(strsplit(x["Authors"], ";")[[1]])
+  n_full <- length(strsplit(x["Author.full.names"], ";")[[1]])
+  n_id   <- length(strsplit(x["Author.s..ID"], ";")[[1]])
+  c(name_id_match = (n_name == n_id), full_short = (n_full < n_name))
 })
-sum(same_num_auth) == nrow(focused_pubs) # nothing wrong
+check1_df <- as.data.frame(t(check1))
+cat("Check 1a - Authors/IDs count match:",
+    sum(check1_df$name_id_match), "/", nrow(focused_pubs), "rows OK\n")
+n_short <- sum(check1_df$full_short)
+if (n_short > 0) {
+  cat("Check 1b - Author.full.names shorter than Authors:", n_short,
+      "rows (will be padded with empty strings)\n")
+} else {
+  cat("Check 1b - Author.full.names count: all match\n")
+}
 
-# n_authors <- sapply(focused_pubs$Authors, function(x) length(strsplit(x, ";")[[1]]))
-# n_fullname <- sapply(focused_pubs$Author.full.names, function(x) length(strsplit(x, ";")[[1]]))
-# n_id <- sapply(focused_pubs$Author.s..ID, function(x) length(strsplit(x, ";")[[1]]))
-# unname(which(n_authors != n_id)) # no problem
-# unname(which(n_fullname != n_id)) # problem w fullname -> missing fullname!
-
-
-# authors with affiliations split by ; probably matches author names
-grep("&amp;", focused_pubs$Authors.with.affiliations)
-focused_pubs$Authors.with.affiliations <- gsub("&amp;", "&", focused_pubs$Authors.with.affiliations)
-grep(";,", focused_pubs$Authors.with.affiliations)
-focused_pubs$Authors.with.affiliations <- gsub(";,", ",", focused_pubs$Authors.with.affiliations)
-
+# Check 2: Author.full.names vs Authors.with.affiliations count match
 same_len_name_aff <- apply(focused_pubs, 1, function(x) {
-  length(strsplit(x['Author.full.names'], ";")[[1]]) == length(strsplit(x['Authors.with.affiliations'], ";")[[1]])
+  length(strsplit(x["Author.full.names"], ";")[[1]]) ==
+    length(strsplit(x["Authors.with.affiliations"], ";")[[1]])
 })
-sum(same_len_name_aff)
+cat("Check 2 - FullNames/Affiliations count match:",
+    sum(same_len_name_aff), "/", nrow(focused_pubs), "rows OK\n")
 
-# where same affiliation is used for all authors
-# exclude single author and affiliations that are short
-same_aff_for_all <- apply(focused_pubs, 1, function(x) {
-  auth_affl_vec <- strsplit(x['Authors.with.affiliations'], ";")[[1]]
-  if (length(strsplit(x['Author.s..ID'], ";")[[1]]) == 1) { # single author
-    FALSE
-  } else if (length(strsplit(x['Affiliations'], ";")[[1]]) == 1) { # one affiliation
-    FALSE
-  # } else if (length(strsplit(x['Affiliations'], ";")[[1]]) == 1 & length(strsplit(x['Affiliations'], ",")[[1]]) <= 12) {
-  #   FALSE
+# Check 3: Empty/NA fields
+cat("Check 3 - Empty/NA fields:\n")
+for (col in c("Authors.with.affiliations", "Author.full.names", "Authors", "Author.s..ID")) {
+  n_na    <- sum(is.na(focused_pubs[[col]]))
+  n_empty <- sum(focused_pubs[[col]] == "", na.rm = TRUE)
+  if (n_na > 0 || n_empty > 0) {
+    cat("  WARNING:", col, "- NA:", n_na, "/ empty:", n_empty, "\n")
   } else {
-    # some ; get replaced with , in Authors with affiliations
-    all(grepl(gsub("[[:punct:]]", " ", x['Affiliations']), gsub("[[:punct:]]", " ", auth_affl_vec), fixed = TRUE))
-    # all(grepl(x['Affiliations'], auth_affl_vec, fixed = TRUE))
+    cat("  ", col, "- OK\n")
   }
-})
-sum(same_aff_for_all) # author with affiliations column is empty, they have 300+ authors
-ignore_pubIDs <- focused_pubs$pubID[same_aff_for_all]
+}
+cat("=== End Checks ===\n\n")
 
-not_covered <- which(same_len_name_aff == FALSE)
-not_covered_pubs <- focused_pubs[not_covered,]
-# number of authors per publication
-num_authors_per <- apply(focused_pubs, 1, function(x) {
-  length(strsplit(x['Author.s..ID'], ";")[[1]])
-})
+# --- Skip publications with completely empty author IDs ----------------------
+# Some Scopus records have completely empty author fields (e.g. pubID 31360).
+# Only skip when Author.s..ID is empty — without IDs we can't process at all.
+empty_ids <- is.na(focused_pubs$Author.s..ID) | focused_pubs$Author.s..ID == ""
+if (sum(empty_ids) > 0) {
+  cat("Skipping", sum(empty_ids), "publications with empty Author.s..ID:",
+      paste(focused_pubs$pubID[empty_ids], collapse = ", "), "\n")
+}
+focused_pubs <- focused_pubs[!empty_ids, ]
 
-# send questionable num_authors_per > 500
-focused_pubs[which(num_authors_per>500),] -> over_500_authors
+# --- Identify publications where affiliations are unusable --------------------
+# 1) Empty Authors.with.affiliations — use author names as placeholder
+# 2) Multi-author papers where every author's affiliation entry is identical to
+#    the shared Affiliations field — can't distinguish per-author affiliations.
+empty_aff <- is.na(focused_pubs$Authors.with.affiliations) |
+             focused_pubs$Authors.with.affiliations == ""
+ignore_pubIDs_empty <- focused_pubs$pubID[empty_aff]
 
-# number of authors with affiliations per publication
-num_authors_per <- apply(not_covered_pubs, 1, function(x) {
-  length(strsplit(x['Authors.with.affiliations'], ";")[[1]])
-})
+ignore_pubIDs_dup <- focused_pubs$pubID[apply(focused_pubs, 1, function(x) {
+  if (is.na(x["Authors.with.affiliations"]) || x["Authors.with.affiliations"] == "") return(FALSE)
+  affl_vec  <- strsplit(x["Authors.with.affiliations"], ";")[[1]]
+  n_authors <- length(strsplit(x["Author.s..ID"], ";")[[1]])
+  n_affls   <- length(strsplit(x["Affiliations"], ";")[[1]])
+  if (n_authors == 1 || n_affls == 1) return(FALSE)
+  all(grepl(gsub("[[:punct:]]", " ", x["Affiliations"]),
+            gsub("[[:punct:]]", " ", affl_vec), fixed = TRUE))
+})]
 
-# some issues if a column is empty
-sum(is.na(focused_pubs$Authors.with.affiliations))
-sum(focused_pubs$Authors.with.affiliations == "") # issue
-# focused_pubs <- focused_pubs %>%
-#   mutate(Authors.with.affiliations = ifelse(Authors.with.affiliations == "", paste0(rep(Affiliations, length(strsplit(Author.s..ID, ";")[[1]])), collapse = ";"), Authors.with.affiliations))
-sum(is.na(focused_pubs$Author.full.names))
-sum(focused_pubs$Author.full.names == "")
-sum(is.na(focused_pubs$Authors))
-sum(focused_pubs$Authors == "")
-sum(is.na(focused_pubs$Author.s..ID))
-sum(focused_pubs$Author.s..ID == "")
+ignore_pubIDs <- unique(c(ignore_pubIDs_empty, ignore_pubIDs_dup))
+cat("Publications with empty affiliations:", length(ignore_pubIDs_empty), "\n")
+cat("Publications with unusable per-author affiliations:", length(ignore_pubIDs_dup), "\n")
 
-# current_pubs <- focused_pubs[-not_covered,]
-# parse, split by ;
-# how to deal with the auth_affl_vec == each entry
-all_focused_authors <- apply(focused_pubs, 1, function(x) {
-  auth_name <- trimws(strsplit(x['Authors'], ";")[[1]])
-  auth_full_names <- trimws(strsplit(x['Author.full.names'], ";")[[1]])
-  auth_affl_vec <- trimws(strsplit(x['Authors.with.affiliations'], ";")[[1]])
-  auth_ids <- trimws(strsplit(x['Author.s..ID'], ";")[[1]])
-  if (x['pubID'] %in% ignore_pubIDs) {
-    res <- data.frame(auth_name, auth_full_names, "auth_affl_vec" = auth_name, auth_ids)
-    res$pubID <- x['pubID']
-    res$Link <- x['Link']
-    return(res)
-  } else if (length(auth_name) == length(auth_affl_vec)) {
-    res <- data.frame(auth_name, auth_full_names, auth_affl_vec, auth_ids)
-    res$pubID <- x['pubID']
-    res$Link <- x['Link']
-    return(res)
-  } else {
-    # need to match author name with correct author affiliation
-    res <- data.frame(auth_name = character(0), auth_full_names = character(0), auth_affl_vec = character(0), auth_ids = character(0), pubID = numeric(0), Link = character(0))
-    for (i in 1:length(auth_name)) { # takes a while since some have over 100 authors
-      fullname = auth_full_names[i]
-      lastname = strsplit(fullname, ",")[[1]][1]
-      idx <- grep(paste0("^", lastname), auth_affl_vec)[1]
-      if (length(idx) == 0) {
-        new_entry <- data.frame(auth_name[i], fullname, "", auth_ids[i], x['pubID'], x['Link'])
-      } else {
-        new_entry <- data.frame(auth_name[i], fullname, auth_affl_vec[idx], auth_ids[i], x['pubID'], x['Link'])
-        auth_affl_vec <- auth_affl_vec[-idx]
+# --- Split each publication into one row per author ---------------------------
+split_authors <- function(x) {
+  auth_name       <- trimws(strsplit(x["Authors"], ";")[[1]])
+  auth_full_names <- trimws(strsplit(x["Author.full.names"], ";")[[1]])
+  auth_affl_vec   <- trimws(strsplit(x["Authors.with.affiliations"], ";")[[1]])
+  auth_ids        <- trimws(strsplit(x["Author.s..ID"], ";")[[1]])
+  pub  <- x["pubID"]
+  link <- x["Link"]
+  n <- length(auth_ids)  # canonical count
+
+  # 2025 Scopus data sometimes has fewer Author.full.names entries than IDs
+  # (authors with only initials get skipped). Align by matching the embedded
+  # Scopus ID in each full_name entry to the correct position in auth_ids.
+  if (length(auth_full_names) < n) {
+    aligned <- rep("", n)
+    for (j in seq_along(auth_full_names)) {
+      id_in_name <- regmatches(auth_full_names[j], regexpr("[0-9]+", auth_full_names[j]))
+      if (length(id_in_name) > 0) {
+        pos <- which(auth_ids == id_in_name)
+        if (length(pos) == 1) aligned[pos] <- auth_full_names[j]
       }
-      
-      res[nrow(res)+1,] <- new_entry
     }
-    return(res)
+    auth_full_names <- aligned
   }
-  
-})
-all_focused_authors_df <- do.call(rbind, all_focused_authors)
 
-# create a column to determine whether author is USC affiliated or not
-# based on affiliations
-all_focused_authors_df$USC <- grepl(usc_regex, all_focused_authors_df$auth_affl_vec)
-not_covered_pubs$pubID %in% all_focused_authors_df$pubID # all not covered pubs are included
-# based on past authorIDs - gets 2000 more
-# don't do this since some authors are no longer affiliated w usc
-# all_focused_authors_df$USC <- ifelse(all_focused_authors_df$USC | all_focused_authors_df$auth_ids %in% existing_authorID, TRUE, FALSE)
+  if (pub %in% ignore_pubIDs) {
+    # Affiliations are unusable — fill with author name as placeholder
+    return(data.frame(auth_name, auth_full_names,
+                      auth_affl_vec = auth_name, auth_ids,
+                      pubID = pub, Link = link, stringsAsFactors = FALSE))
+  }
 
-focused_usc_authors <- all_focused_authors_df %>%
+  if (length(auth_name) == length(auth_affl_vec)) {
+    # Normal case: authors and affiliations align 1:1
+    return(data.frame(auth_name, auth_full_names, auth_affl_vec, auth_ids,
+                      pubID = pub, Link = link, stringsAsFactors = FALSE))
+  }
+
+  # Mismatch: match each author to their affiliation by last name
+  res <- data.frame(auth_name = character(0), auth_full_names = character(0),
+                    auth_affl_vec = character(0), auth_ids = character(0),
+                    pubID = character(0), Link = character(0),
+                    stringsAsFactors = FALSE)
+  for (i in seq_along(auth_name)) {
+    lastname <- strsplit(auth_full_names[i], ",")[[1]][1]
+    idx <- grep(paste0("^", lastname), auth_affl_vec)[1]
+    affl <- if (!is.na(idx)) auth_affl_vec[idx] else NA_character_
+    if (!is.na(idx)) auth_affl_vec <- auth_affl_vec[-idx]
+    res[nrow(res) + 1, ] <- list(auth_name[i], auth_full_names[i], affl,
+                                  auth_ids[i], pub, link)
+  }
+  res
+}
+
+all_authors_df <- do.call(rbind, apply(focused_pubs, 1, split_authors))
+
+# --- Filter to USC-affiliated authors -----------------------------------------
+# If an author is USC-affiliated in ANY publication, keep ALL their publications.
+# Additionally, rescue authors whose authorID appears in the historical lookup
+# table but have no detectable USC affiliation in new data (e.g. initials-only
+# authors whose affiliation field is empty in all new publications).
+all_authors_df$USC <- grepl(USC_REGEX, all_authors_df$auth_affl_vec)
+
+usc_authors <- all_authors_df %>%
   group_by(auth_ids) %>%
-  mutate(USCfinal = any(USC)) %>% # get all the rows with usc
-  filter(USCfinal == TRUE) %>% # filter(USC) will lose some pubs
+  mutate(
+    USCfinal          = any(USC),
+    rescued_by_lookup = !any(USC) & any(as.character(auth_ids) %in% historical_authorIDs)
+  ) %>%
+  filter(USCfinal | rescued_by_lookup) %>%
   ungroup()
 
-# create columns for authorID, fullname, firstname, lastname
-# all have ( and )
-all(grepl("\\(",focused_usc_authors$auth_full_names))
-all(grepl("\\)",focused_usc_authors$auth_full_names))
-focused_usc_authors$authorID <- regmatches(focused_usc_authors$auth_full_names, regexpr("[0-9]+", focused_usc_authors$auth_full_names))
-all.equal(focused_usc_authors$auth_ids, focused_usc_authors$authorID) # author IDs are equal
-focused_usc_authors$full_name <- sapply(focused_usc_authors$auth_full_names, function(x) {
-  trimws(strsplit(x, "\\(")[[1]][1])
+# --- Parse name fields from "Last, First (ID)" format ------------------------
+# Extract authorID from auth_full_names; fall back to auth_ids for padded rows
+# where auth_full_names is empty (2025 Scopus skips initials-only authors).
+usc_authors$authorID <- sub(".*?(\\d+).*", "\\1", usc_authors$auth_full_names)
+no_digit <- !grepl("\\d", usc_authors$auth_full_names)
+usc_authors$authorID[no_digit] <- usc_authors$auth_ids[no_digit]
+usc_authors$full_name  <- trimws(sub("\\(.*", "", usc_authors$auth_full_names))
+usc_authors$last_name  <- sapply(usc_authors$full_name, function(x) {
+  if (grepl(",", x)) return(strsplit(x, ",")[[1]][1])
+  s <- strsplit(x, " ")[[1]]
+  if (length(s) == 1) "" else s[1]
 })
-# no full names without ,
-which(grepl(",", focused_usc_authors$auth_full_names) == FALSE)
-# no full names with more than 1 ,
-which(stringr::str_count(focused_usc_authors$auth_full_names, ",")>1)
-focused_usc_authors$last_name <- sapply(focused_usc_authors$full_name, function(x) {
-  if (grepl(",", x)) {
-    strsplit(x, ",")[[1]][1]
-  } else { # should not be reached
-    s <- strsplit(x, " ")[[1]]
-    if (length(s) == 1) {
-      ""
-    } else {
-      s[1]
-    }
-  }
-})
-focused_usc_authors$first_name <- sapply(focused_usc_authors$full_name, function(x) {
-  if (grepl(",", x)) {
-    trimws(strsplit(x, ",")[[1]][2])
-  } else { # should not be reached
-    s <- strsplit(x, " ")[[1]]
-    if (length(s) == 1) {
-      s[1]
-    } else {
-      s[2]
-    }
-  }
+usc_authors$first_name <- sapply(usc_authors$full_name, function(x) {
+  if (grepl(",", x)) return(trimws(strsplit(x, ",")[[1]][2]))
+  s <- strsplit(x, " ")[[1]]
+  if (length(s) == 1) s[1] else s[2]
 })
 
-# these focused ones are mainly 2023
-table(focused_pubs$Year)
-
-write.csv(focused_usc_authors,
-          here::here("data_processed/all_usc_authors_2024.csv"),
+# --- Save ---------------------------------------------------------------------
+write.csv(usc_authors,
+          here::here("data_processed/02_usc_authors_identified.csv"),
           row.names = FALSE)
 
-bridge_table <- focused_usc_authors %>%
-  select(pubID, Link, authorID)
+bridge_table <- usc_authors %>% select(pubID, Link, authorID)
 write.csv(bridge_table,
-          here::here("data_processed/bridge_table_2024.csv"),
+          here::here("data_processed/02_bridge_pubid_authorid.csv"),
           row.names = FALSE)
+
+# --- Save rescued authors log -------------------------------------------------
+rescued_log <- usc_authors %>%
+  filter(rescued_by_lookup) %>%
+  select(authorID = auth_ids, auth_name, pubID, Link) %>%
+  distinct(authorID, pubID, .keep_all = TRUE)
+
+write.csv(rescued_log,
+          here::here("data_processed/02_rescued_authors_log.csv"),
+          row.names = FALSE)
+
+cat("\n=== Summary ===\n")
+cat("Unique USC authors:", length(unique(usc_authors$authorID)), "\n")
+cat("Author-pub pairs:", nrow(usc_authors), "\n")
+cat("Publications covered:", length(unique(usc_authors$pubID)), "\n")
+cat("Rescued from historical lookup (initials-only):",
+    length(unique(rescued_log$authorID)), "authors /",
+    nrow(rescued_log), "author-pub pairs\n")

@@ -17,7 +17,8 @@ scripts <- c(
   "10_dei.R",
   "11_wordcloud.R",
   "12_stacked_bar_chart_data.R",
-  "13_correct_final_div_dept.R"
+  "13_correct_final_div_dept.R",
+  "14_apply_dept_mapping.R"
 )
 
 # Function to source each script
