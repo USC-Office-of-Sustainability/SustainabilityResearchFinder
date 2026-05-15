@@ -1,4 +1,4 @@
-USC Sustainability Research Finder
+USC's Sustainability Research Finder
 ================
 
 - [Introduction](#introduction)
