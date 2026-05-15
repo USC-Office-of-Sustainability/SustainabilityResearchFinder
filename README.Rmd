@@ -119,6 +119,8 @@ To add new publications from Scopus, add the new file to data_raw/ and then in s
 
 To add new law publications, add the new CSV file to data_raw/ and append its path to the `LAW_FILES` vector in scripts_2023/05_add_law_pubs.R.
 
+Please note that all of the publication files are from the University of Southern California. We provide all files so that you can fully understand the process and then ideally repeat the process with your own institution's publication files from Scopus. The trickiest issues lie within author IDs, names and affiliations, and we made many corrections to address these issues.
+
 This README is a [RMarkdown GitHub document](https://rmarkdown.rstudio.com/github_document_format.html){target="_blank"}. To update the README, open and edit the README.Rmd file in RStudio. Then click Knit to generate the new README.md file. Upload/commit both files to GitHub.
 
 ### Folder Structure
@@ -346,8 +348,8 @@ Our dashboard is hosted on the web with [Shinyapps.io](https://shiny.posit.co/r/
 
 ## Acknowledgements
 
-This project was initially inspired by Carnegie Mellon's work on mapping its courses to the 17 UN SDGs. For more information, please read about our initial collaboration with Alex Hinicker and Peter Wu in our [Sustainability Course Finder Github Repository](https://github.com/USC-Office-of-Sustainability/SustainabilityCourseFinder){target="_blank"}. This project has been improved by feedback from many students, staff and faculty in [USC's Office of Sustainability](https://sustainability.usc.edu/){target="_blank"} and in [USC's Presidential Working Group on Sustainability in Research](https://www.president.usc.edu/sustainability-pwg/){target="_blank"}.  In particular, we would like to recognize the following people for their contributions to the development of this project, and the data and code: Alison Chen, Amber Madole, Aurora Massari, Bhavya Ramani, Brian Tinsley, Julie Hopper, Ric Xian, and Xinyi Zhang.
+This project was initially inspired by Carnegie Mellon's work on mapping its courses to the 17 UN SDGs. For more information, please read about our initial collaboration with Alex Hinicker and Peter Wu in our [Sustainability Course Finder Github Repository](https://github.com/USC-Office-of-Sustainability/SustainabilityCourseFinder){target="_blank"}. This project has been improved by feedback from many students, staff and faculty in [USC's Office of Sustainability](https://sustainability.usc.edu/){target="_blank"} and in [USC's Presidential Working Group on Sustainability in Research](https://www.president.usc.edu/sustainability-pwg/){target="_blank"}.  In particular, we would like to recognize the following people for their contributions to the development of this project, and the data and code: Alison Chen, Amber Madole, Aurora Massari, Bhavya Ramani, Brian Tinsley, Feiyang Wang, Julie Hopper, Ric Xian, and Xinyi Zhang.
 
 ## Questions?
 
-If you have any questions, comments, or concerns, please reach out to Alison Chen [achen807@usc.edu](mailto:achen807@usc.edu) or Julie Hopper [juliehop@usc.edu](mailto:juliehop@usc.edu)
+If you have any questions, comments, or concerns, please reach out to Dr. Julie Hopper: oosdata(at)usc.edu
