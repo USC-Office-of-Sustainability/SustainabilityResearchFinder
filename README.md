@@ -38,10 +38,8 @@ This project was initiated during the 2022 Fall
 Datafest</a> at USC by Dr. Julie Hopper in the Office of Sustainability
 and five USC students: Alison Chen, Aurora Massari, Bhavya Ramani, Ric
 Xian and Xinyi Zhang. Feedback was provided by the USC PWG Research
-Committee and incorporated by Dr. Julie Hopper and Alison Chen, with the
-majority of the data processing pipelines and dashboard code implemented
-by Alison Chen, a recent Masters student graduate from Viterbi School of
-Engineering.
+Committee and several new iterations and data processing pipelines have 
+been incorporated by Dr. Julie Hopper, Alison Chen and Feiyang Wang since.
 
 ## Requirements
 
