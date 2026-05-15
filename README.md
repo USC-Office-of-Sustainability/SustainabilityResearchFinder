@@ -58,7 +58,7 @@ been incorporated by Dr. Julie Hopper, Alison Chen and Feiyang Wang since.
     large data files are stored here <a
     href="https://drive.google.com/drive/folders/1FCNpPjeOBa0_kFAvGWjBKQ6TDEydviDi?usp=sharing"
     target="_blank">Complete Data Files on Google Drive</a>. Please
-    download all three folders (“data_processed”, “data_raw”,
+    download all three folders (“data_processed”, "data_manual",“data_raw”,
     “shiny_app”) and put them in the “Dashboard” folder of the cloned
     repository. You may be asked whether to replace those folder, and
     please click “replace”, as the folders on Google Drive contain the
@@ -160,7 +160,7 @@ install.packages("RColorBrewer")
 
 ## Usage
 
-To run the shiny app, open the app.R file in RStudio and click Run App.
+To run just the shiny app, download the appropriate files, open the app.R file in RStudio and click Run App.
 
 To update keywords and/or context dependencies, add the new files to
 data_raw/. In scripts_2023/08_run_text2sdg.R, update the file names in
@@ -175,6 +175,8 @@ files in scripts_2023/ (or use run_all.R).
 To add new law publications, add the new CSV file to data_raw/ and
 append its path to the `LAW_FILES` vector in
 scripts_2023/05_add_law_pubs.R.
+
+**Please note that all the publication files are for the University of Southern California** We provide all files so that you can fully understand the process and then ideally repeat the process with your own institution's publication files from Scopus. The trickiest issues lie within author IDs, names and affiliations, and we made many corrections to address these issues.
 
 This README is a
 <a href="https://rmarkdown.rstudio.com/github_document_format.html"
@@ -208,7 +210,7 @@ generate the new README.md file. Upload/commit both files to GitHub.
 
 - Publication data was downloaded from
   <a href="https://www.scopus.com/" target="_blank">Scopus</a> with the
-  help of Xinyi Zhang.
+  help of Xinyi Zhang and Feiyang Wang. 
   <details>
   <summary>
   How we downloaded the data from Scopus
@@ -247,7 +249,7 @@ generate the new README.md file. Upload/commit both files to GitHub.
   </ol>
   </details>
 - Additional publications from the Gould School of Law were provided
-  with the help of Amber Kennedy Madole.
+  with the help of Dr.Amber Kennedy Madole.
   <details>
   <summary>
   How we added publications outside of Scopus
@@ -742,9 +744,9 @@ target="_blank">USC’s Presidential Working Group on Sustainability in
 Research</a>. In particular, we would like to recognize the following
 people for their contributions to the development of this project, and
 the data and code: Alison Chen, Amber Madole, Aurora Massari, Bhavya
-Ramani, Brian Tinsley, Julie Hopper, Ric Xian, and Xinyi Zhang.
+Ramani, Brian Tinsley, Feiyang Wang, Julie Hopper, Ric Xian, and Xinyi Zhang.
 
 ## Questions?
 
 If you have any questions, comments, or concerns, please reach out to
-Alison Chen <achen807@usc.edu> or Julie Hopper <juliehop@usc.edu>
+Dr. Julie Hopper: oosdata(at)usc.edu
