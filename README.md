@@ -1,4 +1,4 @@
-USC Sustainability Research Finder
+USC's Sustainability Research Finder
 ================
 
 - [Introduction](#introduction)
@@ -18,9 +18,7 @@ USC Sustainability Research Finder
 
 ## Introduction
 
-This
-<a href="https://usc-sustainability.shinyapps.io/research-dashboard/"
-target="_blank">Sustainability Resesarch Finder</a> is a R Shiny
+[USC's Sustainability Resesarch Finder](https://usc-sustainability.shinyapps.io/research_dashboard/) is a R Shiny
 dashboard that displays the results of mapping USC affiliated research
 products to the United Nations 17 Sustainable Development Goals (SDGs).
 Furthermore, each product is categorized as sustainability focused,
@@ -38,9 +36,8 @@ This project was initiated during the 2022 Fall
 Datafest</a> at USC by Dr. Julie Hopper in the Office of Sustainability
 and five USC students: Alison Chen, Aurora Massari, Bhavya Ramani, Ric
 Xian and Xinyi Zhang. Feedback was provided by the USC PWG Research
-Committee and several new iterations and data processing pipelines have
-been incorporated by Dr. Julie Hopper, Alison Chen and Feiyang Wang
-since.
+Committee and several new iterations and data processing pipelines have 
+been incorporated by Dr. Julie Hopper, Alison Chen and Feiyang Wang since.
 
 ## Requirements
 
@@ -59,7 +56,7 @@ since.
     large data files are stored here <a
     href="https://drive.google.com/drive/folders/1FCNpPjeOBa0_kFAvGWjBKQ6TDEydviDi?usp=sharing"
     target="_blank">Complete Data Files on Google Drive</a>. Please
-    download all three folders (“data_processed”, “data_raw”,
+    download all three folders (“data_processed”, "data_manual",“data_raw”,
     “shiny_app”) and put them in the “Dashboard” folder of the cloned
     repository. You may be asked whether to replace those folder, and
     please click “replace”, as the folders on Google Drive contain the
@@ -111,9 +108,7 @@ library(dplyr)
 ```
 
 <details>
-
 <summary>
-
 List of packages that need to be installed before running the shiny app
 </summary>
 
@@ -136,11 +131,8 @@ install.packages("shinyWidgets")
 ```
 
 </details>
-
 <details>
-
 <summary>
-
 List of packages that need to be installed before running the data
 processing pipeline (scripts_2023/)
 </summary>
@@ -166,7 +158,7 @@ install.packages("RColorBrewer")
 
 ## Usage
 
-To run the shiny app, open the app.R file in RStudio and click Run App.
+To run just the shiny app, download the appropriate files, open the app.R file in RStudio and click Run App.
 
 To update keywords and/or context dependencies, add the new files to
 data_raw/. In scripts_2023/08_run_text2sdg.R, update the file names in
@@ -182,12 +174,7 @@ To add new law publications, add the new CSV file to data_raw/ and
 append its path to the `LAW_FILES` vector in
 scripts_2023/05_add_law_pubs.R.
 
-Please note that all of the publication files are from the University of
-Southern California. We provide all files so that you can fully
-understand the process and then ideally repeat the process with your own
-institution’s publication files from Scopus. The trickiest issues lie
-within author IDs, names and affiliations, and we made many corrections
-to address these issues.
+**Please note that all of the publication files are from the University of Southern California.** We provide all files so that you can fully understand the process and then ideally repeat the process with your own institution's publication files from Scopus. The trickiest issues lie within author IDs, names and affiliations, and we made many corrections to address these issues.
 
 This README is a
 <a href="https://rmarkdown.rstudio.com/github_document_format.html"
@@ -221,94 +208,66 @@ generate the new README.md file. Upload/commit both files to GitHub.
 
 - Publication data was downloaded from
   <a href="https://www.scopus.com/" target="_blank">Scopus</a> with the
-  help of Xinyi Zhang.
+  help of Xinyi Zhang and Feiyang Wang. 
   <details>
-
   <summary>
-
   How we downloaded the data from Scopus
   </summary>
-
   <ol>
-
   <li>
-
   Go to <a href="https://www.scopus.com/" target="_blank">scopus.com</a>
   and log in via institution by clicking the building icon in the top
   right.
   </li>
-
   <li>
-
   Search in Organization “University of Southern
   California”.<img src="README_files/search_organization.png"/>
   </li>
-
   <li>
-
   Click the number of
   documents.<img src="README_files/org_search_result.png"/>
   </li>
-
   <li>
-
   Double check the search query by clicking
   edit.<img src="README_files/search_query.png"/>
   </li>
-
   <li>
-
   Select all documents and export (not download) as CSV. Include all
   Citation Information, Affiliations, Publisher, and all Abstract &
   Keywords. Tip: download year by year since there is a limit to the
   number of documents you can export at one
   time.<img src="README_files/checklist.png"/>
   </li>
-
   <li>
-
   To view the downloaded csv file in Excel, open Excel, go to the Data
   Tab \> Get Data \> From File \> From Text/CSV, select the csv and
   load. However, we recommend not editing the csv in excel since we ran
   into issues where the special characters in the data got messed up.
   </li>
-
   </ol>
-
   </details>
 - Additional publications from the Gould School of Law were provided
-  with the help of Amber Kennedy Madole.
+  with the help of Dr.Amber Kennedy Madole.
   <details>
-
   <summary>
-
   How we added publications outside of Scopus
   </summary>
-
   <ul>
-
   <li>
-
   Create a Google Sheet with the following columns: Publication Type,
   Author Name (Last, First), Division, Department, authorID, Title,
   Abstract, Link, Year, Source Title, Volume, Issue, Article Number,
   Page start, Page end, Page count, DOI, Open Access.
   </li>
-
   <li>
-
   Each row is one author with one publication.
   </li>
-
   <li>
-
   Manually assign authorIDs by searching the author in the existing
   dataset and/or searching on Scopus. If the author does not exist,
   assign an arbitrary id such as Gould10.
   </li>
-
   </ul>
-
   </details>
 - Keyword list, created in collaboration with the Presidential Working
   Group (PWG), is a list of words relevant to each of the 17 SDGs. The
@@ -356,40 +315,26 @@ all the authors of the publication. As a result, for the publications
 that are incorrectly formatted, we searched ten authorIDs (first nine
 and last one) up on Scopus via Elsevier API.
 <details>
-
 <summary>
-
 Using Elsevier API
 </summary>
-
 <strong>Prerequisites</strong>
 <ol>
-
 <li>
-
 Create developer account at <https://dev.elsevier.com/>
 </li>
-
 <li>
-
 Create an API key
 </li>
-
 <li>
-
 Email support for an institution token
 </li>
-
 </ol>
-
 <strong>Setting up the API key</strong>
 <ol>
-
 <li>
-
 Create a .Renviron file with
 </li>
-
 </ol>
 
 ``` r
@@ -458,50 +403,33 @@ division names and rematch the departments to the department patterns.
 To run the code in scripts_2020/03_get_usc_author_info.R, create a
 “uscdirectory.cookie” file.
 <details>
-
 <summary>
-
 Where to Find the Cookie
 </summary>
-
 <ol>
-
 <li>
-
 Using Chrome, go to
 <a href="https://uscdirectory.usc.edu/web/directory/faculty-staff/"
 target="_blank">USC directory search</a>.
 </li>
-
 <li>
-
 Right click on the page and select Inspect.
 </li>
-
 <li>
-
 In the panel, select Network.
 </li>
-
 <li>
-
 Search Julie Hopper in the USC Directory Search bar.
 </li>
-
 <li>
-
 Find the entry in the network where the Request URL looks like
 <code>https://uscdirectory.usc.edu/web/directory/faculty-staff/proxy.php?basic=julie%20hopper</code>
 </li>
-
 <li>
-
 Scroll down to the Request Headers section and copy the cookie to your
 uscdirectory.cookie file.
 </li>
-
 </ol>
-
 </details>
 
 4.  Create departments and divisions table
@@ -814,10 +742,9 @@ target="_blank">USC’s Presidential Working Group on Sustainability in
 Research</a>. In particular, we would like to recognize the following
 people for their contributions to the development of this project, and
 the data and code: Alison Chen, Amber Madole, Aurora Massari, Bhavya
-Ramani, Brian Tinsley, Feiyang Wang, Julie Hopper, Ric Xian, and Xinyi
-Zhang.
+Ramani, Brian Tinsley, Feiyang Wang, Julie Hopper, Ric Xian, and Xinyi Zhang.
 
 ## Questions?
 
 If you have any questions, comments, or concerns, please reach out to
-Dr. Julie Hopper: oosdata(at)usc.edu
+Dr. Julie Hopper: oosdata(at)usc.edu
