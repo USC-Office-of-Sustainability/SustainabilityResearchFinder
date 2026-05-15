@@ -176,7 +176,7 @@ To add new law publications, add the new CSV file to data_raw/ and
 append its path to the `LAW_FILES` vector in
 scripts_2023/05_add_law_pubs.R.
 
-**Please note that all the publication files are for the University of Southern California** We provide all files so that you can fully understand the process and then ideally repeat the process with your own institution's publication files from Scopus. The trickiest issues lie within author IDs, names and affiliations, and we made many corrections to address these issues.
+**Please note that all of the publication files are from the University of Southern California.** We provide all files so that you can fully understand the process and then ideally repeat the process with your own institution's publication files from Scopus. The trickiest issues lie within author IDs, names and affiliations, and we made many corrections to address these issues.
 
 This README is a
 <a href="https://rmarkdown.rstudio.com/github_document_format.html"
