@@ -54,8 +54,8 @@ been incorporated by Dr. Julie Hopper, Alison Chen and Feiyang Wang since.
 2.  Due to GitHub file size limitations, the complete USC research data
     could not be completely uploaded to the repository. As a result, the
     large data files are stored here <a
-    href="https://drive.google.com/drive/folders/1FCNpPjeOBa0_kFAvGWjBKQ6TDEydviDi?usp=sharing"
-    target="_blank">Complete Data Files on Google Drive</a>. Please
+    href="[https://drive.google.com/drive/folders/1FCNpPjeOBa0_kFAvGWjBKQ6TDEydviDi?usp=sharing](https://drive.google.com/drive/folders/1VpqSxIkEDJzRyWmG5nHgqypOlre5jN4K?usp=share_link)"
+    target="_blank">Research Finder Complete Files on Google Drive</a>. Please
     download all three folders (“data_processed”, "data_manual",“data_raw”,
     “shiny_app”) and put them in the “Dashboard” folder of the cloned
     repository. You may be asked whether to replace those folder, and
