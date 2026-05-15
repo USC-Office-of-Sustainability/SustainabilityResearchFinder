@@ -18,9 +18,7 @@ USC's Sustainability Research Finder
 
 ## Introduction
 
-USC's
-<a href="://usc-sustainability.shinyapps.io/research_dashboard/"
-target="_blank">Sustainability Resesarch Finder</a> is a R Shiny
+[USC's Sustainability Resesarch Finder](https://usc-sustainability.shinyapps.io/research_dashboard/) is a R Shiny
 dashboard that displays the results of mapping USC affiliated research
 products to the United Nations 17 Sustainable Development Goals (SDGs).
 Furthermore, each product is categorized as sustainability focused,
