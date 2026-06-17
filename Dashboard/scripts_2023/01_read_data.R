@@ -19,6 +19,7 @@ NEW_YEAR_FILES <- list(
   list(path = "data_raw/2023_scopus_downloaded_03_08_2024.csv", year = 2023),
   list(path = "data_raw/2024_scopus_downloaded_01_01_2025.csv", year = 2024),
   list(path = "data_raw/2025_scopus_downloaded_02_10_2026.csv", year = 2025)
+  #list(path = "data_raw/2026_scopus.csv", year = 2026)
 )
 
 EXCLUDED_DOC_TYPES <- c("Letter", "Retracted", "Note", "Erratum")
@@ -37,13 +38,19 @@ KEEP_COLS <- c(
 # │  LOGIC — no need to touch below                                            │
 # └─────────────────────────────────────────────────────────────────────────────┘
 
-VALID_YEARS <- 2020:max(sapply(NEW_YEAR_FILES, `[[`, "year"))
+# VALID_YEARS <- 2020:max(sapply(NEW_YEAR_FILES, `[[`, "year"))
+LATEST_YEAR <- max(sapply(NEW_YEAR_FILES, `[[`, "year"))
+WINDOW_SIZE <- 5
+VALID_YEARS <- (LATEST_YEAR - WINDOW_SIZE + 1):LATEST_YEAR
+cat("Rolling 5-year window: keeping years", min(VALID_YEARS), "to", max(VALID_YEARS), "\n")
 
 # Standardize column names across different Scopus export formats
 rename_scopus <- function(df) {
   if ("Title" %in% names(df))          df <- rename(df, Titles = Title)
   if ("Index.Keywords" %in% names(df)) df <- rename(df, Indexed.Keywords = Index.Keywords)
   if ("X" %in% names(df))              df <- select(df, -X)
+  #df$Year <- as.integer(df$Year)
+  #df$Cited.by <- as.integer(df$Cited.by)
   df
 }
 

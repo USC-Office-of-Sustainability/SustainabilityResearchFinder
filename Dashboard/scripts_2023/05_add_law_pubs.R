@@ -6,6 +6,7 @@ LAW_FILES <- c(
   "data_raw/USC_Law_2023.csv",
   "data_raw/USC_Law_2024.csv",
   "data_raw/USC_Law_2025.csv"
+  #"data_raw/USC_Law_2026.csv"
 )
 # ------------------------------------------------------------------------------
 

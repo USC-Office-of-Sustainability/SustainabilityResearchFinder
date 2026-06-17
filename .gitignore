@@ -11,3 +11,4 @@ CKIDS/
 .idea
 *.csv
 *.xlsx
+.RDataTmp*

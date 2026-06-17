@@ -176,7 +176,12 @@ the following scripts (09, 10, etc.).
 **To add new publications from Scopus:** Add the new file to `data_raw/`
 and then in `scripts_2023/01_read_data.R`, append a new entry to the
 `NEW_YEAR_FILES` list with the file path and target year. Run all the
-files in `scripts_2023/` (or use `run_all.R`).
+files in `scripts_2023/` (or use `run_all.R`). **Important**: Always use
+the CSV file exactly as downloaded from Scopus — do not open and re-save
+it in Excel first. Doing so will corrupt special characters in the data.
+If you need to inspect the file in Excel, use the Data Tab \> Get Data
+\> From File \> From Text/CSV to import it for viewing, then save a
+separate copy as an Excel workbook (.xlsx) if needed.
 
 **To add new law publications:** Add the new CSV file to `data_raw/` and
 append its path to the `LAW_FILES` vector in
