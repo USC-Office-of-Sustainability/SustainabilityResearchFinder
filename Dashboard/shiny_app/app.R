@@ -6,6 +6,11 @@
 #
 #    http://shiny.rstudio.com/
 
+# IMPORTANT: Before running this app, set your working directory to this
+# app's folder (the "shiny_app" folder containing this app.R file) on your
+# local computer. In RStudio: Session > Set Working Directory > To Source
+# File Location, or run: setwd("path/to/your/shiny_app")
+
 # Load the required packages --------------------------------------------------
 # install.packages("name") to install any missing packages
 library(shiny)
@@ -60,9 +65,15 @@ sdg_col_names <- syms(c("SDG.01", "SDG.02", "SDG.03", "SDG.04", "SDG.05", "SDG.0
 # usc_pubs <- read.csv("05_pubs_with_law.csv")
 # usc_sdgs <- read.csv("08_pubs_sdg_categorized.csv")
 # usc_authors <- read.csv("authors_only_revalued.csv")
-usc_authors <- read.csv("14_authors_dept_corrected.csv")
-usc_authors <- usc_authors %>%
-  rename(Division = Div, Department = Dept)
+
+# Load only authors with publications in the active rolling five-year window.
+# Division and Department were already renamed during preprocessing.
+usc_authors <- read.csv(
+  "precomp_active_authors.csv",
+  stringsAsFactors = FALSE
+) %>%
+  mutate(authorID = as.character(authorID))
+
 #usc_bridge <- read.csv("07_bridge_manual_edited.csv")
 # dei_data <- read.csv("DEI_pubs.csv")
 dei_joined <- read.csv("10_dei_pubs_ordered.csv")
@@ -417,7 +428,7 @@ ui <- dashboardPage(
           #
           #   )
           # ),
-          h2(strong("List of Research Products Ranked by SDG Keyword Count")),
+          h2(strong("List of Research Products By Year and SDG Keyword Count")),
           h4(em("*Limited to 2000 products")), # italics
           fluidRow(
             column(12,
@@ -483,7 +494,7 @@ ui <- dashboardPage(
             "at USC by Dr. Julie Hopper in the Office of Sustainability and
             five USC students: Alison Chen, Aurora Massari, Bhavya Ramani, Ric
             Xian and Xinyi Zhang. Feedback was provided by the USC PWG Research
-            Committee and incorporated by Dr. Julie Hopper and Alison Chen. Since then, Dr. Hopper and Feiyang Wang (a USC Masters student) have updated the pipelines and incorporated new research data.",
+            Committee and incorporated by Dr. Julie Hopper and Alison Chen. Since then, Dr. Hopper and USC Masters students: Feiyang Wang and Ishita Joshi have updated the pipelines and incorporated new research data.",
             strong("USC research products in the dashboard dataset includes
                    books, publications, conference proceedings, and scholarly
                    reports",), "pulled from ",
@@ -716,7 +727,7 @@ server <- function(input, output, session) {
     output$disclaimer5 <-
     output$disclaimer6 <- renderUI({
     tagList(
-      h4(paste0("Data is from 2020-", max(year_choices),
+      h4(paste0("Data is from ", min(year_choices), "-", max(year_choices),
                 ". This app is a work in progress, and, we are continually improving accuracy. If you have feedback, please fill out our "),
          a("feedback form",
            href="https://forms.gle/P6QJDSJaaRusZLZh6", .noWS = "after",
@@ -948,11 +959,13 @@ server <- function(input, output, session) {
       ),
       showlegend = TRUE
     ) %>% layout(
-      margin = list(l = 20, r = 20),
+      title = NULL,
+      margin = list(l = 20, r = 20, t = 40, b = 20, pad = 0),
       xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
       yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
       legend = list(orientation = 'h'),
-      font = list(size = 18)
+      font = list(size = 18),
+      autosize = TRUE
     )
   })
   
@@ -1182,13 +1195,16 @@ server <- function(input, output, session) {
         geom_bar(position="fill", stat="identity") +
         scale_fill_manual(values = c("#2F6DBA", "#990000", "#FFC72C", "#767676"), name = "Sustainability Category") +
         scale_y_continuous(labels = scales::percent) +
-        labs(#title = str_wrap("Sustainability Related Products by Year", 40),
-             y = "Percent") +
+        labs(y = "Percent") +
         theme_minimal(base_size = 20) +
-        theme(legend.position = "bottom", 
-              legend.direction="vertical", 
+        theme(legend.position = "bottom",
+              legend.direction = "vertical",
               legend.box.spacing = margin(0),
-              text = element_text(size = 20, face = "bold", family = "sans"))
+              text = element_text(size = 20, family = "sans"),
+              axis.title = element_text(face = "bold"),
+              axis.text = element_text(face = "bold"),
+              legend.title = element_text(face = "bold", size = 18),
+              legend.text = element_text(face = "plain", size = 16))
     })
   
   # output$stacked_bar2 <- renderPlot(
@@ -1214,8 +1230,16 @@ server <- function(input, output, session) {
       labs(#title = str_wrap("Sustainability Related Departments/Centers/Institutes by Year", 40),
            y = "Percent") +
       theme_minimal(base_size = 20) +
-      theme(legend.position = "bottom", legend.direction="vertical", legend.box.spacing = margin(0),
-            text = element_text(size = 20, face = "bold", family = "sans"))
+      theme(
+        legend.position = "bottom",
+        legend.direction = "vertical",
+        legend.box.spacing = margin(0),
+        text = element_text(size = 20, family = "sans"),
+        axis.title = element_text(face = "bold"),
+        axis.text = element_text(face = "bold"),
+        legend.title = element_text(face = "bold", size = 18),
+        legend.text = element_text(face = "plain", size = 16)
+      )
   })
   
   # tab 4
@@ -1414,7 +1438,7 @@ server <- function(input, output, session) {
     author_sdg_pubcounts %>%
       filter(Division %in% input$Division, sdg_num == as.integer(input$Primary.SDG)) %>%
       group_by(authorID, name) %>%
-      summarise(n = sum(n_pubs), .groups = "drop") %>%
+      summarise(n = n_distinct(pubID), .groups = "drop") %>%
       arrange(desc(n)) %>%
       distinct(name, .keep_all = TRUE) %>%
       head(10) %>%
@@ -1464,8 +1488,10 @@ server <- function(input, output, session) {
     )
     author_sdg_kw %>%
       filter(Division %in% input$Division, sdg_num == as.integer(input$Primary.SDG)) %>%
+      # Count each publication's keyword value once across selected divisions.
+      distinct(authorID, name, pubID, sdg_num, .keep_all = TRUE) %>%
       group_by(authorID, name) %>%
-      summarise(n = sum(kw_sum), .groups = "drop") %>%
+      summarise(n = sum(val, na.rm = TRUE), .groups = "drop") %>%
       arrange(desc(n)) %>%
       head(10) %>%
       ggplot(aes(x = reorder(as.factor(name), n), y = n)) +
@@ -1600,21 +1626,28 @@ server <- function(input, output, session) {
     pubs_sdg_div %>%
       filter(Division %in% input$Division) %>%
       filter(.data[[sdg_col]] != 0) %>%
-      arrange(desc(.data[[sdg_col]])) %>%
-      select(sustainability_category, all_SDGs, Titles, Authors, Divisions,
+      
+      # Show the unique keyword count for the SDG selected by the user.
+      mutate(SDG_Keyword_Count = as.integer(.data[[sdg_col]])) %>%
+      
+      # List the newest products first, then rank equal-year products
+      # by their selected SDG keyword count.
+      arrange(desc(Year), desc(SDG_Keyword_Count)) %>%
+      select(sustainability_category, all_SDGs, SDG_Keyword_Count, Titles, Authors, Divisions,
              Year, Source.title, Cited.by, Abstract, Open.Access) %>%
       distinct() %>%
       head(2000)
   }, rownames = FALSE, escape = FALSE,
   options = list(
     columnDefs = list(list(width = '200px', targets = c(2)),
-                      list(width = '100px', targets = c(0,9)),
-                      list(width = '800px', targets = c(8))),
+                      list(width = '100px', targets = c(0,10)),
+                      list(width = '800px', targets = c(9))),
     autoWidth = TRUE,
     scrollX = TRUE,
     columns = list(
       list(title = 'Sustainability Category'),
       list(title = 'SDGs'),
+      list(title = 'SDG Keyword Count'),
       list(title = 'Title'),
       list(title = 'USC Scholars'),
       list(title = 'Division'),
@@ -1626,7 +1659,7 @@ server <- function(input, output, session) {
     )
   )
   )
-
+  
   # tab 6
   observeEvent(
     input$school, ignoreNULL = FALSE,
@@ -1636,7 +1669,26 @@ server <- function(input, output, session) {
       # } else {
       #   selected_authors = usc_authors %>% filter(usc_authors$Division == input$school)
       # }
-      selected_authors = usc_authors
+      # selected_authors = usc_authors
+      # The preprocessing step already removed historical-only authors.
+      selected_authors <- usc_authors %>%
+        group_by(authorID, fullname) %>%
+        
+        summarise(
+          firstname = first(firstname),
+          lastname = first(lastname),
+          
+          # Keep every unique department, including "Other",
+          # because "Other" may represent a separate school or division.
+          Department = paste(
+            sort(unique(Department[
+              !is.na(Department) & trimws(Department) != ""
+            ])),
+            collapse = ", "
+          ),
+          
+          .groups = "drop"
+        )
 
       # For each author, build a search label that includes nickname variants
       # e.g. "Joseph Árvai [joe arvai, joey arvai]"
@@ -1647,12 +1699,14 @@ server <- function(input, output, session) {
         if (is.null(nicks) || length(nicks) == 0) return("")
         paste(paste(nicks, tolower(lastname)), collapse = ", ")
       }, selected_authors$firstname, selected_authors$lastname)
-
-      labels <- ifelse(
-        nick_suffix != "",
-        paste0(selected_authors$fullname, " [", nick_suffix, "]"),
-        selected_authors$fullname
-      )
+      
+      # labels <- ifelse(
+      #   nick_suffix != "",
+      #   paste0(selected_authors$fullname, " [", nick_suffix, "]"),
+      #   selected_authors$fullname
+      # )
+      
+      labels <- paste0(selected_authors$fullname, " — ", selected_authors$Department)
 
       authorChoices = setNames(selected_authors$authorID, labels)
       updateSelectizeInput(session,
@@ -1926,10 +1980,10 @@ server <- function(input, output, session) {
         summarise(
           "LA Keywords" = paste(sort(unique(unlist(strsplit(DEI_3.3_keywords, ",\\s*")))), collapse = "; "),
           "SDG Keywords" = paste(sort(unique(unlist(strsplit(all_SDGs, ",\\s*")))), collapse = "; "),
-          "Sustainability-Focused" = paste(unique(Titles[sustainability_category == "Sustainability-Focused"]), collapse = "; "),
-          "Sustainability-Inclusive" = paste(unique(Titles[sustainability_category == "Sustainability-Inclusive"]), collapse = "; "),
-          "SDG-Related" = paste(unique(Titles[sustainability_category == "SDG-Related"]), collapse = "; "),
-          "Not Related" = paste(unique(Titles[sustainability_category == "Not Related"]), collapse = "; "),
+          "Sustainability-Focused Titles" = paste(unique(Titles[sustainability_category == "Sustainability-Focused"]), collapse = "; "),
+          "Sustainability-Inclusive Titles" = paste(unique(Titles[sustainability_category == "Sustainability-Inclusive"]), collapse = "; "),
+          "SDG-Related Titles" = paste(unique(Titles[sustainability_category == "SDG-Related"]), collapse = "; "),
+          "Not Related Titles" = paste(unique(Titles[sustainability_category == "Not Related"]), collapse = "; "),
           .groups = "drop"
         ) %>%
         rename("Author" = name)
@@ -1938,7 +1992,17 @@ server <- function(input, output, session) {
   options = list(
     autoWidth = TRUE,
     scrollX = TRUE,
-    language = list(zeroRecords = "No results found")
+    language = list(zeroRecords = "No results found"),
+    
+    # Place the explanation below the table controls and above the headers.
+    initComplete = JS(
+      "function(settings, json) {
+      var container = $(this.api().table().container());
+      container.find('.dataTables_filter').after(
+        '<div style=\"clear: both; padding-top: 8px; padding-bottom: 8px; font-style: italic;\">*Publication Titles are separated by &#39;;&#39;</div>'
+      );
+    }"
+    )
   )
   )
   
@@ -1974,10 +2038,10 @@ server <- function(input, output, session) {
           summarise(
             "LA Keywords" = paste(sort(unique(unlist(strsplit(DEI_3.3_keywords, ",\\s*")))), collapse = "; "),
             "SDG Keywords" = paste(sort(unique(unlist(strsplit(all_SDGs, ",\\s*")))), collapse = "; "),
-            "Sustainability-Focused" = paste(unique(Titles[sustainability_category == "Sustainability-Focused"]), collapse = "; "),
-            "Sustainability-Inclusive" = paste(unique(Titles[sustainability_category == "Sustainability-Inclusive"]), collapse = "; "),
-            "SDG-Related" = paste(unique(Titles[sustainability_category == "SDG-Related"]), collapse = "; "),
-            "Not Related" = paste(unique(Titles[sustainability_category == "Not Related"]), collapse = "; "),
+            "Sustainability-Focused Titles" = paste(unique(Titles[sustainability_category == "Sustainability-Focused"]), collapse = "; "),
+            "Sustainability-Inclusive Titles" = paste(unique(Titles[sustainability_category == "Sustainability-Inclusive"]), collapse = "; "),
+            "SDG-Related Titles" = paste(unique(Titles[sustainability_category == "SDG-Related"]), collapse = "; "),
+            "Not Related Titles" = paste(unique(Titles[sustainability_category == "Not Related"]), collapse = "; "),
             .groups = "drop"
           ) %>%
           rename("Author" = name) -> out

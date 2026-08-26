@@ -42,6 +42,26 @@ usc_joined <- merge(tmp, usc_authors, by = "authorID")
 
 message("Base tables loaded. Rows in usc_joined: ", nrow(usc_joined))
 
+# Keep only authors with publications in the active five-year data.
+# The Shiny app will not need to load historical-only authors.
+active_authors <- usc_authors %>%
+  semi_join(
+    usc_joined %>% distinct(authorID),
+    by = "authorID"
+  )
+
+write.csv(
+  active_authors,
+  file.path(SHINY, "precomp_active_authors.csv"),
+  row.names = FALSE
+)
+
+message(
+  "Active authors saved: ",
+  n_distinct(active_authors$authorID),
+  " author IDs"
+)
+
 # ---------------------------------------------------------------------------
 # 2. Helpers
 # ---------------------------------------------------------------------------
@@ -153,11 +173,23 @@ write.csv(depts_sust_year,
 # ---------------------------------------------------------------------------
 message("Computing: dept_sdg_counts_by_division.csv ...")
 
+# dept_sdg_div <- usc_joined %>%
+#   select(Division, Department, starts_with("SDG")) %>%
+#   binarise_sdgs() %>%
+#   group_by(Division, Department) %>%
+#   summarise(across(starts_with("SDG"), sum, na.rm = TRUE), .groups = "drop")
+
+# Count each publication once per department, even when several authors
+# from that department worked on the same publication.
 dept_sdg_div <- usc_joined %>%
-  select(Division, Department, starts_with("SDG")) %>%
+  select(Division, Department, pubID, starts_with("SDG")) %>%
+  distinct(Division, Department, pubID, .keep_all = TRUE) %>%
   binarise_sdgs() %>%
   group_by(Division, Department) %>%
-  summarise(across(starts_with("SDG"), sum, na.rm = TRUE), .groups = "drop")
+  summarise(
+    across(starts_with("SDG"), \(x) sum(x, na.rm = TRUE)),
+    .groups = "drop"
+  )
 
 write.csv(dept_sdg_div,
           file.path(SHINY, "precomp_dept_sdg_by_division.csv"),
@@ -168,11 +200,23 @@ write.csv(dept_sdg_div,
 # ---------------------------------------------------------------------------
 message("Computing: division_sdg_sums.csv ...")
 
+# div_sdg_sum <- usc_joined %>%
+#   select(Division, starts_with("SDG")) %>%
+#   binarise_sdgs() %>%
+#   group_by(Division) %>%
+#   summarise(across(starts_with("SDG"), sum, na.rm = TRUE), .groups = "drop")
+
+# Count each publication once per division, even when it is connected
+# to multiple authors or departments in that division.
 div_sdg_sum <- usc_joined %>%
-  select(Division, starts_with("SDG")) %>%
+  select(Division, pubID, starts_with("SDG")) %>%
+  distinct(Division, pubID, .keep_all = TRUE) %>%
   binarise_sdgs() %>%
   group_by(Division) %>%
-  summarise(across(starts_with("SDG"), sum, na.rm = TRUE), .groups = "drop")
+  summarise(
+    across(starts_with("SDG"), \(x) sum(x, na.rm = TRUE)),
+    .groups = "drop"
+  )
 
 write.csv(div_sdg_sum,
           file.path(SHINY, "precomp_division_sdg_sums.csv"),
@@ -183,14 +227,29 @@ write.csv(div_sdg_sum,
 # ---------------------------------------------------------------------------
 message("Computing: author_sdg_pubcounts.csv ...")
 
+# author_sdg_pubs <- usc_joined %>%
+#   select(Division, authorID, name, pubID, Link, starts_with("SDG")) %>%
+#   distinct(Division, authorID, name, pubID, Link, .keep_all = TRUE) %>%
+#   pivot_longer(starts_with("SDG"), names_to = "sdg_col", values_to = "val") %>%
+#   filter(val != 0) %>%
+#   mutate(sdg_num = as.integer(sub("SDG\\.0*", "", sdg_col))) %>%
+#   group_by(Division, authorID, name, sdg_num) %>%
+#   summarise(n_pubs = n(), .groups = "drop")
+# Keep publication IDs so the app can count each publication only once,
+# even when an author belongs to multiple selected divisions.
+
 author_sdg_pubs <- usc_joined %>%
   select(Division, authorID, name, pubID, Link, starts_with("SDG")) %>%
   distinct(Division, authorID, name, pubID, Link, .keep_all = TRUE) %>%
-  pivot_longer(starts_with("SDG"), names_to = "sdg_col", values_to = "val") %>%
+  pivot_longer(
+    starts_with("SDG"),
+    names_to = "sdg_col",
+    values_to = "val"
+  ) %>%
   filter(val != 0) %>%
   mutate(sdg_num = as.integer(sub("SDG\\.0*", "", sdg_col))) %>%
-  group_by(Division, authorID, name, sdg_num) %>%
-  summarise(n_pubs = n(), .groups = "drop")
+  select(Division, authorID, name, pubID, sdg_num) %>%
+  distinct()
 
 write.csv(author_sdg_pubs,
           file.path(SHINY, "precomp_author_sdg_pubcounts.csv"),
@@ -201,17 +260,38 @@ write.csv(author_sdg_pubs,
 # ---------------------------------------------------------------------------
 message("Computing: author_sdg_keyword_sums.csv ...")
 
+# author_sdg_kw <- usc_joined %>%
+#   select(Division, authorID, name, starts_with("SDG")) %>%
+#   pivot_longer(starts_with("SDG"), names_to = "sdg_col", values_to = "val") %>%
+#   filter(val != 0) %>%
+#   mutate(sdg_num = as.integer(sub("SDG\\.0*", "", sdg_col))) %>%
+#   group_by(Division, authorID, name, sdg_num) %>%
+#   summarise(kw_sum = sum(val, na.rm = TRUE), .groups = "drop")
+# 
+# write.csv(author_sdg_kw,
+#           file.path(SHINY, "precomp_author_sdg_keyword_sums.csv"),
+#           row.names = FALSE)
+
+# Keep publication IDs so keyword counts are not repeated when an author
+# belongs to multiple departments or divisions.
 author_sdg_kw <- usc_joined %>%
-  select(Division, authorID, name, starts_with("SDG")) %>%
-  pivot_longer(starts_with("SDG"), names_to = "sdg_col", values_to = "val") %>%
+  select(Division, authorID, name, pubID, starts_with("SDG")) %>%
+  distinct(Division, authorID, name, pubID, .keep_all = TRUE) %>%
+  pivot_longer(
+    starts_with("SDG"),
+    names_to = "sdg_col",
+    values_to = "val"
+  ) %>%
   filter(val != 0) %>%
   mutate(sdg_num = as.integer(sub("SDG\\.0*", "", sdg_col))) %>%
-  group_by(Division, authorID, name, sdg_num) %>%
-  summarise(kw_sum = sum(val, na.rm = TRUE), .groups = "drop")
+  select(Division, authorID, name, pubID, sdg_num, val) %>%
+  distinct()
 
-write.csv(author_sdg_kw,
-          file.path(SHINY, "precomp_author_sdg_keyword_sums.csv"),
-          row.names = FALSE)
+write.csv(
+  author_sdg_kw,
+  file.path(SHINY, "precomp_author_sdg_keyword_sums.csv"),
+  row.names = FALSE
+)
 
 # ---------------------------------------------------------------------------
 # 11. Tab 5 — top_departments_sdg_table  (dept pub count × SDG × Division)

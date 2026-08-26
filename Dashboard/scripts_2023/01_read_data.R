@@ -18,7 +18,7 @@ library(dplyr)
 NEW_YEAR_FILES <- list(
   list(path = "data_raw/2023_scopus_downloaded_03_08_2024.csv", year = 2023),
   list(path = "data_raw/2024_scopus_downloaded_01_01_2025.csv", year = 2024),
-  list(path = "data_raw/2025_scopus_downloaded_02_10_2026.csv", year = 2025)
+  list(path = "data_raw/2025_scopus_downloaded_08_06_2026.csv", year = 2025)
   #list(path = "data_raw/2026_scopus.csv", year = 2026)
 )
 
