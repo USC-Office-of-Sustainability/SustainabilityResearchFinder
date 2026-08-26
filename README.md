@@ -1,10 +1,11 @@
-USC's Sustainability Research Finder
+USC Sustainability Research Finder
 ================
 
 - [Introduction](#introduction)
 - [Requirements](#requirements)
 - [Installation](#installation)
-- [Usage](#usage)
+  - [Running the Shiny App](#running-the-shiny-app)
+  - [Updating the Data Pipeline](#updating-the-data-pipeline)
   - [Folder Structure](#folder-structure)
 - [Documentation](#documentation)
   - [Data](#data)
@@ -18,7 +19,9 @@ USC's Sustainability Research Finder
 
 ## Introduction
 
-[USC's Sustainability Resesarch Finder](https://usc-sustainability.shinyapps.io/research_dashboard/) is a R Shiny
+This
+<a href="https://usc-sustainability.shinyapps.io/research-dashboard/"
+target="_blank">Sustainability Research Finder</a> is a R Shiny
 dashboard that displays the results of mapping USC affiliated research
 products to the United Nations 17 Sustainable Development Goals (SDGs).
 Furthermore, each product is categorized as sustainability focused,
@@ -36,8 +39,9 @@ This project was initiated during the 2022 Fall
 Datafest</a> at USC by Dr. Julie Hopper in the Office of Sustainability
 and five USC students: Alison Chen, Aurora Massari, Bhavya Ramani, Ric
 Xian and Xinyi Zhang. Feedback was provided by the USC PWG Research
-Committee and several new iterations and data processing pipelines have 
-been incorporated by Dr. Julie Hopper, Alison Chen and Feiyang Wang since.
+Committee and several new iterations and data processing pipelines have
+been incorporated by Dr. Julie Hopper, Alison Chen and Feiyang Wang
+since.
 
 ## Requirements
 
@@ -53,11 +57,15 @@ been incorporated by Dr. Julie Hopper, Alison Chen and Feiyang Wang since.
     all the files in this repository on your computer (locally).
 2.  Due to GitHub file size limitations, the complete USC research data
     could not be completely uploaded to the repository. As a result, the
-    large data files are stored in the ['Research Finder Complete Files' Folder on Google Drive](https://drive.google.com/drive/folders/1VpqSxIkEDJzRyWmG5nHgqypOlre5jN4K?usp=share_link). Please download all three folders (“data_processed”, "data_manual",“data_raw”,
-    “shiny_app”) and put them in the “Dashboard” folder of the cloned
-    repository. You may be asked whether to replace those folder, and
-    please click “replace”, as the folders on Google Drive contain the
-    most complete data. The folder structure should look like this:
+    large data files are stored here <a
+    href="https://drive.google.com/drive/folders/1VpqSxIkEDJzRyWmG5nHgqypOlre5jN4K?usp=share_link"
+    target="_blank">Research Finder Complete Files on Google Drive</a>.
+    Please download all four folders (“data_manual”, data_processed”,
+    “data_raw”, “shiny_app”) and put them in the “Dashboard” folder of
+    the cloned repository. You may be asked whether to replace those
+    folder, and please click “replace”, as the folders on Google Drive
+    contain the most complete data. The folder structure should look
+    like this:
 
 ``` text
 ├── Dashboard
@@ -153,25 +161,38 @@ install.packages("RColorBrewer")
 
 </details>
 
-## Usage
+### Running the Shiny App
 
-To run just the shiny app, download the appropriate files, open the app.R file in RStudio and click Run App.
+To run the shiny app, open the `shiny_app/app.R` file in RStudio and
+click Run App.
 
-To update keywords and/or context dependencies, add the new files to
-data_raw/. In scripts_2023/08_run_text2sdg.R, update the file names in
-the two read.csv() functions. Then run 08_run_text2sdg.R and all the
-following scripts (09, 10, etc.).
+### Updating the Data Pipeline
 
-To add new publications from Scopus, add the new file to data_raw/ and
-then in scripts_2023/01_read_data.R, append a new entry to the
+**To update keywords and/or context dependencies:** Add the new files to
+`data_raw/`. In `scripts_2023/08_run_text2sdg.R`, update the file names
+in the two read.csv() functions. Then run `08_run_text2sdg.R` and all
+the following scripts (09, 10, etc.).
+
+**To add new publications from Scopus:** Add the new file to `data_raw/`
+and then in `scripts_2023/01_read_data.R`, append a new entry to the
 `NEW_YEAR_FILES` list with the file path and target year. Run all the
-files in scripts_2023/ (or use run_all.R).
+files in `scripts_2023/` (or use `run_all.R`). **Important**: Always use
+the CSV file exactly as downloaded from Scopus — do not open and re-save
+it in Excel first. Doing so will corrupt special characters in the data.
+If you need to inspect the file in Excel, use the Data Tab \> Get Data
+\> From File \> From Text/CSV to import it for viewing, then save a
+separate copy as an Excel workbook (.xlsx) if needed.
 
-To add new law publications, add the new CSV file to data_raw/ and
+**To add new law publications:** Add the new CSV file to `data_raw/` and
 append its path to the `LAW_FILES` vector in
-scripts_2023/05_add_law_pubs.R.
+`scripts_2023/05_add_law_pubs.R`.
 
-**Please note that all of the publication files are from the University of Southern California.** We provide all files so that you can fully understand the process and then ideally repeat the process with your own institution's publication files from Scopus. The trickiest issues lie within author IDs, names and affiliations, and we made many corrections to address these issues.
+Please note that all of the publication files are from the University of
+Southern California. We provide all files so that you can fully
+understand the process and then ideally repeat the process with your own
+institution’s publication files from Scopus. The trickiest issues lie
+within author IDs, names and affiliations, and we made many corrections
+to address these issues.
 
 This README is a
 <a href="https://rmarkdown.rstudio.com/github_document_format.html"
@@ -205,7 +226,7 @@ generate the new README.md file. Upload/commit both files to GitHub.
 
 - Publication data was downloaded from
   <a href="https://www.scopus.com/" target="_blank">Scopus</a> with the
-  help of Xinyi Zhang and Feiyang Wang. 
+  help of Xinyi Zhang.
   <details>
   <summary>
   How we downloaded the data from Scopus
@@ -244,7 +265,7 @@ generate the new README.md file. Upload/commit both files to GitHub.
   </ol>
   </details>
 - Additional publications from the Gould School of Law were provided
-  with the help of Dr.Amber Kennedy Madole.
+  with the help of Amber Kennedy Madole.
   <details>
   <summary>
   How we added publications outside of Scopus
@@ -339,7 +360,7 @@ Elsevier_API=API_KEY
 Institution_Token=INSTITUTION_KEY
 ```
 
-\*Don’t add the .Renviron file to GitHub!
+**Warning:** Don’t add the .Renviron file to GitHub!
 
 <strong>Using the API</strong>
 
@@ -739,9 +760,10 @@ target="_blank">USC’s Presidential Working Group on Sustainability in
 Research</a>. In particular, we would like to recognize the following
 people for their contributions to the development of this project, and
 the data and code: Alison Chen, Amber Madole, Aurora Massari, Bhavya
-Ramani, Brian Tinsley, Feiyang Wang, Julie Hopper, Ric Xian, and Xinyi Zhang.
+Ramani, Brian Tinsley, Feiyang Wang, Julie Hopper, Ric Xian, and Xinyi
+Zhang.
 
 ## Questions?
 
 If you have any questions, comments, or concerns, please reach out to
-Dr. Julie Hopper: oosdata(at)usc.edu
+Dr. Julie Hopper: oosdata(at)usc.edu

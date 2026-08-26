@@ -1,4 +1,5 @@
 library(dplyr)
+library(igraph)
 
 # ==============================================================================
 # 02_identify_usc_authors.R
@@ -200,6 +201,112 @@ usc_authors$first_name <- sapply(usc_authors$full_name, function(x) {
   s <- strsplit(x, " ")[[1]]
   if (length(s) == 1) s[1] else s[2]
 })
+
+# Count publications per authorID
+pub_counts <- usc_authors %>%
+  count(authorID, name = "n_pubs")
+
+# Read Ishita's manual review decisions
+manual_review <- read.csv(
+  here::here("data_manual/author_pair_reviews_with_manual_review - final.csv")
+) %>%
+  mutate(
+    authorID1 = as.character(authorID1),
+    authorID2 = as.character(authorID2)
+  )
+
+# Keep only author pairs that should be merged
+manual_yes <- manual_review %>%
+  filter(ishita_manual_review == "Yes")
+
+# -------------------------------------------------------------------------
+# Build connected groups of author IDs from the manual review file.
+# Each "Yes" pair means the two authorIDs belong to the same person.
+# If authorID A matches B, and B matches C, then A, B, and C should all be
+# treated as one connected group that will eventually map to a single final
+# authorID.
+# -------------------------------------------------------------------------
+g <- graph_from_data_frame(
+  manual_yes %>% select(authorID1, authorID2),
+  directed = FALSE
+)
+
+components_df <- data.frame(
+  authorID = names(components(g)$membership),
+  group_id = components(g)$membership,
+  stringsAsFactors = FALSE
+)
+
+# -------------------------------------------------------------------------
+# For each connected group of author IDs, determine which authorID should be
+# kept as the canonical ID. We choose the authorID with the highest number of
+# publications because it is the most established Scopus profile.
+# -------------------------------------------------------------------------
+
+# Add publication counts to each authorID in the connected groups
+group_counts <- components_df %>%
+  left_join(pub_counts, by = "authorID") %>%
+  mutate(n_pubs = coalesce(n_pubs, 0))
+
+# For each connected group, keep the authorID with the most publications
+canonical_ids <- group_counts %>%
+  group_by(group_id) %>%
+  slice_max(n_pubs, n = 1, with_ties = FALSE) %>%
+  ungroup() %>%
+  select(group_id, authorID_new = authorID)
+
+# -------------------------------------------------------------------------
+# Create a mapping from every duplicate authorID in a connected group to the
+# single canonical authorID selected above. The canonical ID does not map to
+# itself; only the duplicate IDs are included in the mapping table.
+# -------------------------------------------------------------------------
+
+id_map <- components_df %>%
+  left_join(canonical_ids, by = "group_id") %>%
+  filter(authorID != authorID_new) %>%
+  transmute(
+    authorID_old = authorID,
+    authorID_new
+  )
+
+# -------------------------------------------------------------------------
+# Validation check: after collapsing connected groups, no authorID_new should
+# also appear as an authorID_old. If this returns any rows, it means there are
+# still unresolved chains in the mapping logic.
+# -------------------------------------------------------------------------
+
+remaining_chains <- intersect(id_map$authorID_new, id_map$authorID_old)
+
+if (length(remaining_chains) > 0) {
+  warning("Unresolved transitive authorID mappings detected.")
+} else {
+  cat("AuthorID mapping validated: no transitive chains remain.\n")
+}
+
+# -------------------------------------------------------------------------
+# Summary of manual authorID corrections that will be applied.
+# This reports how many connected author groups were identified and how many
+# duplicate authorIDs will be merged into canonical authorIDs.
+# -------------------------------------------------------------------------
+
+cat("Connected author groups identified:",
+    dplyr::n_distinct(components_df$group_id), "\n")
+cat("Duplicate authorIDs to be merged:",
+    nrow(id_map), "\n")
+
+# -------------------------------------------------------------------------
+# Apply the authorID corrections to the USC author table. Any authorID that
+# appears in the mapping table is replaced with its canonical authorID, while
+# authorIDs that are not part of a manual merge remain unchanged.
+# -------------------------------------------------------------------------
+
+usc_authors <- usc_authors %>%
+  left_join(id_map, by = c("authorID" = "authorID_old")) %>%
+  mutate(
+    authorID.corr = authorID_new,
+    authorID = coalesce(authorID.corr, authorID)
+  ) %>%
+  select(-authorID_new, -authorID.corr)
 
 # --- Save ---------------------------------------------------------------------
 write.csv(usc_authors,

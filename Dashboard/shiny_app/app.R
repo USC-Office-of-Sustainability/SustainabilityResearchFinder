@@ -6,6 +6,11 @@
 #
 #    http://shiny.rstudio.com/
 
+# IMPORTANT: Before running this app, set your working directory to this
+# app's folder (the "shiny_app" folder containing this app.R file) on your
+# local computer. In RStudio: Session > Set Working Directory > To Source
+# File Location, or run: setwd("path/to/your/shiny_app")
+
 # Load the required packages --------------------------------------------------
 # install.packages("name") to install any missing packages
 library(shiny)
@@ -60,12 +65,30 @@ sdg_col_names <- syms(c("SDG.01", "SDG.02", "SDG.03", "SDG.04", "SDG.05", "SDG.0
 # usc_pubs <- read.csv("05_pubs_with_law.csv")
 # usc_sdgs <- read.csv("08_pubs_sdg_categorized.csv")
 # usc_authors <- read.csv("authors_only_revalued.csv")
-usc_authors <- read.csv("14_authors_dept_corrected.csv")
-usc_authors <- usc_authors %>%
-  rename(Division = Div, Department = Dept)
-usc_bridge <- read.csv("07_bridge_manual_edited.csv")
+
+# Load only authors with publications in the active rolling five-year window.
+# Division and Department were already renamed during preprocessing.
+usc_authors <- read.csv(
+  "precomp_active_authors.csv",
+  stringsAsFactors = FALSE
+) %>%
+  mutate(authorID = as.character(authorID))
+
+#usc_bridge <- read.csv("07_bridge_manual_edited.csv")
 # dei_data <- read.csv("DEI_pubs.csv")
 dei_joined <- read.csv("10_dei_pubs_ordered.csv")
+
+# Rolling 5-year window 
+# Automatically keeps only the 5 most recent years present in the data.
+# When a new year is added (e.g. 2026), the oldest year (e.g. 2020) drops off.
+WINDOW_SIZE <- 5
+app_latest_year <- max(dei_joined$Year, na.rm = TRUE)
+app_valid_years <- (app_latest_year - WINDOW_SIZE + 1):app_latest_year
+message("App rolling window: keeping years ", min(app_valid_years), " to ", max(app_valid_years))
+dei_joined <- dei_joined %>% filter(Year %in% app_valid_years)
+
+dei_table_precomp <- read.csv("precomp_dei_table.csv", stringsAsFactors = FALSE)
+dei_download_precomp <- read.csv("precomp_dei_download.csv", stringsAsFactors = FALSE)
 
 # 2020-2022
 # usc_pubs <- usc_pubs %>% filter(Year %in% c(2020, 2021, 2022, 2023))
@@ -74,13 +97,13 @@ dei_joined <- read.csv("10_dei_pubs_ordered.csv")
 # usc_pubs$url <- paste0("<a href='", usc_pubs$Link, "' target='_blank'>", usc_pubs$Link, "</a>")
 
 # merge
-usc_pubs_sdgs <- read.csv("09_pubs_sdg_manual_fixed.csv") %>%
-  filter(!Document.Type %in% c("Letter", "Retracted", "Note", "Erratum"))
-usc_pubs_sdgs$url <- paste0("<a href='", usc_pubs_sdgs$Link, "' target='_blank'>", usc_pubs_sdgs$Link, "</a>")
-tmp <- merge(usc_pubs_sdgs, usc_bridge,
-             by = c("pubID", "Link"))
-usc_joined <- merge(tmp, usc_authors,
-              by = "authorID")
+# usc_pubs_sdgs <- read.csv("09_pubs_sdg_manual_fixed.csv") %>%
+#   filter(!Document.Type %in% c("Letter", "Retracted", "Note", "Erratum"))
+# usc_pubs_sdgs$url <- paste0("<a href='", usc_pubs_sdgs$Link, "' target='_blank'>", usc_pubs_sdgs$Link, "</a>")
+# tmp <- merge(usc_pubs_sdgs, usc_bridge,
+#              by = c("pubID", "Link"))
+# usc_joined <- merge(tmp, usc_authors,
+#               by = "authorID")
 
 # tmp <- merge(dei_data, usc_bridge,
 #              by.x = c("pubID", "Link"), by.y = c("pubID", "link"))
@@ -89,9 +112,26 @@ usc_joined <- merge(tmp, usc_authors,
 
 
 # create chart data outside app.R
-usc_by_product_sust_cat <- read.csv("12_pubs_by_product_sust_category.csv")
-# usc_by_author_sust_cat <- read.csv("12_pubs_by_author_sust_category.csv")
-usc_by_dept_sust_cat <- read.csv("12_pubs_by_dept_sust_category.csv")
+usc_by_product_sust_cat <- read.csv("12_pubs_by_product_sust_category.csv") %>%
+  filter(Year %in% app_valid_years)
+usc_by_author_sust_cat <- read.csv("12_pubs_by_author_sust_category.csv") %>%
+  filter(Year %in% app_valid_years)
+usc_by_dept_sust_cat <- read.csv("12_pubs_by_dept_sust_category.csv") %>%
+  filter(Year %in% app_valid_years)
+
+scholars_sust_year <- read.csv("precomp_scholars_sust_cat_year.csv", stringsAsFactors = FALSE)
+depts_sust_year <- read.csv("precomp_depts_sust_cat_year.csv", stringsAsFactors = FALSE)
+pubs_sdg_div <- read.csv("precomp_pubs_by_sdg_division.csv", stringsAsFactors = FALSE)
+author_sdg_pubcounts <- read.csv("precomp_author_sdg_pubcounts.csv", stringsAsFactors = FALSE)
+author_sdg_kw <- read.csv("precomp_author_sdg_keyword_sums.csv", stringsAsFactors = FALSE)
+dept_sdg_pubcounts <- read.csv("precomp_dept_sdg_pubcounts.csv", stringsAsFactors = FALSE)
+dept_sdg_div <- read.csv("precomp_dept_sdg_by_division.csv", stringsAsFactors = FALSE)
+div_sdg_sum <- read.csv("precomp_division_sdg_sums.csv", stringsAsFactors = FALSE)
+author_sdg_bar <- read.csv("precomp_author_sdg_bar.csv", stringsAsFactors = FALSE)
+author_pubs <- read.csv("precomp_author_pubs.csv", stringsAsFactors = FALSE)
+year_choices <- read.csv("precomp_year_choices.csv")$Year
+sdg_totals_by_year <- read.csv("precomp_sdg_totals_by_year.csv", stringsAsFactors = FALSE)
+year_sdg_bar <- read.csv("precomp_year_sdg_barplot.csv", stringsAsFactors = FALSE)
 
 # Nickname lookup: canonical first name -> vector of nicknames
 # Source: https://github.com/carltonnorthern/nicknames
@@ -261,8 +301,8 @@ ui <- dashboardPage(
             selectInput(
               inputId = "Year",
               label = "Choose Year",
-              choices = sort(unique(usc_pubs_sdgs$Year)),
-              selected = max(unique(usc_pubs_sdgs$Year))
+              choices = sort(year_choices),
+              selected = max(year_choices)
             )
           ),
           h4("Please wait for data to load (~30 sec)"),
@@ -388,7 +428,7 @@ ui <- dashboardPage(
           #
           #   )
           # ),
-          h2(strong("List of Research Products Ranked by SDG Keyword Count")),
+          h2(strong("List of Research Products By Year and SDG Keyword Count")),
           h4(em("*Limited to 2000 products")), # italics
           fluidRow(
             column(12,
@@ -454,7 +494,7 @@ ui <- dashboardPage(
             "at USC by Dr. Julie Hopper in the Office of Sustainability and
             five USC students: Alison Chen, Aurora Massari, Bhavya Ramani, Ric
             Xian and Xinyi Zhang. Feedback was provided by the USC PWG Research
-            Committee and incorporated by Dr. Julie Hopper and Alison Chen. Since then, Dr. Hopper and Feiyang Wang (a USC Masters student) have updated the pipelines and incorporated new research data.",
+            Committee and incorporated by Dr. Julie Hopper and Alison Chen. Since then, Dr. Hopper and USC Masters students: Feiyang Wang and Ishita Joshi have updated the pipelines and incorporated new research data.",
             strong("USC research products in the dashboard dataset includes
                    books, publications, conference proceedings, and scholarly
                    reports",), "pulled from ",
@@ -603,15 +643,44 @@ ui <- dashboardPage(
           )
         ) # end fluidPage
       ), # end tabItem 7
+      # tabItem(
+      #   tabName = "8",
+      #   fluidPage(
+      #     h1("Sustainability-Research in Los Angeles"),
+      #     uiOutput("disclaimer6"),
+      #     downloadButton("download_dei_data", "Download"),
+      #     fluidRow(column(12, DT::dataTableOutput("dei_table"))),
+      #   )
+      # ) # end tabItem 8
+      
       tabItem(
         tabName = "8",
         fluidPage(
           h1("Sustainability-Research in Los Angeles"),
           uiOutput("disclaimer6"),
+          checkboxGroupInput(
+            "la_sustainability",
+            "Choose Sustainability Categories",
+            choices = c("Sustainability-Focused", "Sustainability-Inclusive", "SDG-Related", "Not Related"),
+            selected = c("Sustainability-Focused", "Sustainability-Inclusive", "SDG-Related", "Not Related")
+          ),
+          checkboxGroupInput(
+            "la_year",
+            "Choose Publication Year",
+            choices = sort(unique(dei_joined$Year)),
+            selected = sort(unique(dei_joined$Year))
+          ),
+          selectInput(
+            "la_view_by",
+            "View by",
+            choices = c("Publications", "Authors"),
+            selected = "Publications"
+          ),
           downloadButton("download_dei_data", "Download"),
           fluidRow(column(12, DT::dataTableOutput("dei_table"))),
         )
       ) # end tabItem 8
+      
     ), # end tabItems
     tags$footer(
       fluidPage(
@@ -658,7 +727,7 @@ server <- function(input, output, session) {
     output$disclaimer5 <-
     output$disclaimer6 <- renderUI({
     tagList(
-      h4(paste0("Data is from 2020-", max(usc_pubs_sdgs$Year),
+      h4(paste0("Data is from ", min(year_choices), "-", max(year_choices),
                 ". This app is a work in progress, and, we are continually improving accuracy. If you have feedback, please fill out our "),
          a("feedback form",
            href="https://forms.gle/P6QJDSJaaRusZLZh6", .noWS = "after",
@@ -667,14 +736,25 @@ server <- function(input, output, session) {
     )
   })
   # tab 2
+  # output$sdg_total_by_year <- renderPlot({
+  #   validate(need(input$sdg_goal != "", "SDG"))
+  # 
+  #   sdg_col <- get_selected_sdg_col(input$sdg_goal)
+  # 
+  #   usc_pubs_sdgs %>%
+  #     filter(!!sdg_col > 0) %>%
+  #     count(Year) %>%
+  #     ggplot(aes(x = Year, y = n)) +
+  #     geom_col(fill = sdg_colors[as.character(input$sdg_goal)]) +
+  #     labs(x = "Year", y = "Count") +
+  #     theme_minimal(base_size = 20)
+  # })
+  
   output$sdg_total_by_year <- renderPlot({
     validate(need(input$sdg_goal != "", "SDG"))
-
-    sdg_col <- get_selected_sdg_col(input$sdg_goal)
-
-    usc_pubs_sdgs %>%
-      filter(!!sdg_col > 0) %>%
-      count(Year) %>%
+    
+    sdg_totals_by_year %>%
+      filter(sdg_num == as.integer(input$sdg_goal)) %>%
       ggplot(aes(x = Year, y = n)) +
       geom_col(fill = sdg_colors[as.character(input$sdg_goal)]) +
       labs(x = "Year", y = "Count") +
@@ -694,147 +774,201 @@ server <- function(input, output, session) {
     }, deleteFile = FALSE)
   
   # tab 3 # stacked bar instead of pie charts
-  output$year_sdg_barplot <- renderPlotly(
-    {
-      # y_max = usc_pubs_sdgs %>%
-      #   filter(Year == input$Year) %>%
-      #   summarise(across(starts_with("SDG"), sum, na.rm = TRUE)) %>%
-      #   t %>%
-      #   as.data.frame() %>%
-      #   max
-      # y_max_floor = y_max %/% 1000 * 1000
-      p <- usc_pubs_sdgs %>%
-        filter(Year == input$Year) %>%
-        select(starts_with("SDG")) %>%
-        mutate(across(everything(), ~replace(., . != 0, 1))) %>%
-        summarise(across(starts_with("SDG"), sum, na.rm = TRUE)) %>%
-        t %>%
-        as.data.frame() %>%
-        mutate(V2 = as.factor(1:17)) %>%
-        ggplot(aes(x = V2, y = V1, fill = V2, 
-               text = paste(V1, "in SDG", sdg_names[as.numeric(V2)]))) +
-        geom_col() +
-        scale_color_manual(values = sdg_colors,
-                           aesthetics = c("fill")) +
-        # scale_y_break(c(200, y_max_floor)) +
-        # ylim(0, y_max+50) +
-        # geom_text(aes(label = V1), vjust = -0.2, size = 16/.pt) +
-        labs(#title = str_wrap(paste0("Count of Publications per SDG in ", input$Year), 25), # Research Product* Count per SDG in Year # subtitle: Products include publications, books, conference proceedings, and scholarly reports.
-             fill = "SDG",
-             x = "SDG",
-             y = "Count") +
-        #guides(alpha = FALSE) +
-        theme_minimal(base_size = 18) +
-        theme(legend.position = "none",
-              text = element_text(size = 18, face = "bold", family = "sans"))
-      ggplotly(p, tooltip = "text")
-    })
+  # output$year_sdg_barplot <- renderPlotly(
+  #   {
+  #     # y_max = usc_pubs_sdgs %>%
+  #     #   filter(Year == input$Year) %>%
+  #     #   summarise(across(starts_with("SDG"), sum, na.rm = TRUE)) %>%
+  #     #   t %>%
+  #     #   as.data.frame() %>%
+  #     #   max
+  #     # y_max_floor = y_max %/% 1000 * 1000
+  #     p <- usc_pubs_sdgs %>%
+  #       filter(Year == input$Year) %>%
+  #       select(starts_with("SDG")) %>%
+  #       mutate(across(everything(), ~replace(., . != 0, 1))) %>%
+  #       summarise(across(starts_with("SDG"), sum, na.rm = TRUE)) %>%
+  #       t %>%
+  #       as.data.frame() %>%
+  #       mutate(V2 = as.factor(1:17)) %>%
+  #       ggplot(aes(x = V2, y = V1, fill = V2, 
+  #              text = paste(V1, "in SDG", sdg_names[as.numeric(V2)]))) +
+  #       geom_col() +
+  #       scale_color_manual(values = sdg_colors,
+  #                          aesthetics = c("fill")) +
+  #       # scale_y_break(c(200, y_max_floor)) +
+  #       # ylim(0, y_max+50) +
+  #       # geom_text(aes(label = V1), vjust = -0.2, size = 16/.pt) +
+  #       labs(#title = str_wrap(paste0("Count of Publications per SDG in ", input$Year), 25), # Research Product* Count per SDG in Year # subtitle: Products include publications, books, conference proceedings, and scholarly reports.
+  #            fill = "SDG",
+  #            x = "SDG",
+  #            y = "Count") +
+  #       #guides(alpha = FALSE) +
+  #       theme_minimal(base_size = 18) +
+  #       theme(legend.position = "none",
+  #             text = element_text(size = 18, face = "bold", family = "sans"))
+  #     ggplotly(p, tooltip = "text")
+  #   })
   
-  output$pie1 <- renderPlot(
-    {
-      # 3 categories:
-      # sust focused = at least 1 %in% 13:15 and at least 1 %in% 1:12, 16, 17
-      # sust inclusive = at least 1 sdg
-      # not related
-      
-      # data
-      # sdg_sum <- usc_pubs_sdgs %>%
-      #   filter(Year == input$Year) %>%
-      #   select(starts_with("SDG")) %>%
-      #   mutate(Total = rowSums(across(), na.rm = TRUE)) %>%
-      #   select(Total)
-      # num_not_related <- sum(sdg_sum == 0)
-      # num_related <- sum(sdg_sum != 0)
-      # num_focused <- usc_pubs_sdgs %>% 
-      #   filter(Year == input$Year) %>% 
-      #   select(starts_with("SDG")) %>% 
-      #   filter(SDG.13 > 0 | SDG.14 > 0 | SDG.15 > 0) %>% 
-      #   filter(SDG.01 > 0 | SDG.02 > 0 | SDG.03 > 0 | SDG.04 > 0 | 
-      #            SDG.05 > 0 | SDG.06 > 0 | SDG.07 > 0 | SDG.08 > 0 | 
-      #            SDG.09 > 0 | SDG.10 > 0 | SDG.11 > 0 | SDG.12 > 0 | 
-      #            SDG.16 > 0 | SDG.17 > 0) %>% 
-      #   nrow()
-      # num_inclusive <- num_related - num_focused
-      num_not_related <- usc_pubs_sdgs %>%
-        filter(sustainability_category == "Not-Related") %>%
-        nrow
-      num_inclusive <- usc_pubs_sdgs %>%
-        filter(sustainability_category == "Sustainability-Inclusive") %>%
-        nrow
-      num_focused <- usc_pubs_sdgs %>%
-        filter(sustainability_category == "Sustainability-Focused") %>%
-        nrow
-      pie_data <- data.frame(group = c("Not Related", "Inclusive", "Focused"),
-                             value = c(num_not_related,
-                                       num_inclusive,
-                                       num_focused))
-      # compute positions of labels
-      pie_data <- pie_data %>% 
-        arrange(desc(group)) %>%
-        mutate(prop = value / sum(pie_data$value) * 100) %>%
-        mutate(ypos = cumsum(prop) - 0.5 * prop )
-      
-      # plot
-      ggplot(pie_data, aes(x = "", y = prop, fill = group)) +
-        geom_bar(stat = "identity", width = 1, color = "black") +
-        coord_polar("y", start = 0) +
-        geom_text(aes(y = ypos, label = value), color = "black", size = 20/.pt) +
-        scale_fill_manual(values = c("#990000", "#FFC72C", "#767676"), name = "") +
-        labs(title = paste0("Sustainability-Related Research in ", input$Year)) +
-        theme_void(base_size = 18)
+  output$year_sdg_barplot <- renderPlotly({
+    row <- year_sdg_bar %>% filter(Year == as.integer(input$Year))
+    
+    df <- row %>%
+      select(starts_with("SDG")) %>%
+      mutate(across(everything(), as.integer)) %>%
+      t() %>%
+      as.data.frame() %>%
+      mutate(V2 = as.factor(1:17))
+    
+    p <- ggplot(df, aes(x = V2, y = V1, fill = V2,
+                        text = paste(V1, "in SDG", sdg_names[as.numeric(V2)]))) +
+      geom_col() +
+      scale_color_manual(values = sdg_colors, aesthetics = c("fill")) +
+      labs(fill = "SDG", x = "SDG", y = "Count") +
+      theme_minimal(base_size = 18) +
+      theme(legend.position = "none",
+            text = element_text(size = 18, face = "bold", family = "sans"))
+    
+    ggplotly(p, tooltip = "text")
   })
+  
+  # output$pie1 <- renderPlot(
+  #   {
+  #     # 3 categories:
+  #     # sust focused = at least 1 %in% 13:15 and at least 1 %in% 1:12, 16, 17
+  #     # sust inclusive = at least 1 sdg
+  #     # not related
+  #     
+  #     # data
+  #     # sdg_sum <- usc_pubs_sdgs %>%
+  #     #   filter(Year == input$Year) %>%
+  #     #   select(starts_with("SDG")) %>%
+  #     #   mutate(Total = rowSums(across(), na.rm = TRUE)) %>%
+  #     #   select(Total)
+  #     # num_not_related <- sum(sdg_sum == 0)
+  #     # num_related <- sum(sdg_sum != 0)
+  #     # num_focused <- usc_pubs_sdgs %>% 
+  #     #   filter(Year == input$Year) %>% 
+  #     #   select(starts_with("SDG")) %>% 
+  #     #   filter(SDG.13 > 0 | SDG.14 > 0 | SDG.15 > 0) %>% 
+  #     #   filter(SDG.01 > 0 | SDG.02 > 0 | SDG.03 > 0 | SDG.04 > 0 | 
+  #     #            SDG.05 > 0 | SDG.06 > 0 | SDG.07 > 0 | SDG.08 > 0 | 
+  #     #            SDG.09 > 0 | SDG.10 > 0 | SDG.11 > 0 | SDG.12 > 0 | 
+  #     #            SDG.16 > 0 | SDG.17 > 0) %>% 
+  #     #   nrow()
+  #     # num_inclusive <- num_related - num_focused
+  #     num_not_related <- usc_pubs_sdgs %>%
+  #       filter(sustainability_category == "Not-Related") %>%
+  #       nrow
+  #     num_inclusive <- usc_pubs_sdgs %>%
+  #       filter(sustainability_category == "Sustainability-Inclusive") %>%
+  #       nrow
+  #     num_focused <- usc_pubs_sdgs %>%
+  #       filter(sustainability_category == "Sustainability-Focused") %>%
+  #       nrow
+  #     pie_data <- data.frame(group = c("Not Related", "Inclusive", "Focused"),
+  #                            value = c(num_not_related,
+  #                                      num_inclusive,
+  #                                      num_focused))
+  #     # compute positions of labels
+  #     pie_data <- pie_data %>% 
+  #       arrange(desc(group)) %>%
+  #       mutate(prop = value / sum(pie_data$value) * 100) %>%
+  #       mutate(ypos = cumsum(prop) - 0.5 * prop )
+  #     
+  #     # plot
+  #     ggplot(pie_data, aes(x = "", y = prop, fill = group)) +
+  #       geom_bar(stat = "identity", width = 1, color = "black") +
+  #       coord_polar("y", start = 0) +
+  #       geom_text(aes(y = ypos, label = value), color = "black", size = 20/.pt) +
+  #       scale_fill_manual(values = c("#990000", "#FFC72C", "#767676"), name = "") +
+  #       labs(title = paste0("Sustainability-Related Research in ", input$Year)) +
+  #       theme_void(base_size = 18)
+  # })
+  # output$pie2_plotly <- renderPlotly({
+  #   df <- usc_joined %>% 
+  #     filter(Year == input$Year) %>%
+  #     group_by(authorID) %>%
+  #     summarize(all_sustainability_categories = paste(sustainability_category[!duplicated(sustainability_category)], collapse = ";")) %>%
+  #     mutate(one_sustainability_category = case_when(grepl("Focused", all_sustainability_categories)~"Sustainability-Focused",
+  #                                                    grepl("Inclusive", all_sustainability_categories)~"Sustainability-Inclusive",
+  #                                                    grepl("SDG-Related", all_sustainability_categories)~"SDG-Related",
+  #                                                    grepl("Not-Related", all_sustainability_categories)~"Not Related")) %>%
+  #     mutate(one_sustainability_category = factor(one_sustainability_category, levels = c("Sustainability-Focused", "Sustainability-Inclusive", "SDG-Related", "Not Related"))) %>%
+  #     group_by(one_sustainability_category) %>%
+  #     count() %>%
+  #     arrange(one_sustainability_category)
+  #   fig <-
+  #     plot_ly(
+  #       df,
+  #       labels = ~ one_sustainability_category,
+  #       values = ~ n,
+  #       type = 'pie',
+  #       sort = FALSE,
+  #       direction = "clockwise",
+  #       textposition = 'inside',
+  #       textinfo = 'percent',
+  #       insidetextfont = list(color = '#FFFFFF'),
+  #       hoverinfo = 'text',
+  #       text = ~ paste(n, one_sustainability_category, 'Scholars'),
+  #       marker = list(
+  #         colors = c("#2F6DBA", "#990000","#FFC72C","#767676"),
+  #         line = list(color = '#FFFFFF', width = 1)
+  #       ),
+  #       #The 'pull' attribute can also be used to create space between the sectors
+  #       showlegend = TRUE
+  #     )
+  #   fig <- fig %>% layout(
+  #     margin = list(l = 20, r = 20),
+  #     xaxis = list(
+  #       showgrid = FALSE,
+  #       zeroline = FALSE,
+  #       showticklabels = FALSE
+  #     ),
+  #     yaxis = list(
+  #       showgrid = FALSE,
+  #       zeroline = FALSE,
+  #       showticklabels = FALSE
+  #     ),
+  #     legend = list(
+  #       orientation = 'h'
+  #     ),
+  #     font = list(size = 18)
+  #   )
+  #   fig
+  # })
+  
   output$pie2_plotly <- renderPlotly({
-    df <- usc_joined %>% 
-      filter(Year == input$Year) %>%
-      group_by(authorID) %>%
-      summarize(all_sustainability_categories = paste(sustainability_category[!duplicated(sustainability_category)], collapse = ";")) %>%
-      mutate(one_sustainability_category = case_when(grepl("Focused", all_sustainability_categories)~"Sustainability-Focused",
-                                                     grepl("Inclusive", all_sustainability_categories)~"Sustainability-Inclusive",
-                                                     grepl("SDG-Related", all_sustainability_categories)~"SDG-Related",
-                                                     grepl("Not-Related", all_sustainability_categories)~"Not Related")) %>%
-      mutate(one_sustainability_category = factor(one_sustainability_category, levels = c("Sustainability-Focused", "Sustainability-Inclusive", "SDG-Related", "Not Related"))) %>%
-      group_by(one_sustainability_category) %>%
-      count() %>%
-      arrange(one_sustainability_category)
-    fig <-
-      plot_ly(
-        df,
-        labels = ~ one_sustainability_category,
-        values = ~ n,
-        type = 'pie',
-        sort = FALSE,
-        direction = "clockwise",
-        textposition = 'inside',
-        textinfo = 'percent',
-        insidetextfont = list(color = '#FFFFFF'),
-        hoverinfo = 'text',
-        text = ~ paste(n, one_sustainability_category, 'Scholars'),
-        marker = list(
-          colors = c("#2F6DBA", "#990000","#FFC72C","#767676"),
-          line = list(color = '#FFFFFF', width = 1)
-        ),
-        #The 'pull' attribute can also be used to create space between the sectors
-        showlegend = TRUE
-      )
-    fig <- fig %>% layout(
-      margin = list(l = 20, r = 20),
-      xaxis = list(
-        showgrid = FALSE,
-        zeroline = FALSE,
-        showticklabels = FALSE
+    df <- scholars_sust_year %>% 
+      filter(Year == as.integer(input$Year))
+    plot_ly(
+      df,
+      labels = ~one_sustainability_category,
+      values = ~n,
+      type = 'pie',
+      sort = FALSE,
+      direction = "clockwise",
+      textposition = 'inside',
+      textinfo = 'percent',
+      insidetextfont = list(color = '#FFFFFF'),
+      hoverinfo = 'text',
+      text = ~paste(n, one_sustainability_category, 'Scholars'),
+      marker = list(
+        colors = c("#2F6DBA", "#990000","#FFC72C","#767676"),
+        line = list(color = '#FFFFFF', width = 1)
       ),
-      yaxis = list(
-        showgrid = FALSE,
-        zeroline = FALSE,
-        showticklabels = FALSE
-      ),
-      legend = list(
-        orientation = 'h'
-      ),
-      font = list(size = 18)
+      showlegend = TRUE
+    ) %>% layout(
+      title = NULL,
+      margin = list(l = 20, r = 20, t = 40, b = 20, pad = 0),
+      xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+      yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+      legend = list(orientation = 'h'),
+      font = list(size = 18),
+      autosize = TRUE
     )
-    fig
   })
+  
   output$pie2 <- renderPlot( # add lines
     {
       # 3 categories:
@@ -855,14 +989,14 @@ server <- function(input, output, session) {
       #            SDG.16 > 0 | SDG.17 > 0) %>% 
       #   nrow()
       # num_inclusive <- num_related - num_focused
-      usc_by_author_sust_cat <- usc_joined %>%
-        group_by(authorID) %>%
-        summarize(all_sustainability_categories = paste(sustainability_category[!duplicated(sustainability_category)], collapse = ";")) %>%
-        mutate(one_sustainability_category = case_when(grepl("Focused", all_sustainability_categories)~"Sustainability-Focused",
-                                                       grepl("Inclusive", all_sustainability_categories)~"Sustainability-Inclusive",
-                                                       grepl("SDG-Related", all_sustainability_categories)~"SDG-Related",
-                                                       grepl("Not-Related", all_sustainability_categories)~"Not-Related")) %>%
-        select(authorID, one_sustainability_category)
+      # usc_by_author_sust_cat <- usc_joined %>%
+      #   group_by(authorID) %>%
+      #   summarize(all_sustainability_categories = paste(sustainability_category[!duplicated(sustainability_category)], collapse = ";")) %>%
+      #   mutate(one_sustainability_category = case_when(grepl("Focused", all_sustainability_categories)~"Sustainability-Focused",
+      #                                                  grepl("Inclusive", all_sustainability_categories)~"Sustainability-Inclusive",
+      #                                                  grepl("SDG-Related", all_sustainability_categories)~"SDG-Related",
+      #                                                  grepl("Not-Related", all_sustainability_categories)~"Not-Related")) %>%
+      #   select(authorID, one_sustainability_category)
       num_not_related <- usc_by_author_sust_cat %>%
         filter(one_sustainability_category == "Not-Related") %>%
         nrow
@@ -904,59 +1038,89 @@ server <- function(input, output, session) {
           main = str_wrap("Scholars Conducting Sustainability-Related Research 2020-22", 40), 
           cex = 1.5, cex.main = 1.5)
     })
+  # output$pie3_plotly <- renderPlotly({
+  #   df <- usc_joined %>%
+  #     filter(Year == input$Year) %>%
+  #     group_by(Department) %>%
+  #     summarize(all_sustainability_categories = paste(sustainability_category[!duplicated(sustainability_category)], collapse = ";")) %>%
+  #     mutate(one_sustainability_category = case_when(grepl("Focused", all_sustainability_categories)~"Sustainability-Focused",
+  #                                                    grepl("Inclusive", all_sustainability_categories)~"Sustainability-Inclusive",
+  #                                                    grepl("SDG-Related", all_sustainability_categories)~"SDG-Related",
+  #                                                    grepl("Not-Related", all_sustainability_categories)~"Not Related")) %>%
+  #     mutate(one_sustainability_category = factor(one_sustainability_category, levels = c("Sustainability-Focused", "Sustainability-Inclusive", "SDG-Related", "Not Related"))) %>%
+  #     group_by(one_sustainability_category) %>%
+  #     count() %>%
+  #     arrange(one_sustainability_category)
+  #   fig <-
+  #     plot_ly(
+  #       df,
+  #       labels = ~ one_sustainability_category,
+  #       values = ~ n,
+  #       type = 'pie',
+  #       sort = FALSE,
+  #       direction = "clockwise",
+  #       textposition = 'inside',
+  #       textinfo = 'percent',
+  #       insidetextfont = list(color = '#FFFFFF'),
+  #       hoverinfo = 'text',
+  #       text = ~ paste(n, one_sustainability_category, 'Departments'),
+  #       marker = list(
+  #         colors = c("#2F6DBA", "#990000","#FFC72C","#767676"),
+  #         line = list(color = '#FFFFFF', width = 1)
+  #       ),
+  #       #The 'pull' attribute can also be used to create space between the sectors
+  #       showlegend = TRUE
+  #     )
+  #   fig <- fig %>% layout(
+  #     margin = list(l = 20, r = 20),
+  #     xaxis = list(
+  #       showgrid = FALSE,
+  #       zeroline = FALSE,
+  #       showticklabels = FALSE
+  #     ),
+  #     yaxis = list(
+  #       showgrid = FALSE,
+  #       zeroline = FALSE,
+  #       showticklabels = FALSE
+  #     ),
+  #     legend = list(
+  #       orientation = 'h'
+  #     ),
+  #     # hoverlabel = list(font=list(size=18)),
+  #     font = list(size = 18)
+  #   )
+  #   fig
+  # })
+  
   output$pie3_plotly <- renderPlotly({
-    df <- usc_joined %>%
-      filter(Year == input$Year) %>%
-      group_by(Department) %>%
-      summarize(all_sustainability_categories = paste(sustainability_category[!duplicated(sustainability_category)], collapse = ";")) %>%
-      mutate(one_sustainability_category = case_when(grepl("Focused", all_sustainability_categories)~"Sustainability-Focused",
-                                                     grepl("Inclusive", all_sustainability_categories)~"Sustainability-Inclusive",
-                                                     grepl("SDG-Related", all_sustainability_categories)~"SDG-Related",
-                                                     grepl("Not-Related", all_sustainability_categories)~"Not Related")) %>%
-      mutate(one_sustainability_category = factor(one_sustainability_category, levels = c("Sustainability-Focused", "Sustainability-Inclusive", "SDG-Related", "Not Related"))) %>%
-      group_by(one_sustainability_category) %>%
-      count() %>%
-      arrange(one_sustainability_category)
-    fig <-
-      plot_ly(
-        df,
-        labels = ~ one_sustainability_category,
-        values = ~ n,
-        type = 'pie',
-        sort = FALSE,
-        direction = "clockwise",
-        textposition = 'inside',
-        textinfo = 'percent',
-        insidetextfont = list(color = '#FFFFFF'),
-        hoverinfo = 'text',
-        text = ~ paste(n, one_sustainability_category, 'Departments'),
-        marker = list(
-          colors = c("#2F6DBA", "#990000","#FFC72C","#767676"),
-          line = list(color = '#FFFFFF', width = 1)
-        ),
-        #The 'pull' attribute can also be used to create space between the sectors
-        showlegend = TRUE
-      )
-    fig <- fig %>% layout(
+    df <- depts_sust_year %>% 
+      filter(Year == as.integer(input$Year))
+    plot_ly(
+      df,
+      labels = ~one_sustainability_category,
+      values = ~n,
+      type = 'pie',
+      sort = FALSE,
+      direction = "clockwise",
+      textposition = 'inside',
+      textinfo = 'percent',
+      insidetextfont = list(color = '#FFFFFF'),
+      hoverinfo = 'text',
+      text = ~paste(n, one_sustainability_category, 'Departments'),
+      marker = list(
+        colors = c("#2F6DBA", "#990000","#FFC72C","#767676"),
+        line = list(color = '#FFFFFF', width = 1)
+      ),
+      showlegend = TRUE
+    ) %>% layout(
       margin = list(l = 20, r = 20),
-      xaxis = list(
-        showgrid = FALSE,
-        zeroline = FALSE,
-        showticklabels = FALSE
-      ),
-      yaxis = list(
-        showgrid = FALSE,
-        zeroline = FALSE,
-        showticklabels = FALSE
-      ),
-      legend = list(
-        orientation = 'h'
-      ),
-      # hoverlabel = list(font=list(size=18)),
+      xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+      yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+      legend = list(orientation = 'h'),
       font = list(size = 18)
     )
-    fig
   })
+  
   output$pie3 <- renderPlot(
     {
       # 3 categories:
@@ -978,13 +1142,13 @@ server <- function(input, output, session) {
       #   nrow()
       # num_inclusive <- num_related - num_focused
       
-      usc_by_dept_sust_cat <- usc_joined %>%
-        group_by(Department) %>%
-        summarize(all_sustainability_categories = paste(sustainability_category[!duplicated(sustainability_category)], collapse = ";")) %>%
-        mutate(one_sustainability_category = case_when(grepl("Focused", all_sustainability_categories)~"Sustainability-Focused",
-                                                       grepl("Inclusive", all_sustainability_categories)~"Sustainability-Inclusive",
-                                                       grepl("Not-Related", all_sustainability_categories)~"Not-Related")) %>%
-        select(Department, one_sustainability_category)
+      # usc_by_dept_sust_cat <- usc_joined %>%
+      #   group_by(Department) %>%
+      #   summarize(all_sustainability_categories = paste(sustainability_category[!duplicated(sustainability_category)], collapse = ";")) %>%
+      #   mutate(one_sustainability_category = case_when(grepl("Focused", all_sustainability_categories)~"Sustainability-Focused",
+      #                                                  grepl("Inclusive", all_sustainability_categories)~"Sustainability-Inclusive",
+      #                                                  grepl("Not-Related", all_sustainability_categories)~"Not-Related")) %>%
+      #   select(Department, one_sustainability_category)
       num_not_related <- usc_by_dept_sust_cat %>%
         filter(one_sustainability_category == "Not-Related") %>%
         nrow
@@ -1031,13 +1195,16 @@ server <- function(input, output, session) {
         geom_bar(position="fill", stat="identity") +
         scale_fill_manual(values = c("#2F6DBA", "#990000", "#FFC72C", "#767676"), name = "Sustainability Category") +
         scale_y_continuous(labels = scales::percent) +
-        labs(#title = str_wrap("Sustainability Related Products by Year", 40),
-             y = "Percent") +
+        labs(y = "Percent") +
         theme_minimal(base_size = 20) +
-        theme(legend.position = "bottom", 
-              legend.direction="vertical", 
+        theme(legend.position = "bottom",
+              legend.direction = "vertical",
               legend.box.spacing = margin(0),
-              text = element_text(size = 20, face = "bold", family = "sans"))
+              text = element_text(size = 20, family = "sans"),
+              axis.title = element_text(face = "bold"),
+              axis.text = element_text(face = "bold"),
+              legend.title = element_text(face = "bold", size = 18),
+              legend.text = element_text(face = "plain", size = 16))
     })
   
   # output$stacked_bar2 <- renderPlot(
@@ -1063,74 +1230,133 @@ server <- function(input, output, session) {
       labs(#title = str_wrap("Sustainability Related Departments/Centers/Institutes by Year", 40),
            y = "Percent") +
       theme_minimal(base_size = 20) +
-      theme(legend.position = "bottom", legend.direction="vertical", legend.box.spacing = margin(0),
-            text = element_text(size = 20, face = "bold", family = "sans"))
+      theme(
+        legend.position = "bottom",
+        legend.direction = "vertical",
+        legend.box.spacing = margin(0),
+        text = element_text(size = 20, family = "sans"),
+        axis.title = element_text(face = "bold"),
+        axis.text = element_text(face = "bold"),
+        legend.title = element_text(face = "bold", size = 18),
+        legend.text = element_text(face = "plain", size = 16)
+      )
   })
   
   # tab 4
-  output$pubs_to_bar <- renderPlotly(
-    {
-      validate(
-        need(input$usc_division != "", label = "USC School/Unit")
-      )
-      
-      d <- usc_joined %>%
-        filter(Division == input$usc_division) %>%
-        select(Department, starts_with("SDG")) %>%
-        group_by(Department) %>%
-        mutate(across(starts_with("SDG"), ~replace(., . != 0, 1))) %>%
-        summarise(across(starts_with("SDG"), sum, na.rm = TRUE))
-      df <- d %>% column_to_rownames("Department")
-      colnames(df) <- 1:17
-      df$category <- row.names(df)
-      m <- melt(df, id.vars = "category")
-      m$category <- trimws(gsub("(Dornsife|Viterbi|Marshall|KSOM)", "", m$category))
-      m <- m %>% filter(category != "")
-      p <- ggplot(m, aes(category, value, 
-                         fill = variable, 
-                         text = paste(category, "<br>has", value, "SDG", 
-                                      sdg_names[variable]))) +
-        geom_bar(position = "stack", stat = "identity", width = 1) +
-        # coord_flip() +
-        scale_x_discrete(labels = NULL) +
-        # scale_x_discrete(labels = label_wrap(20)) +
-        scale_color_manual(values = sdg_colors,
-                           # labels = sdg_names,
-                           aesthetics = c("fill")) +
-        labs(
-          fill = "SDG",
-          x = "Departments/Centers/Institutes",
-          y = "Count of Publications"
-        ) +
-        theme_minimal(base_size = 20) +
-        theme(text = element_text(size = 20, face = "bold", family = "sans"))
-      ggplotly(p, tooltip = "text") %>%
-        layout(font = list(size=18),
-               yaxis = list(autorange = TRUE, fixedrange = FALSE)) %>%
-        config(modeBarButtonsToAdd = list("resetScale2d"))
-    }
-  )
-  output$pubs_to_treemap <- renderPlot(
-    {
-      validate(
-        need(input$usc_division != "", label = "USC School/Unit")
-      )
-
-      sdg_sum <- usc_joined %>% 
-        filter(Division == input$usc_division) %>%
-        mutate(across(starts_with("SDG"), ~replace(., . != 0, 1))) %>%
-        summarise(across(starts_with("SDG"), sum, na.rm = TRUE)) %>%
-        t %>%
-        as.data.frame
-      sdg_sum$Division <- input$usc_division
-      sdg_sum$sdg <- 1:17
-      
-      ggplot(sdg_sum, aes(fill = as.factor(sdg), area = V1, label = paste0("SDG ", sdg, "\n(n = ", V1, ")"))) + 
-        geom_treemap() + 
-        scale_fill_manual(values = sdg_colors, aesthetics = "fill", name = "SDG") + 
-        geom_treemap_text(place = "centre", size = 20, colour = "white") +
-        theme(legend.position = "none")
-    })
+  # output$pubs_to_bar <- renderPlotly(
+  #   {
+  #     validate(
+  #       need(input$usc_division != "", label = "USC School/Unit")
+  #     )
+  #     
+  #     d <- usc_joined %>%
+  #       filter(Division == input$usc_division) %>%
+  #       select(Department, starts_with("SDG")) %>%
+  #       group_by(Department) %>%
+  #       mutate(across(starts_with("SDG"), ~replace(., . != 0, 1))) %>%
+  #       summarise(across(starts_with("SDG"), sum, na.rm = TRUE))
+  #     df <- d %>% column_to_rownames("Department")
+  #     colnames(df) <- 1:17
+  #     df$category <- row.names(df)
+  #     m <- melt(df, id.vars = "category")
+  #     m$category <- trimws(gsub("(Dornsife|Viterbi|Marshall|KSOM)", "", m$category))
+  #     m <- m %>% filter(category != "")
+  #     p <- ggplot(m, aes(category, value, 
+  #                        fill = variable, 
+  #                        text = paste(category, "<br>has", value, "SDG", 
+  #                                     sdg_names[variable]))) +
+  #       geom_bar(position = "stack", stat = "identity", width = 1) +
+  #       # coord_flip() +
+  #       scale_x_discrete(labels = NULL) +
+  #       # scale_x_discrete(labels = label_wrap(20)) +
+  #       scale_color_manual(values = sdg_colors,
+  #                          # labels = sdg_names,
+  #                          aesthetics = c("fill")) +
+  #       labs(
+  #         fill = "SDG",
+  #         x = "Departments/Centers/Institutes",
+  #         y = "Count of Publications"
+  #       ) +
+  #       theme_minimal(base_size = 20) +
+  #       theme(text = element_text(size = 20, face = "bold", family = "sans"))
+  #     ggplotly(p, tooltip = "text") %>%
+  #       layout(font = list(size=18),
+  #              yaxis = list(autorange = TRUE, fixedrange = FALSE)) %>%
+  #       config(modeBarButtonsToAdd = list("resetScale2d"))
+  #   }
+  # )
+  
+  output$pubs_to_bar <- renderPlotly({
+    validate(need(input$usc_division != "", label = "USC School/Unit"))
+    
+    d <- dept_sdg_div %>%
+      filter(Division == input$usc_division) %>%
+      select(-Division)
+    
+    df <- d %>% column_to_rownames("Department")
+    colnames(df) <- 1:17
+    df$category <- row.names(df)
+    m <- melt(df, id.vars = "category")
+    m$category <- trimws(gsub("(Dornsife|Viterbi|Marshall|KSOM)", "", m$category))
+    m <- m %>% filter(category != "")
+    
+    p <- ggplot(m, aes(category, value, fill = variable,
+                       text = paste(category, "<br>has", value, "SDG",
+                                    variable, "publications"))) +
+      geom_bar(position = "stack", stat = "identity", width = 1) +
+      scale_x_discrete(labels = NULL) +
+      scale_fill_manual(values = sdg_colors, aesthetics = "fill") +
+      labs(fill = "SDG", x = "Departments/Centers/Institutes",
+           y = "Count of Publications") +
+      theme_minimal(base_size = 20) +
+      theme(text = element_text(size = 20, face = "bold", family = "sans"))
+    
+    ggplotly(p, tooltip = "text") %>%
+      layout(font = list(size = 18),
+             yaxis = list(autorange = TRUE, fixedrange = FALSE)) %>%
+      config(modeBarButtonsToAdd = list("resetScale2d"))
+  })
+  
+  # output$pubs_to_treemap <- renderPlot(
+  #   {
+  #     validate(
+  #       need(input$usc_division != "", label = "USC School/Unit")
+  #     )
+  # 
+  #     sdg_sum <- usc_joined %>% 
+  #       filter(Division == input$usc_division) %>%
+  #       mutate(across(starts_with("SDG"), ~replace(., . != 0, 1))) %>%
+  #       summarise(across(starts_with("SDG"), sum, na.rm = TRUE)) %>%
+  #       t %>%
+  #       as.data.frame
+  #     sdg_sum$Division <- input$usc_division
+  #     sdg_sum$sdg <- 1:17
+  #     
+  #     ggplot(sdg_sum, aes(fill = as.factor(sdg), area = V1, label = paste0("SDG ", sdg, "\n(n = ", V1, ")"))) + 
+  #       geom_treemap() + 
+  #       scale_fill_manual(values = sdg_colors, aesthetics = "fill", name = "SDG") + 
+  #       geom_treemap_text(place = "centre", size = 20, colour = "white") +
+  #       theme(legend.position = "none")
+  #   })
+  
+  output$pubs_to_treemap <- renderPlot({
+    validate(need(input$usc_division != "", label = "USC School/Unit"))
+    
+    d <- div_sdg_sum %>%
+      filter(Division == input$usc_division) %>%
+      select(starts_with("SDG")) %>%
+      t() %>%
+      as.data.frame()
+    
+    d$sdg <- 1:17
+    
+    ggplot(d, aes(fill = as.factor(sdg), area = V1,
+                  label = paste0("SDG ", sdg, "\n(n = ", V1, ")"))) +
+      geom_treemap() +
+      scale_fill_manual(values = sdg_colors, name = "SDG") +
+      geom_treemap_text(place = "centre", size = 20, colour = "white") +
+      theme(legend.position = "none")
+  })
 
   # tab 5
   # select division then sdg
@@ -1179,59 +1405,104 @@ server <- function(input, output, session) {
   output$top_authors_sdg_table_subtitle <- renderText(
     paste0("Ranked by research product count")
   )
+  # output$top_authors_sdg_table <- renderPlot({
+  #   validate(
+  #     need(input$Primary.SDG != "", label = "SDG"),
+  #     need(input$Division != "", label = "USC School/Unit")
+  #   )
+  #   sdg_col = get_selected_sdg_col(input$Primary.SDG)
+  #   usc_joined %>%
+  #     filter(Division %in% input$Division) %>%
+  #     filter(!!sdg_col != 0) %>%
+  #     select(pubID, Link, authorID, name) %>% distinct() %>%
+  #     count(authorID, name) %>%
+  #     arrange(desc(n)) %>%
+  #     distinct(name, .keep_all = TRUE) %>%
+  #     head(10) %>% #  num_top_classes <- 10
+  #     ggplot(aes(x = reorder(as.factor(name),n), y = n)) +
+  #     geom_col(fill = sdg_colors[as.numeric(input$Primary.SDG)], alpha = 1) +
+  #     coord_flip() +
+  #     labs(
+  #          x = "Scholar",
+  #          ) +
+  #     theme_minimal(base_size = 20) +
+  #     theme(text = element_text(size = 20, face = "bold", family = "sans"),
+  #           axis.title.x = element_blank())
+  # })
+  
   output$top_authors_sdg_table <- renderPlot({
     validate(
       need(input$Primary.SDG != "", label = "SDG"),
       need(input$Division != "", label = "USC School/Unit")
     )
-    sdg_col = get_selected_sdg_col(input$Primary.SDG)
-    usc_joined %>%
-      filter(Division %in% input$Division) %>%
-      filter(!!sdg_col != 0) %>%
-      select(pubID, Link, authorID, name) %>% distinct() %>%
-      count(authorID, name) %>%
+    author_sdg_pubcounts %>%
+      filter(Division %in% input$Division, sdg_num == as.integer(input$Primary.SDG)) %>%
+      group_by(authorID, name) %>%
+      summarise(n = n_distinct(pubID), .groups = "drop") %>%
       arrange(desc(n)) %>%
       distinct(name, .keep_all = TRUE) %>%
-      head(10) %>% #  num_top_classes <- 10
-      ggplot(aes(x = reorder(as.factor(name),n), y = n)) +
-      geom_col(fill = sdg_colors[as.numeric(input$Primary.SDG)], alpha = 1) +
+      head(10) %>%
+      ggplot(aes(x = reorder(as.factor(name), n), y = n)) +
+      geom_col(fill = sdg_colors[as.character(input$Primary.SDG)]) +
       coord_flip() +
-      labs(
-           x = "Scholar",
-           ) +
+      labs(x = "Scholar") +
       theme_minimal(base_size = 20) +
       theme(text = element_text(size = 20, face = "bold", family = "sans"),
             axis.title.x = element_blank())
   })
+  
   output$top_authors_keywords_title <- renderText(
     paste0("Scholars by SDG ", input$Primary.SDG)
   )
   output$top_authors_keywords_subtitle <- renderText(
     paste("Ranked by SDG", input$Primary.SDG, "cumulative keyword count across all research products")
   )
+  # output$top_authors_keywords_plot <- renderPlot({
+  #   validate(
+  #     need(input$Primary.SDG != "", label = "SDG"),
+  #     need(input$Division != "", label = "USC School/Unit")
+  #   )
+  #   sdg_col = get_selected_sdg_col(input$Primary.SDG)
+  #   usc_joined %>%
+  #     filter(Division %in% input$Division) %>%
+  #     filter(!!sdg_col != 0) %>%
+  #     group_by(authorID, name) %>%
+  #     summarize(n = sum(!!sdg_col)) %>%
+  #     arrange(desc(n)) %>%
+  #     head(10) %>%
+  #     ggplot(aes(x = reorder(as.factor(name),n), y = n)) +
+  #     geom_col(fill = sdg_colors[as.numeric(input$Primary.SDG)], alpha = 1) +
+  #     coord_flip() +
+  #     labs(
+  #       x = "Scholar",
+  #     ) +
+  #     theme_minimal(base_size = 20) +
+  #     theme(text = element_text(size = 20, face = "bold", family = "sans"),
+  #           axis.title.x = element_blank())
+  # })
+  
   output$top_authors_keywords_plot <- renderPlot({
     validate(
       need(input$Primary.SDG != "", label = "SDG"),
       need(input$Division != "", label = "USC School/Unit")
     )
-    sdg_col = get_selected_sdg_col(input$Primary.SDG)
-    usc_joined %>%
-      filter(Division %in% input$Division) %>%
-      filter(!!sdg_col != 0) %>%
+    author_sdg_kw %>%
+      filter(Division %in% input$Division, sdg_num == as.integer(input$Primary.SDG)) %>%
+      # Count each publication's keyword value once across selected divisions.
+      distinct(authorID, name, pubID, sdg_num, .keep_all = TRUE) %>%
       group_by(authorID, name) %>%
-      summarize(n = sum(!!sdg_col)) %>%
+      summarise(n = sum(val, na.rm = TRUE), .groups = "drop") %>%
       arrange(desc(n)) %>%
       head(10) %>%
-      ggplot(aes(x = reorder(as.factor(name),n), y = n)) +
-      geom_col(fill = sdg_colors[as.numeric(input$Primary.SDG)], alpha = 1) +
+      ggplot(aes(x = reorder(as.factor(name), n), y = n)) +
+      geom_col(fill = sdg_colors[as.character(input$Primary.SDG)]) +
       coord_flip() +
-      labs(
-        x = "Scholar",
-      ) +
+      labs(x = "Scholar") +
       theme_minimal(base_size = 20) +
       theme(text = element_text(size = 20, face = "bold", family = "sans"),
             axis.title.x = element_blank())
   })
+  
   output$top_authors_keywords_axis <- renderUI({
     h3(strong("Number of Keywords"), style = "margin-top: 0px")
   })
@@ -1242,85 +1513,153 @@ server <- function(input, output, session) {
     output$top_authors_axis <- renderUI({
     h3(strong("Number of Research Products"), style = "margin-top: 0px")
   })
+  # output$top_departments_sdg_table <- renderPlot({
+  #   validate(
+  #     need(input$Primary.SDG != "", label = "SDG"),
+  #     need(input$Division != "", label = "USC School/Unit")
+  #   )
+  #   sdg_col = get_selected_sdg_col(input$Primary.SDG)
+  #   usc_joined %>%
+  #     filter(Division %in% input$Division) %>%
+  #     filter(!!sdg_col != 0) %>%
+  #     filter(Department != "") %>%
+  #     filter(Department != "Other") %>%
+  #     count(Department) %>%
+  #     arrange(desc(n)) %>%
+  #     distinct(Department, .keep_all = TRUE) %>%
+  #     head(10) %>%
+  #     mutate(Department = gsub("(Dornsife|Viterbi|Marshall|KSOM)", "", Department)) %>%
+  #     ggplot(aes(x = reorder(as.factor(Department),n), y = n)) +
+  #     geom_col(fill = sdg_colors[as.numeric(input$Primary.SDG)], alpha = 1) +
+  #     coord_flip() +
+  #     scale_x_discrete(labels = label_wrap(40)) + # whole numbers 
+  #     labs(#title = paste0("Departments/Centers/Institutes & Research Products by SDG ", input$Primary.SDG),
+  #          x = "Departments/Centers/Institutes",
+  #          #y = "Number of Research Products "
+  #          ) +
+  #     theme_minimal(base_size = 20) +
+  #     theme(text = element_text(size = 20, face = "bold", family = "sans"),
+  #           axis.title.x = element_blank())
+  # })
+  
   output$top_departments_sdg_table <- renderPlot({
     validate(
       need(input$Primary.SDG != "", label = "SDG"),
       need(input$Division != "", label = "USC School/Unit")
     )
-    sdg_col = get_selected_sdg_col(input$Primary.SDG)
-    usc_joined %>%
-      filter(Division %in% input$Division) %>%
-      filter(!!sdg_col != 0) %>%
-      filter(Department != "") %>%
-      filter(Department != "Other") %>%
-      count(Department) %>%
+    dept_sdg_pubcounts %>%
+      filter(Division %in% input$Division, sdg_num == as.integer(input$Primary.SDG)) %>%
+      group_by(Department) %>%
+      summarise(n = sum(n_pubs), .groups = "drop") %>%
       arrange(desc(n)) %>%
-      distinct(Department, .keep_all = TRUE) %>%
       head(10) %>%
-      mutate(Department = gsub("(Dornsife|Viterbi|Marshall|KSOM)", "", Department)) %>%
-      ggplot(aes(x = reorder(as.factor(Department),n), y = n)) +
-      geom_col(fill = sdg_colors[as.numeric(input$Primary.SDG)], alpha = 1) +
+      ggplot(aes(x = reorder(as.factor(Department), n), y = n)) +
+      geom_col(fill = sdg_colors[as.character(input$Primary.SDG)]) +
       coord_flip() +
-      scale_x_discrete(labels = label_wrap(40)) + # whole numbers 
-      labs(#title = paste0("Departments/Centers/Institutes & Research Products by SDG ", input$Primary.SDG),
-           x = "Departments/Centers/Institutes",
-           #y = "Number of Research Products "
-           ) +
+      scale_x_discrete(labels = label_wrap(40)) +
+      labs(x = "Departments/Centers/Institutes") +
       theme_minimal(base_size = 20) +
       theme(text = element_text(size = 20, face = "bold", family = "sans"),
             axis.title.x = element_blank())
   })
   
-  output$pub_by_school_sdg_table <- DT::renderDataTable(
-    {
-      validate(
-        need(input$Primary.SDG != "", label = "SDG"),
-        need(input$Division != "", label = "USC School/Unit")
-      )
-      sdg_col = get_selected_sdg_col(input$Primary.SDG)
-      temp <- usc_joined %>%
-        filter(Division %in% input$Division) %>%
-        filter(!!sdg_col != 0)
-      temp <- temp %>%
-        arrange(desc(!!sdg_col)) %>%
-        group_by(pubID) %>%
-        mutate(Authors = paste(sort(unique(name)), collapse = "; "),
-               Divisions = paste(sort(unique(Division)), collapse = "; ")) %>%
-        ungroup() %>%
-        select(sustainability_category, all_SDGs, Titles, Authors, Divisions, Year, Source.title, Cited.by, Abstract, Open.Access) %>%
-        distinct() %>%
-        head(2000)
-      # first 50 words
-      temp$Abstract <- sapply(temp$Abstract, function(x) {
-        if (length(strsplit(x, " ")[[1]]) < 50) {
-          x
-        } else {
-          paste0(paste(strsplit(x, " ")[[1]][1:50], collapse = " "), "...")
-        }
-      })
-      temp
-    }, rownames = FALSE, escape = FALSE, options =
-      list(
-           columnDefs = list(list(width = '200px', targets = c(2)),
-                             list(width = '100px', targets = c(0,9)),
-                             list(width = '800px', targets = c(8))), # 0-indexed
-           autoWidth = TRUE,
-           scrollX = TRUE,
-           columns = list(
-             list(title = 'Sustainability Category'),
-             list(title = 'SDGs'),
-             list(title = 'Title'),
-             list(title = 'USC Scholars'),
-             list(title = 'Division'),
-             NULL,
-             list(title = 'Source'),
-             list(title = 'Cited by'),
-             NULL,
-             list(title = 'Open Access')
-           )
-      )
+  # output$pub_by_school_sdg_table <- DT::renderDataTable(
+  #   {
+  #     validate(
+  #       need(input$Primary.SDG != "", label = "SDG"),
+  #       need(input$Division != "", label = "USC School/Unit")
+  #     )
+  #     sdg_col = get_selected_sdg_col(input$Primary.SDG)
+  #     temp <- usc_joined %>%
+  #       filter(Division %in% input$Division) %>%
+  #       filter(!!sdg_col != 0)
+  #     temp <- temp %>%
+  #       arrange(desc(!!sdg_col)) %>%
+  #       group_by(pubID) %>%
+  #       mutate(Authors = paste(sort(unique(name)), collapse = "; "),
+  #              Divisions = paste(sort(unique(Division)), collapse = "; ")) %>%
+  #       ungroup() %>%
+  #       select(sustainability_category, all_SDGs, Titles, Authors, Divisions, Year, Source.title, Cited.by, Abstract, Open.Access) %>%
+  #       distinct() %>%
+  #       head(2000)
+  #     # first 50 words
+  #     temp$Abstract <- sapply(temp$Abstract, function(x) {
+  #       if (length(strsplit(x, " ")[[1]]) < 50) {
+  #         x
+  #       } else {
+  #         paste0(paste(strsplit(x, " ")[[1]][1:50], collapse = " "), "...")
+  #       }
+  #     })
+  #     temp
+  #   }, rownames = FALSE, escape = FALSE, options =
+  #     list(
+  #          columnDefs = list(list(width = '200px', targets = c(2)),
+  #                            list(width = '100px', targets = c(0,9)),
+  #                            list(width = '800px', targets = c(8))), # 0-indexed
+  #          autoWidth = TRUE,
+  #          scrollX = TRUE,
+  #          columns = list(
+  #            list(title = 'Sustainability Category'),
+  #            list(title = 'SDGs'),
+  #            list(title = 'Title'),
+  #            list(title = 'USC Scholars'),
+  #            list(title = 'Division'),
+  #            NULL,
+  #            list(title = 'Source'),
+  #            list(title = 'Cited by'),
+  #            NULL,
+  #            list(title = 'Open Access')
+  #          )
+  #     )
+  # )
+  
+  output$pub_by_school_sdg_table <- DT::renderDataTable({
+    validate(
+      need(input$Primary.SDG != "", label = "SDG"),
+      need(input$Division != "", label = "USC School/Unit")
+    )
+    sdg_col <- if (as.numeric(input$Primary.SDG) < 10) {
+      paste0("SDG.0", input$Primary.SDG)
+    } else {
+      paste0("SDG.", input$Primary.SDG)
+    }
+    pubs_sdg_div %>%
+      filter(Division %in% input$Division) %>%
+      filter(.data[[sdg_col]] != 0) %>%
+      
+      # Show the unique keyword count for the SDG selected by the user.
+      mutate(SDG_Keyword_Count = as.integer(.data[[sdg_col]])) %>%
+      
+      # List the newest products first, then rank equal-year products
+      # by their selected SDG keyword count.
+      arrange(desc(Year), desc(SDG_Keyword_Count)) %>%
+      select(sustainability_category, all_SDGs, SDG_Keyword_Count, Titles, Authors, Divisions,
+             Year, Source.title, Cited.by, Abstract, Open.Access) %>%
+      distinct() %>%
+      head(2000)
+  }, rownames = FALSE, escape = FALSE,
+  options = list(
+    columnDefs = list(list(width = '200px', targets = c(2)),
+                      list(width = '100px', targets = c(0,10)),
+                      list(width = '800px', targets = c(9))),
+    autoWidth = TRUE,
+    scrollX = TRUE,
+    columns = list(
+      list(title = 'Sustainability Category'),
+      list(title = 'SDGs'),
+      list(title = 'SDG Keyword Count'),
+      list(title = 'Title'),
+      list(title = 'USC Scholars'),
+      list(title = 'Division'),
+      NULL,
+      list(title = 'Source'),
+      list(title = 'Cited by'),
+      NULL,
+      list(title = 'Open Access')
+    )
   )
-
+  )
+  
   # tab 6
   observeEvent(
     input$school, ignoreNULL = FALSE,
@@ -1330,7 +1669,26 @@ server <- function(input, output, session) {
       # } else {
       #   selected_authors = usc_authors %>% filter(usc_authors$Division == input$school)
       # }
-      selected_authors = usc_authors
+      # selected_authors = usc_authors
+      # The preprocessing step already removed historical-only authors.
+      selected_authors <- usc_authors %>%
+        group_by(authorID, fullname) %>%
+        
+        summarise(
+          firstname = first(firstname),
+          lastname = first(lastname),
+          
+          # Keep every unique department, including "Other",
+          # because "Other" may represent a separate school or division.
+          Department = paste(
+            sort(unique(Department[
+              !is.na(Department) & trimws(Department) != ""
+            ])),
+            collapse = ", "
+          ),
+          
+          .groups = "drop"
+        )
 
       # For each author, build a search label that includes nickname variants
       # e.g. "Joseph Árvai [joe arvai, joey arvai]"
@@ -1341,17 +1699,19 @@ server <- function(input, output, session) {
         if (is.null(nicks) || length(nicks) == 0) return("")
         paste(paste(nicks, tolower(lastname)), collapse = ", ")
       }, selected_authors$firstname, selected_authors$lastname)
-
-      labels <- ifelse(
-        nick_suffix != "",
-        paste0(selected_authors$fullname, " [", nick_suffix, "]"),
-        selected_authors$fullname
-      )
+      
+      # labels <- ifelse(
+      #   nick_suffix != "",
+      #   paste0(selected_authors$fullname, " [", nick_suffix, "]"),
+      #   selected_authors$fullname
+      # )
+      
+      labels <- paste0(selected_authors$fullname, " — ", selected_authors$Department)
 
       authorChoices = setNames(selected_authors$authorID, labels)
       updateSelectizeInput(session,
                            "author",
-                           server = FALSE,
+                           server = TRUE,
                            choices = authorChoices[sort(names(authorChoices))],
                            selected = character(0),
                            options = list(
@@ -1398,112 +1758,295 @@ server <- function(input, output, session) {
           )
     )
 
-  output$author_sdg_barplot <- renderPlotly(
-    {
-      validate(
-        need(input$author != "", label = "USC Author")
-      )
-      p <- usc_joined %>% 
-        filter(usc_joined$authorID == input$author) %>%
-        distinct(pubID, .keep_all = TRUE) %>%
-        mutate(across(starts_with("SDG"), ~replace(., . != 0, 1))) %>%
-        summarise(across(starts_with("SDG"), sum, na.rm = TRUE)) %>% 
-        t %>% 
-        as.data.frame() %>% 
-        ggplot(aes(x = as.factor(1:17), y = V1, fill = factor(1:17),
-                   text = paste0("n = ", V1))) + 
-        geom_col() + 
-        scale_color_manual(values = sdg_colors, aesthetics = "fill") +
-        scale_y_continuous(breaks = function(x) unique(floor(pretty(seq(min(x), (max(x) + 1) * 1.1))))) +
-        labs(title = names(input$author),
-             x = "SDG",
-             y = "Count",
-             fill = "SDG") +
-        theme_minimal(base_size = 20) +
-        theme(legend.position = "none",
-              text = element_text(size = 20, face = "bold", family = "sans"))
-      ggplotly(p, tooltip = "text")
-    }
-  )
+  # output$author_sdg_barplot <- renderPlotly(
+  #   {
+  #     validate(
+  #       need(input$author != "", label = "USC Author")
+  #     )
+  #     p <- usc_joined %>% 
+  #       filter(usc_joined$authorID == input$author) %>%
+  #       distinct(pubID, .keep_all = TRUE) %>%
+  #       mutate(across(starts_with("SDG"), ~replace(., . != 0, 1))) %>%
+  #       summarise(across(starts_with("SDG"), sum, na.rm = TRUE)) %>% 
+  #       t %>% 
+  #       as.data.frame() %>% 
+  #       ggplot(aes(x = as.factor(1:17), y = V1, fill = factor(1:17),
+  #                  text = paste0("n = ", V1))) + 
+  #       geom_col() + 
+  #       scale_color_manual(values = sdg_colors, aesthetics = "fill") +
+  #       scale_y_continuous(breaks = function(x) unique(floor(pretty(seq(min(x), (max(x) + 1) * 1.1))))) +
+  #       labs(title = names(input$author),
+  #            x = "SDG",
+  #            y = "Count",
+  #            fill = "SDG") +
+  #       theme_minimal(base_size = 20) +
+  #       theme(legend.position = "none",
+  #             text = element_text(size = 20, face = "bold", family = "sans"))
+  #     ggplotly(p, tooltip = "text")
+  #   }
+  # )
+  
+  output$author_sdg_barplot <- renderPlotly({
+    validate(need(input$author != "", label = "USC Author"))
+    
+    row <- author_sdg_bar %>% filter(authorID == input$author)
+    if (nrow(row) == 0) return(NULL)
+    
+    sdg_cols <- paste0("SDG.", sprintf("%02d", 1:17))
+    df <- data.frame(
+      sdg = factor(1:17),
+      n   = as.integer(row[1, sdg_cols])
+    )
+    
+    p <- ggplot(df, aes(x = sdg, y = n, fill = sdg,
+                        text = paste0("n = ", n))) +
+      geom_col() +
+      scale_fill_manual(values = sdg_colors) +
+      scale_y_continuous(breaks = function(x)
+        unique(floor(pretty(seq(min(x), (max(x) + 1) * 1.1))))) +
+      labs(x = "SDG", y = "Count", fill = "SDG") +
+      theme_minimal(base_size = 20) +
+      theme(legend.position = "none",
+            text = element_text(size = 20, face = "bold", family = "sans"))
+    
+    ggplotly(p, tooltip = "text")
+  })
 
-  output$author_pub_table <- DT::renderDataTable(
-    {
-      print(input$author)
-      validate(
-        need(input$author != "", label = "USC Author")
-      )
-      usc_joined %>%
-        filter(usc_joined$authorID == input$author) %>%
-        select(all_SDGs, Titles, Year, url) %>%
-        distinct() %>%
-        arrange(desc(Year))
+  # output$author_pub_table <- DT::renderDataTable(
+  #   {
+  #     print(input$author)
+  #     validate(
+  #       need(input$author != "", label = "USC Author")
+  #     )
+  #     usc_joined %>%
+  #       filter(usc_joined$authorID == input$author) %>%
+  #       select(all_SDGs, Titles, Year, url) %>%
+  #       distinct() %>%
+  #       arrange(desc(Year))
+  # }, rownames = FALSE, escape = FALSE,
+  # options = list(
+  #   columnDefs = list(list(width = '500px', targets = c(1)) # 0-indexed
+  #                     # list(width = '100px', targets = c(0,2,3))
+  #                     ), 
+  #   autoWidth = TRUE,
+  #   scrollX = TRUE,
+  #   columns = list(
+  #     list(title = "SDGs"),
+  #     list(title = "Title"),
+  #     NULL,
+  #     list(title = "URL")
+  #   )
+  # ))
+  
+  output$author_pub_table <- DT::renderDataTable({
+    validate(need(input$author != "", label = "USC Author"))
+    
+    author_pubs %>%
+      filter(authorID == input$author) %>%
+      select(all_SDGs, Titles, Year, url) %>%
+      distinct() %>%
+      arrange(desc(Year))
   }, rownames = FALSE, escape = FALSE,
   options = list(
-    columnDefs = list(list(width = '500px', targets = c(1)) # 0-indexed
-                      # list(width = '100px', targets = c(0,2,3))
-                      ), 
+    columnDefs = list(list(width = '500px', targets = c(1))),
     autoWidth = TRUE,
     scrollX = TRUE,
     columns = list(
-      list(title = "SDGs"),
-      list(title = "Title"),
+      list(title = 'SDGs'),
+      list(title = 'Title'),
       NULL,
-      list(title = "URL")
+      list(title = 'URL')
     )
-  ))
+  )
+  )
   
   # tab 8
-  output$dei_table <- DT::renderDataTable(
-    {
-      dei_joined$Titles <- paste0("<a href='", dei_joined$Link, "' target='_blank'>", dei_joined$Titles, "</a>")
-      # first 50 words
-      dei_joined$Abstract <- sapply(dei_joined$Abstract, function(x) {
-        if (length(strsplit(x, " ")[[1]]) < 50) {
-          x
-        } else {
-          paste0(paste(strsplit(x, " ")[[1]][1:50], collapse = " "), "...")
-        }
-      })
-      dei_joined %>%
-        group_by(pubID) %>%
-        mutate(Authors = paste(sort(unique(name)), collapse = "; "),
-               Divisions = paste(sort(unique(Div)), collapse = "; ")) -> dei_joined
-      # missing source
-      dei_joined[, c("DEI_3.3_keywords", "sustainability_category", "all_SDGs", "Titles", "Authors", "Divisions", "Year", "Source.title", "Cited.by", "Abstract", "Open.Access")] %>% distinct()
-    }, rownames = FALSE, escape = FALSE, #extensions = 'Buttons', class = 'display',
-    # sort by sustainability focused first
-    # author before title
-    options = list(
-      columnDefs = list(list(width = '200px', targets = c(3)),
-                        list(width = '100px', targets = c(0,1,10)),
-                        list(width = '800px', targets = c(9))), # 0-indexed
-      autoWidth = TRUE,
-      scrollX = TRUE,
-      columns = list(
-        list(title = 'Assignment Earth 3.3 Keywords'),
-        list(title = 'Sustainability Category'),
-        list(title = 'SDGs'),
-        list(title = 'Title'),
-        list(title = 'USC Scholars'),
-        list(title = 'Division'),
-        NULL,
-        list(title = 'Source'),
-        list(title = 'Cited by'),
-        NULL,
-        list(title = 'Open Access')
-      )
+  # output$dei_table <- DT::renderDataTable(
+  #   {
+  #     dei_joined$Titles <- paste0("<a href='", dei_joined$Link, "' target='_blank'>", dei_joined$Titles, "</a>")
+  #     # first 50 words
+  #     dei_joined$Abstract <- sapply(dei_joined$Abstract, function(x) {
+  #       if (length(strsplit(x, " ")[[1]]) < 50) {
+  #         x
+  #       } else {
+  #         paste0(paste(strsplit(x, " ")[[1]][1:50], collapse = " "), "...")
+  #       }
+  #     })
+  #     dei_joined %>%
+  #       group_by(pubID) %>%
+  #       mutate(Authors = paste(sort(unique(name)), collapse = "; "),
+  #              Divisions = paste(sort(unique(Div)), collapse = "; ")) -> dei_joined
+  #     # missing source
+  #     dei_joined[, c("DEI_3.3_keywords", "sustainability_category", "all_SDGs", "Titles", "Authors", "Divisions", "Year", "Source.title", "Cited.by", "Abstract", "Open.Access")] %>% distinct()
+  #   }, rownames = FALSE, escape = FALSE, #extensions = 'Buttons', class = 'display',
+  #   # sort by sustainability focused first
+  #   # author before title
+  #   options = list(
+  #     columnDefs = list(list(width = '200px', targets = c(3)),
+  #                       list(width = '100px', targets = c(0,1,10)),
+  #                       list(width = '800px', targets = c(9))), # 0-indexed
+  #     autoWidth = TRUE,
+  #     scrollX = TRUE,
+  #     columns = list(
+  #       list(title = 'Assignment Earth 3.3 Keywords'),
+  #       list(title = 'Sustainability Category'),
+  #       list(title = 'SDGs'),
+  #       list(title = 'Title'),
+  #       list(title = 'USC Scholars'),
+  #       list(title = 'Division'),
+  #       NULL,
+  #       list(title = 'Source'),
+  #       list(title = 'Cited by'),
+  #       NULL,
+  #       list(title = 'Open Access')
+  #     )
       # buttons = list('pageLength',
       #   list(extend = 'collection', 
       #        buttons = c('csv', 'excel', 'pdf'),
       #        text = 'Download')),
       # dom = 'Bfrtip'
+  #   )
+  # )
+  
+#   output$dei_table <- DT::renderDataTable({
+#     dei_table_precomp
+#   }, rownames = FALSE, escape = FALSE,
+#   options = list(
+#     columnDefs = list(list(width = '200px', targets = c(3)),
+#                       list(width = '100px', targets = c(0,1,10)),
+#                       list(width = '800px', targets = c(9))),
+#     autoWidth = TRUE,
+#     scrollX = TRUE,
+#     columns = list(
+#       list(title = 'Assignment Earth 3.3 Keywords'),
+#       list(title = 'Sustainability Category'),
+#       list(title = 'SDGs'),
+#       list(title = 'Title'),
+#       list(title = 'USC Scholars'),
+#       list(title = 'Division'),
+#       NULL,
+#       list(title = 'Source'),
+#       list(title = 'Cited by'),
+#       NULL,
+#       list(title = 'Open Access')
+#     )
+#   )
+#   )
+#   
+#   output$download_dei_data <- downloadHandler(
+#     filename = function() {"dei_data.csv"},
+#     content = function(fname){
+#       write.csv(dei_download_precomp, fname, row.names = FALSE)
+#     }
+#   )
+  
+  la_filtered <- reactive({
+    dei_joined %>%
+      filter(
+        sustainability_category %in% input$la_sustainability,
+        Year %in% input$la_year
+      ) %>%
+      mutate(name = str_squish(name))
+  })
+  
+  output$dei_table <- DT::renderDataTable({
+    df <- la_filtered()
+    
+    if (input$la_view_by == "Publications") {
+      df %>%
+        mutate(Titles = paste0("<a href='", Link, "' target='_blank'>", Titles, "</a>")) %>%
+        group_by(pubID) %>%
+        mutate(
+          Authors = paste(sort(unique(name)), collapse = "; "),
+          Divisions = paste(sort(unique(Div)), collapse = "; ")
+        ) %>%
+        ungroup() %>%
+        distinct(pubID, .keep_all = TRUE) %>%
+        select(DEI_3.3_keywords, sustainability_category, all_SDGs, Titles, Authors, Divisions, Year, Source.title, Cited.by, Abstract, Open.Access) %>%
+        rename(
+          "Assignment Earth 3.3 Keywords" = DEI_3.3_keywords,
+          "Sustainability Category" = sustainability_category,
+          "SDGs" = all_SDGs,
+          "Title" = Titles,
+          "USC Scholars" = Authors,
+          "Division" = Divisions,
+          "Source" = Source.title,
+          "Cited by" = Cited.by,
+          "Open Access" = Open.Access
+        )
+    } else {
+      df %>%
+        group_by(name) %>%
+        summarise(
+          "LA Keywords" = paste(sort(unique(unlist(strsplit(DEI_3.3_keywords, ",\\s*")))), collapse = "; "),
+          "SDG Keywords" = paste(sort(unique(unlist(strsplit(all_SDGs, ",\\s*")))), collapse = "; "),
+          "Sustainability-Focused Titles" = paste(unique(Titles[sustainability_category == "Sustainability-Focused"]), collapse = "; "),
+          "Sustainability-Inclusive Titles" = paste(unique(Titles[sustainability_category == "Sustainability-Inclusive"]), collapse = "; "),
+          "SDG-Related Titles" = paste(unique(Titles[sustainability_category == "SDG-Related"]), collapse = "; "),
+          "Not Related Titles" = paste(unique(Titles[sustainability_category == "Not Related"]), collapse = "; "),
+          .groups = "drop"
+        ) %>%
+        rename("Author" = name)
+    }
+  }, rownames = FALSE, escape = FALSE,
+  options = list(
+    autoWidth = TRUE,
+    scrollX = TRUE,
+    language = list(zeroRecords = "No results found"),
+    
+    # Place the explanation below the table controls and above the headers.
+    initComplete = JS(
+      "function(settings, json) {
+      var container = $(this.api().table().container());
+      container.find('.dataTables_filter').after(
+        '<div style=\"clear: both; padding-top: 8px; padding-bottom: 8px; font-style: italic;\">*Publication Titles are separated by &#39;;&#39;</div>'
+      );
+    }"
     )
+  )
   )
   
   output$download_dei_data <- downloadHandler(
     filename = function() {"dei_data.csv"},
-    content = function(fname){
-      write.csv(dei_joined, fname, row.names = FALSE)
+    content = function(fname) {
+      df <- la_filtered()
+      
+      if (input$la_view_by == "Publications") {
+        df %>%
+          group_by(pubID) %>%
+          mutate(
+            Authors = paste(sort(unique(name)), collapse = "; "),
+            Divisions = paste(sort(unique(Div)), collapse = "; ")
+          ) %>%
+          ungroup() %>%
+          distinct(pubID, .keep_all = TRUE) %>%
+          select(DEI_3.3_keywords, sustainability_category, all_SDGs, Titles, Authors, Divisions, Year, Source.title, Cited.by, Abstract, Open.Access, Link, DOI) %>%
+          rename(
+            "Assignment Earth 3.3 Keywords" = DEI_3.3_keywords,
+            "Sustainability Category" = sustainability_category,
+            "SDGs" = all_SDGs,
+            "Title" = Titles,
+            "USC Scholars" = Authors,
+            "Division" = Divisions,
+            "Source" = Source.title,
+            "Cited by" = Cited.by,
+            "Open Access" = Open.Access
+          ) -> out
+      } else {
+        df %>%
+          group_by(name) %>%
+          summarise(
+            "LA Keywords" = paste(sort(unique(unlist(strsplit(DEI_3.3_keywords, ",\\s*")))), collapse = "; "),
+            "SDG Keywords" = paste(sort(unique(unlist(strsplit(all_SDGs, ",\\s*")))), collapse = "; "),
+            "Sustainability-Focused Titles" = paste(unique(Titles[sustainability_category == "Sustainability-Focused"]), collapse = "; "),
+            "Sustainability-Inclusive Titles" = paste(unique(Titles[sustainability_category == "Sustainability-Inclusive"]), collapse = "; "),
+            "SDG-Related Titles" = paste(unique(Titles[sustainability_category == "SDG-Related"]), collapse = "; "),
+            "Not Related Titles" = paste(unique(Titles[sustainability_category == "Not Related"]), collapse = "; "),
+            .groups = "drop"
+          ) %>%
+          rename("Author" = name) -> out
+      }
+      write.csv(out, fname, row.names = FALSE)
     }
   )
 }

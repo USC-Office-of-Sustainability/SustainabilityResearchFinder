@@ -4,9 +4,11 @@ library(dplyr)
 dir.create("summary_output", showWarnings = FALSE)
 
 # --- Config -------------------------------------------------------------------
-# To update the year range, edit these two lines only.
-YEARS        <- 2023:2025                    # full range for all summary outputs
-RECENT_YEARS <- c(2023, 2024, 2025)         # range for the "recent years" breakdowns
+# Automatically uses the 3 most recent years in the data.
+# No manual edits needed when a new year is added to the pipeline.
+all_years    <- sort(unique(read.csv("data_processed/09_pubs_sdg_manual_fixed.csv")$Year))
+YEARS        <- tail(all_years, 3)           # e.g. 2023 2024 2025 → becomes 2024 2025 2026 automatically
+RECENT_YEARS <- tail(all_years, 3)           # same window for "recent years" breakdowns
 
 YEARS_LABEL  <- paste0(min(YEARS), "_", substr(max(YEARS), 3, 4))
 RECENT_LABEL <- paste0(min(RECENT_YEARS), "_", substr(max(RECENT_YEARS), 3, 4))
