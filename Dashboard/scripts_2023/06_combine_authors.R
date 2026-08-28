@@ -142,7 +142,7 @@ firstletter_merge %>%
 # Write candidate pairs for manual review
 write.csv(combine_these_firstletter2,
           row.names = FALSE,
-          "check_usc_authors_firstletter_lastname_combined.csv")
+          "data_manual/check_usc_authors_firstletter_lastname_combined.csv")
 
 # Load manual review results and apply only confirmed merges
 returned_list <- read.csv("data_manual/First_initial_Last_Name_Author_merge_corrected_JH.xlsx - check_usc_authors_firstletter_l.csv")
@@ -207,3 +207,4 @@ usc_authors_n_pub %>%
   summarize(authorIDs = paste(unique(authorID), collapse = ";"),
             hasOther = ifelse(grepl("Other", paste(unique(Dept), collapse = ";")), TRUE, FALSE)) %>%
   filter(hasOther) -> combine_these_firstlast_other
+

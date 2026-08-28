@@ -14,3 +14,4 @@ author_data_corrected <- author_data %>%
   distinct(authorID, Dept, Div, .keep_all = TRUE)  # Remove rows that became identical after renaming
 
 write.csv(author_data_corrected, "data_processed/07_authors_manual_edited.csv", row.names = FALSE)
+

@@ -90,7 +90,7 @@ message("Computing: sdg_totals_by_year.csv ...")
 sdg_by_year <- usc_pubs_sdgs %>%
   binarise_sdgs() %>%
   group_by(Year) %>%
-  summarise(across(starts_with("SDG"), sum, na.rm = TRUE), .groups = "drop")
+  summarise( across(  starts_with("SDG"), function(x) sum(x, na.rm = TRUE)  ), .groups = "drop")
 
 # Pivot to long form: Year | sdg_num | n
 sdg_by_year_long <- sdg_by_year %>%

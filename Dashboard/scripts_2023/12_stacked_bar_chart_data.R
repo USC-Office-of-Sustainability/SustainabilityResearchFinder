@@ -55,4 +55,3 @@ usc_by_dept_sust_cat <- usc_joined %>%
 write.csv(usc_by_dept_sust_cat,
           "shiny_app/12_pubs_by_dept_sust_category.csv",
           row.names = FALSE)
-

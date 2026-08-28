@@ -6,8 +6,8 @@ library(dplyr)
 library(reshape2)
 library(stringr)
 library(stringi)
-library(pluralize)
-
+install.packages("textstem")
+library(textstem)
 # --- Prepare USC PWG keyword system ------------------------------------------
 usc_pwg_keywords <- read.csv("data_raw/USC_PWG-E_Keywords_11_5_24.csv", fileEncoding = "CP1252")
 # Remove problematic character Ê
@@ -92,7 +92,7 @@ environmental_SDGs   <- c("SDG-06", "SDG-07", "SDG-12", "SDG-13", "SDG-14", "SDG
 # animal and animals count as 1 keyword (singularize); takes ~2 min
 hits_sum <- hits %>%
   group_by(document, sdg) %>%
-  summarize(nkeywords = length(unique(singularize(features)))) %>%
+  summarize(nkeywords =  n_distinct(textstem::lemmatize_words(features))) %>%
   filter(nkeywords >= 2) %>%
   dcast(document ~ sdg, fill = 0) %>%
   left_join(

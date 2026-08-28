@@ -20,7 +20,7 @@ NEW_YEAR_FILES <- list(
   list(path = "data_raw/2024_scopus_downloaded_01_01_2025.csv", year = 2024),
   list(path = "data_raw/2025_scopus_downloaded_08_06_2026.csv", year = 2025)
   #list(path = "data_raw/2026_scopus.csv", year = 2026)
-)
+) # need to add this
 
 EXCLUDED_DOC_TYPES <- c("Letter", "Retracted", "Note", "Erratum")
 
@@ -117,3 +117,4 @@ write.csv(final_pubs,
 cat("=== Publications per year ===\n")
 print(table(final_pubs$Year))
 cat("Total:", nrow(final_pubs), "\n")
+

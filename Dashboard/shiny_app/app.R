@@ -1,4 +1,4 @@
-# 3.23.26
+# 8.26.26
 # This is a Shiny web application. You can run the application by clicking
 # the 'Run App' button above.
 #
@@ -6,7 +6,7 @@
 #
 #    http://shiny.rstudio.com/
 
-# IMPORTANT: Before running this app, set your working directory to this
+###### VERY IMPORTANT: Before running this app, set your working directory to this
 # app's folder (the "shiny_app" folder containing this app.R file) on your
 # local computer. In RStudio: Session > Set Working Directory > To Source
 # File Location, or run: setwd("path/to/your/shiny_app")
@@ -171,8 +171,9 @@ ui <- dashboardPage(
         rel="stylesheet",
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
       ),
-      includeHTML("google-analytics.html")
-    ),
+      if (file.exists("google-analytics.html")) {
+        includeHTML("google-analytics.html")
+      } ),
     tabItems(
       tabItem(
         tabName = "1",
@@ -270,7 +271,7 @@ ui <- dashboardPage(
           ),
           fluidRow(
             bootstrapPage(
-              column(6, plotOutput(outputId ="plot3"), br()),
+              column(6, imageOutput(outputId = "plot3", height = "500px"), br()),
               column(6,
                      h2(strong("Count of Research Products* by Year")),
                      h3("*Products include publications, books, conference proceedings, and scholarly reports", style = "margin-top: 0px;"),
@@ -661,8 +662,8 @@ ui <- dashboardPage(
           checkboxGroupInput(
             "la_sustainability",
             "Choose Sustainability Categories",
-            choices = c("Sustainability-Focused", "Sustainability-Inclusive", "SDG-Related", "Not Related"),
-            selected = c("Sustainability-Focused", "Sustainability-Inclusive", "SDG-Related", "Not Related")
+            choices = c("Sustainability-Focused", "Sustainability-Inclusive", "SDG-Related"),
+            selected = c("Sustainability-Focused", "Sustainability-Inclusive", "SDG-Related")
           ),
           checkboxGroupInput(
             "la_year",
@@ -761,17 +762,26 @@ server <- function(input, output, session) {
       theme_minimal(base_size = 20)
   })
   
-  output$plot3 <- renderImage(
-    {
-      validate(
-        need(input$sdg_goal != "", label = "SDG")
-      )
-      # When input$n is 1, filename is ./images/image1.jpeg
-      filename <- normalizePath(file.path("./www",
-                                          paste("sdg", input$sdg_goal, ".png", sep="")))
-      # Return a list containing the filename
-      list(src = filename, height = "100%")
-    }, deleteFile = FALSE)
+  output$plot3 <- renderImage({
+    
+    req(input$sdg_goal)
+    
+    filename <- normalizePath(
+      file.path(
+        "www",
+        paste0("sdg", input$sdg_goal, ".png")
+      ),
+      mustWork = TRUE
+    )
+    
+    list(
+      src = filename,
+      contentType = "image/png",
+      width = "100%",
+      alt = paste("SDG", input$sdg_goal, "word cloud")
+    )
+    
+  }, deleteFile = FALSE)
   
   # tab 3 # stacked bar instead of pie charts
   # output$year_sdg_barplot <- renderPlotly(
@@ -1954,7 +1964,11 @@ server <- function(input, output, session) {
     
     if (input$la_view_by == "Publications") {
       df %>%
-        mutate(Titles = paste0("<a href='", Link, "' target='_blank'>", Titles, "</a>")) %>%
+        mutate(Titles = paste0("<a href='", Link, "' target='_blank'>", Titles, "</a>") ,
+               Abstract = if_else(
+                 str_count(Abstract, boundary("word")) > 15,
+                 paste0(word(Abstract, 1, 15), "..."),
+                 Abstract) )%>%
         group_by(pubID) %>%
         mutate(
           Authors = paste(sort(unique(name)), collapse = "; "),
@@ -2053,3 +2067,4 @@ server <- function(input, output, session) {
 
 # Run the application 
 shinyApp(ui = ui, server = server)
+
