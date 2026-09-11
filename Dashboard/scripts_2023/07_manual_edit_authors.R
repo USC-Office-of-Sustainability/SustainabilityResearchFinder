@@ -7,6 +7,71 @@ usc_bridge <- read.csv("data_processed/06_bridge_name_merged.csv")
 usc_authors <- usc_authors[-which(usc_authors$authorID == "58298252500"), ]
 usc_bridge$authorID[which(usc_bridge$authorID == "58298252500")] <- 7004764268
 
+# --- Merge incorrect "de Smith, Adam J." record into "Smith, Adam J." -------
+
+adam_smith_old_id <- "16416776100"
+adam_smith_new_id <- "58487361600"
+
+# Get the correct name information before changing the old author ID
+adam_smith_correct <- usc_authors %>%
+  filter(as.character(authorID) == adam_smith_new_id) %>%
+  slice(1)
+
+adam_smith_old_rows <- which(
+  as.character(usc_authors$authorID) == adam_smith_old_id
+)
+
+# Move the old author's affiliation rows to the correct author ID
+usc_authors$authorID[adam_smith_old_rows] <- adam_smith_new_id
+
+# Replace the incorrect name fields while retaining all affiliations
+adam_smith_name_columns <- intersect(
+  c(
+    "name",
+    "name_id",
+    "firstname",
+    "lastname",
+    "fullname",
+    "initials",
+    "FirstSearch",
+    "LastSearch",
+    "First",
+    "Last"
+  ),
+  names(usc_authors)
+)
+
+for (column_name in adam_smith_name_columns) {
+  usc_authors[adam_smith_old_rows, column_name] <-
+    adam_smith_correct[[column_name]][1]
+}
+
+# Move all publications from the old ID to the correct ID
+usc_bridge$authorID[
+  as.character(usc_bridge$authorID) == adam_smith_old_id
+] <- adam_smith_new_id
+
+# Remove duplicate rows created by the merge
+usc_authors <- usc_authors %>% distinct()
+usc_bridge <- usc_bridge %>% distinct()
+
+# --- Merge duplicate Gustavo Adolpho Lucas de Carvalho author IDs -----------
+
+gustavo_carvalho_old_id <- "59341297200"
+gustavo_carvalho_new_id <- "59675102000"
+
+# Remove the incorrectly parsed Other/Other author record
+usc_authors <- usc_authors %>%
+  filter(as.character(authorID) != gustavo_carvalho_old_id)
+
+# Transfer its publication to the correct USC Computer Science author ID
+usc_bridge$authorID[
+  !is.na(usc_bridge$authorID) &
+    as.character(usc_bridge$authorID) == gustavo_carvalho_old_id
+] <- gustavo_carvalho_new_id
+
+usc_bridge <- usc_bridge %>% distinct()
+
 # --- Apply manual affiliation fixes from spreadsheet -------------------------
 manual_fix_auth_affiliation <- read.csv("data_manual/manual_fix_auth_affiliation.csv")
 

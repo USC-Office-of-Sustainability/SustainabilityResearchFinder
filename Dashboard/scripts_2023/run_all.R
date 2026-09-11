@@ -5,6 +5,7 @@ script_folder <- "scripts_2023/"
 
 # List of scripts to run in the desired sequence
 scripts <- c(
+  "00_incorporate_daria_keywords.R",
   "01_read_data.R",
   "02_identify_usc_authors.R",
   "03_identify_usc_dept_div.R",
