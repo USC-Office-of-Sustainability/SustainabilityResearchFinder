@@ -9,7 +9,7 @@ library(stringi)
 library(pluralize)
 
 # --- Prepare USC PWG keyword system ------------------------------------------
-usc_pwg_keywords <- read.csv("data_raw/USC_PWG-E_Keywords_11_5_24.csv", fileEncoding = "CP1252")
+usc_pwg_keywords <- read.csv("data_raw/USC_PWG-E_Keywords_with_Daria_additions.csv", fileEncoding = "UTF-8")
 # Remove problematic character Ê
 usc_pwg_keywords$keyword <- gsub('\u00CA', "", usc_pwg_keywords$keyword)
 # Remove entries containing "#" (causes regex errors)
