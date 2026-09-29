@@ -40,8 +40,8 @@ Datafest</a> at USC by Dr. Julie Hopper in the Office of Sustainability
 and five USC students: Alison Chen, Aurora Massari, Bhavya Ramani, Ric
 Xian and Xinyi Zhang. Feedback was provided by the USC PWG Research
 Committee and several new iterations and data processing pipelines have
-been incorporated by Dr. Julie Hopper, Alison Chen and Feiyang Wang
-since.
+been incorporated by Dr. Julie Hopper, Alison Chen, Feiyang Wang and
+Ishita Joshi since.
 
 ## Requirements
 
