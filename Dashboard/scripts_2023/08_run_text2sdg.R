@@ -6,10 +6,12 @@ library(dplyr)
 library(reshape2)
 library(stringr)
 library(stringi)
+library(pluralize)
 install.packages("textstem")
 library(textstem)
+
 # --- Prepare USC PWG keyword system ------------------------------------------
-usc_pwg_keywords <- read.csv("data_raw/USC_PWG-E_Keywords_11_5_24.csv", fileEncoding = "CP1252")
+usc_pwg_keywords <- read.csv("data_raw/USC_PWG-E_Keywords_with_Daria_additions.csv", fileEncoding = "UTF-8")
 # Remove problematic character Ê
 usc_pwg_keywords$keyword <- gsub('\u00CA', "", usc_pwg_keywords$keyword)
 # Remove entries containing "#" (causes regex errors)
@@ -92,7 +94,11 @@ environmental_SDGs   <- c("SDG-06", "SDG-07", "SDG-12", "SDG-13", "SDG-14", "SDG
 # animal and animals count as 1 keyword (singularize); takes ~2 min
 hits_sum <- hits %>%
   group_by(document, sdg) %>%
+<<<<<<< HEAD
+  summarize(nkeywords = n_distinct(textstem::lemmatize_words(features))) %>%
+=======
   summarize(nkeywords =  n_distinct(textstem::lemmatize_words(features))) %>%
+>>>>>>> origin/master
   filter(nkeywords >= 2) %>%
   dcast(document ~ sdg, fill = 0) %>%
   left_join(
@@ -144,17 +150,36 @@ write.csv(hits_sum_link,
 # SDG-Related:              exactly 1 SDG
 usc_sdgs <- read.csv("data_processed/08_pubs_sdg_flags.csv")
 usc_sdgs$num_sdgs <- rowSums(select(usc_sdgs, starts_with("SDG")) != 0)
+# sustainabilityresearch <- usc_sdgs %>%
+#   mutate(
+#     sustainability_category =
+#       case_when(
+#         ((SDG.06 > 0 | SDG.07 > 0 | SDG.12 > 0 | SDG.13 > 0 | SDG.14 > 0 | SDG.15 > 0) &
+#           (SDG.01 > 0 | SDG.02 > 0 | SDG.03 > 0 | SDG.04 > 0 |
+#              SDG.05 > 0 | SDG.08 > 0 |
+#              SDG.09 > 0 | SDG.10 > 0 | SDG.11 > 0 |
+#              SDG.16 > 0 | SDG.17 > 0)) ~ "Sustainability-Focused",
+#         (num_sdgs >= 2) ~ "Sustainability-Inclusive",
+#         (num_sdgs == 1) ~ "SDG-Related"))
 sustainabilityresearch <- usc_sdgs %>%
   mutate(
-    sustainability_category =
-      case_when(
-        (SDG.06 > 0 | SDG.07 > 0 | SDG.12 > 0 | SDG.13 > 0 | SDG.14 > 0 | SDG.15 > 0) &
-          (SDG.01 > 0 | SDG.02 > 0 | SDG.03 > 0 | SDG.04 > 0 |
-             SDG.05 > 0 | SDG.08 > 0 |
-             SDG.09 > 0 | SDG.10 > 0 | SDG.11 > 0 |
-             SDG.16 > 0 | SDG.17 > 0) ~ "Sustainability-Focused",
-        (num_sdgs >= 2) ~ "Sustainability-Inclusive",
-        (num_sdgs == 1) ~ "SDG-Related"))
+    environmental_match =
+      if_any(c(SDG.06, SDG.07, SDG.12, SDG.13, SDG.14, SDG.15),
+             ~ coalesce(.x, 0) > 0),
+    
+    other_match =
+      if_any(c(
+        SDG.01, SDG.02, SDG.03, SDG.04, SDG.05,
+        SDG.08, SDG.09, SDG.10, SDG.11, SDG.16, SDG.17
+      ), ~ coalesce(.x, 0) > 0),
+    
+    sustainability_category = case_when(
+      environmental_match & other_match ~ "Sustainability-Focused",
+      num_sdgs >= 2                    ~ "Sustainability-Inclusive",
+      num_sdgs == 1                    ~ "SDG-Related",
+      TRUE                             ~ "Not SDG-Related"
+    )
+  )
 # everything in here is sustainability inclusive so next line does nothing
 sustainabilityresearch$sustainability_category[is.na(sustainabilityresearch$sustainability_category)] = "Not-Related"
 write.csv(sustainabilityresearch,
