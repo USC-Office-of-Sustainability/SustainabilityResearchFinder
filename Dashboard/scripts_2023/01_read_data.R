@@ -117,3 +117,4 @@ write.csv(final_pubs,
 cat("=== Publications per year ===\n")
 print(table(final_pubs$Year))
 cat("Total:", nrow(final_pubs), "\n")
+

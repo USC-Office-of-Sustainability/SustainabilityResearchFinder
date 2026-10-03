@@ -207,3 +207,4 @@ usc_authors_n_pub %>%
   summarize(authorIDs = paste(unique(authorID), collapse = ";"),
             hasOther = ifelse(grepl("Other", paste(unique(Dept), collapse = ";")), TRUE, FALSE)) %>%
   filter(hasOther) -> combine_these_firstlast_other
+

@@ -94,7 +94,11 @@ environmental_SDGs   <- c("SDG-06", "SDG-07", "SDG-12", "SDG-13", "SDG-14", "SDG
 # animal and animals count as 1 keyword (singularize); takes ~2 min
 hits_sum <- hits %>%
   group_by(document, sdg) %>%
+<<<<<<< HEAD
   summarize(nkeywords = n_distinct(textstem::lemmatize_words(features))) %>%
+=======
+  summarize(nkeywords =  n_distinct(textstem::lemmatize_words(features))) %>%
+>>>>>>> origin/master
   filter(nkeywords >= 2) %>%
   dcast(document ~ sdg, fill = 0) %>%
   left_join(

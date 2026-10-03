@@ -6,7 +6,7 @@
 #
 #    http://shiny.rstudio.com/
 
-# IMPORTANT: Before running this app, set your working directory to this
+###### VERY IMPORTANT: Before running this app, set your working directory to this
 # app's folder (the "shiny_app" folder containing this app.R file) on your
 # local computer. In RStudio: Session > Set Working Directory > To Source
 # File Location, or run: setwd("path/to/your/shiny_app")
@@ -2067,3 +2067,4 @@ server <- function(input, output, session) {
 
 # Run the application 
 shinyApp(ui = ui, server = server)
+

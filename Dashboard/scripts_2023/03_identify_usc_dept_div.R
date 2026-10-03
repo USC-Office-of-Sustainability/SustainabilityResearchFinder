@@ -182,3 +182,4 @@ bridge_table$authorID <- new_authorIDs
 write.csv(bridge_table,
           "data_processed/03_bridge_pubid_authorid.csv",
           row.names = FALSE)
+
